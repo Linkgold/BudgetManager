@@ -1,0 +1,223 @@
+### Categorías
+
+### GET all categories
+GET http://localhost:5000/api/categories
+
+### GET category by id
+GET http://localhost:5000/api/categories/1
+
+### CREATE category
+POST http://localhost:5000/api/categories
+Content-Type: application/json
+
+{
+  "name": "Alimentación",
+  "description": "Gastos de comida y bebidas"
+}
+
+### UPDATE category
+PUT http://localhost:5000/api/categories/1
+Content-Type: application/json
+
+{
+  "name": "Alimentación",
+  "description": "Gastos de comida, bebidas y restaurantes"
+}
+
+### DELETE (Deactivate) category
+DELETE http://localhost:5000/api/categories/1
+
+### ACTIVATE category
+POST http://localhost:5000/api/categories/1/activate
+
+---
+
+### Presupuestos
+
+### GET all budgets
+GET http://localhost:5000/api/budgets
+
+### GET budget by id
+GET http://localhost:5000/api/budgets/1
+
+### GET budgets by category
+GET http://localhost:5000/api/budgets/category/1
+
+### CREATE budget
+POST http://localhost:5000/api/budgets
+Content-Type: application/json
+
+{
+  "monthlyAmount": 500.00,
+  "month": 1,
+  "year": 2024,
+  "categoryId": 1
+}
+
+### UPDATE budget (only amount)
+PUT http://localhost:5000/api/budgets/1
+Content-Type: application/json
+
+{
+  "monthlyAmount": 600.00,
+  "month": 1,
+  "year": 2024,
+  "categoryId": 1
+}
+
+### DELETE budget
+DELETE http://localhost:5000/api/budgets/1
+
+---
+
+### Gastos
+
+### GET all expenses
+GET http://localhost:5000/api/expenses
+
+### GET expense by id
+GET http://localhost:5000/api/expenses/1
+
+### GET expenses by budget
+GET http://localhost:5000/api/expenses/budget/1
+
+### GET expenses by period
+GET http://localhost:5000/api/expenses/by-period/1/2024
+
+### CREATE expense
+POST http://localhost:5000/api/expenses
+Content-Type: application/json
+
+{
+  "description": "Compra en supermercado",
+  "amount": 45.50,
+  "dateTime": "2024-01-15T14:30:00Z",
+  "category": "Alimentación",
+  "notes": "Compra semanal",
+  "budgetId": 1
+}
+
+### CREATE expense without budget
+POST http://localhost:5000/api/expenses
+Content-Type: application/json
+
+{
+  "description": "Gasto adicional",
+  "amount": 25.00,
+  "dateTime": "2024-01-16T10:00:00Z",
+  "category": null,
+  "notes": "Gasto no presupuestado"
+}
+
+### DELETE expense
+DELETE http://localhost:5000/api/expenses/1
+
+---
+
+### Gastos Fijos
+
+### GET all fixed expenses
+GET http://localhost:5000/api/fixedexpenses
+
+### GET fixed expense by id
+GET http://localhost:5000/api/fixedexpenses/1
+
+### GET active fixed expenses
+GET http://localhost:5000/api/fixedexpenses/active
+
+### GET fixed expenses by category
+GET http://localhost:5000/api/fixedexpenses/category/1
+
+### CREATE fixed expense
+POST http://localhost:5000/api/fixedexpenses
+Content-Type: application/json
+
+{
+  "name": "Renta",
+  "amount": 800.00,
+  "chargeMonth": 1,
+  "year": 2024,
+  "chargeDay": 1,
+  "description": "Alquiler del apartamento",
+  "categoryId": null,
+  "budgetId": null
+}
+
+### CREATE fixed expense with category
+POST http://localhost:5000/api/fixedexpenses
+Content-Type: application/json
+
+{
+  "name": "Internet",
+  "amount": 50.00,
+  "chargeMonth": 1,
+  "year": 2024,
+  "chargeDay": 5,
+  "description": "Servicio de internet",
+  "categoryId": 2,
+  "budgetId": null
+}
+
+### UPDATE fixed expense
+PUT http://localhost:5000/api/fixedexpenses/1
+Content-Type: application/json
+
+{
+  "name": "Renta",
+  "amount": 850.00,
+  "chargeMonth": 1,
+  "year": 2024,
+  "chargeDay": 1,
+  "description": "Alquiler del apartamento (actualizado)",
+  "categoryId": null,
+  "budgetId": null
+}
+
+### DELETE (Deactivate) fixed expense
+DELETE http://localhost:5000/api/fixedexpenses/1
+
+### ACTIVATE fixed expense
+POST http://localhost:5000/api/fixedexpenses/1/activate
+
+---
+
+### Prueba Completa de Flujo
+
+### 1. Crear categoría
+POST http://localhost:5000/api/categories
+Content-Type: application/json
+
+{
+  "name": "Transporte",
+  "description": "Gastos de transporte"
+}
+
+### 2. Crear presupuesto para la categoría
+POST http://localhost:5000/api/budgets
+Content-Type: application/json
+
+{
+  "monthlyAmount": 200.00,
+  "month": 1,
+  "year": 2024,
+  "categoryId": 1
+}
+
+### 3. Crear gasto dentro del presupuesto
+POST http://localhost:5000/api/expenses
+Content-Type: application/json
+
+{
+  "description": "Gasolina",
+  "amount": 50.00,
+  "dateTime": "2024-01-15T08:00:00Z",
+  "category": "Transporte",
+  "notes": "Gasolina para el auto",
+  "budgetId": 1
+}
+
+### 4. Ver estado del presupuesto
+GET http://localhost:5000/api/budgets/1
+
+### 5. Ver todos los gastos del presupuesto
+GET http://localhost:5000/api/expenses/budget/1

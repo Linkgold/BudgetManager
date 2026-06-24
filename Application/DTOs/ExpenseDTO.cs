@@ -8,6 +8,27 @@
         public DateTime DateTime { get; set; }
         public string? Category { get; set; }
         public string? Notes { get; set; }
-        public int BudgetId { get; set; }
+        public int? BudgetId { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    public class CreateExpenseDTO
+    {
+        public string Description { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime DateTime { get; set; }
+        public string? Category { get; set; }
+        public string? Notes { get; set; }
+        public int? BudgetId { get; set; }
+    }
+
+    public class UpdateExpenseDTO
+    {
+        public string Description { get; set; }
+        public decimal Amount { get; set; }
+        public DateTime DateTime { get; set; }
+        public string? Category { get; set; }
+        public string? Notes { get; set; }
+        public int? BudgetId { get; set; }
     }
 }

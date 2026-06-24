@@ -21,6 +21,14 @@ namespace Infrastructure.Repositories
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
+        public async Task<List<Budget>> GetAllAsync()
+        {
+            return await _context.Budgets
+                .Include(b => b.Category)
+                .Include(b => b.Expenses)
+                .ToListAsync();
+        }
+
         public async Task<List<Budget>> GetByPeriodAsync(Period period)
         {
             return await _context.Budgets
@@ -43,6 +51,11 @@ namespace Infrastructure.Repositories
         public void Delete(Budget budget)
         {
             _context.Budgets.Remove(budget);
+        }
+
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }
