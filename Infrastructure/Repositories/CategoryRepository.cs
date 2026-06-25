@@ -86,7 +86,7 @@ namespace Infrastructure.Repositories
         {
             if (id <= 0) throw new ArgumentException("Invalid category ID", nameof(id));
 
-            Category? category = await GetByIdAsync(id);
+            Category? category = await _dbSet.FindAsync(id);
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found");
 
             _dbSet.Remove(category);

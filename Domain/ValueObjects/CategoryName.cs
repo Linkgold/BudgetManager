@@ -15,8 +15,8 @@
             if (value.Length > 50)
                 throw new ArgumentException("Category name cannot exceed 50 characters", nameof(value));
 
-            // Normalizar: trim y capitalizar primera letra
-            Value = char.ToUpperInvariant(value.Trim()[0]) + value.Trim().Substring(1).ToLowerInvariant();
+            // Normalizar: trim
+            Value = value.Trim();
         }
 
         public bool Equals(CategoryName other)
