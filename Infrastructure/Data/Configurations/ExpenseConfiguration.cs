@@ -45,10 +45,10 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired();
 
             // Relationships
-            builder.HasOne(e => e.Budget)
+            /*builder.HasOne(e => e.Budget)
                 .WithMany(b => b.Expenses)
                 .HasForeignKey(e => e.BudgetId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade);*/
 
             // Indexes
             builder.HasIndex(e => e.DateTime);

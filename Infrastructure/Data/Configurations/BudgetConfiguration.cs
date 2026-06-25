@@ -49,10 +49,10 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired(false);
 
             // Relationships
-            builder.HasOne(b => b.Category)
+            /*builder.HasOne(b => b.Category)
                 .WithMany(c => c.Budgets)
                 .HasForeignKey(b => b.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict);*/
 
             // Indexes
             builder.HasIndex(b => b.CategoryId);

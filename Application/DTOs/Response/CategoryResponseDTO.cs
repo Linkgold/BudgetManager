@@ -1,0 +1,15 @@
+﻿namespace Application.DTOs.Response
+{
+    /// <summary>
+    /// DTO para devolver información de una categoría
+    /// </summary>
+    public class CategoryResponseDto
+    {
+        public int Id { get; set; }
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public bool IsActive { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
+    }
+}

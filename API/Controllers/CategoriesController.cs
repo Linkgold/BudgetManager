@@ -1,178 +1,175 @@
-using Application.DTOs;
-using Domain.Entities;
-using Infrastructure.Repositories;
+using Application.DTOs.Request;
+using Application.DTOs.Response;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    /// <summary>
+    /// Controlador para gestionar categorías
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class CategoriesController : ControllerBase
+    [Produces("application/json")]
+    public class CategoryController : ControllerBase
     {
-        private readonly CategoryRepository _categoryRepository;
+        private readonly ICategoryService _categoryService;
 
-        public CategoriesController(CategoryRepository categoryRepository)
+        /// <summary>
+        /// Constructor del controlador
+        /// </summary>
+        /// <param name="categoryService">Servicio de categorías</param>
+        public CategoryController(ICategoryService categoryService)
         {
-            _categoryRepository = categoryRepository;
+            _categoryService = categoryService ?? throw new ArgumentNullException(nameof(categoryService));
         }
 
         /// <summary>
         /// Obtiene todas las categorías
         /// </summary>
+        /// <returns>Lista de categorías</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CategoryDTO>>> GetAll()
+        [ProducesResponseType(typeof(List<CategoryResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAll()
         {
-            List<Category> categories = await _categoryRepository.GetAllAsync();
-            List<CategoryDTO> dtos = categories.Select(c => new CategoryDTO
-            {
-                Id = c.Id,
-                Name = c.Name,
-                Description = c.Description,
-                IsActive = c.IsActive,
-                CreatedAt = c.CreatedAt,
-                UpdatedAt = c.UpdatedAt
-            }).ToList();
-
-            return Ok(dtos);
+            List<CategoryResponseDto> categories = await _categoryService.GetAllAsync();
+            return Ok(categories);
         }
 
         /// <summary>
-        /// Obtiene una categoría por ID
+        /// Obtiene una categoría por su ID
         /// </summary>
+        /// <param name="id">ID de la categoría</param>
+        /// <returns>Categoría encontrada</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<CategoryDTO>> GetById(int id)
+        [ProducesResponseType(typeof(CategoryResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetById(int id)
         {
-            Category? category = await _categoryRepository.GetByIdAsync(id);
-            if (category == null)
-                return NotFound(new { message = "Categoría no encontrada" });
+            if (id <= 0) return BadRequest("Invalid category ID");
 
-            CategoryDTO dto = new CategoryDTO
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description,
-                IsActive = category.IsActive,
-                CreatedAt = category.CreatedAt,
-                UpdatedAt = category.UpdatedAt
-            };
+            CategoryResponseDto category = await _categoryService.GetByIdAsync(id);
+            return Ok(category);
+        }
 
-            return Ok(dto);
+        /// <summary>
+        /// Obtiene todas las categorías activas
+        /// </summary>
+        /// <returns>Lista de categorías activas</returns>
+        [HttpGet("active")]
+        [ProducesResponseType(typeof(List<CategoryResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetActive()
+        {
+            List<CategoryResponseDto> categories = await _categoryService.GetActiveCategoriesAsync();
+            return Ok(categories);
+        }
+
+        /// <summary>
+        /// Obtiene una categoría por su nombre
+        /// </summary>
+        /// <param name="name">Nombre de la categoría</param>
+        /// <returns>Categoría encontrada</returns>
+        [HttpGet("byname/{name}")]
+        [ProducesResponseType(typeof(CategoryResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetByName(string name)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return BadRequest("Category name cannot be empty");
+
+            CategoryResponseDto category = await _categoryService.GetByNameAsync(name);
+            return Ok(category);
         }
 
         /// <summary>
         /// Crea una nueva categoría
         /// </summary>
+        /// <param name="request">Datos de la categoría a crear</param>
+        /// <returns>Categoría creada</returns>
         [HttpPost]
-        public async Task<ActionResult<CategoryDTO>> Create([FromBody] CreateCategoryDTO createDto)
+        [ProducesResponseType(typeof(CategoryResponseDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Create([FromBody] CreateCategoryRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (request == null) return BadRequest("Request cannot be null");
 
-            try
-            {
-                Category category = new Category(createDto.Name, createDto.Description);
-                await _categoryRepository.AddAsync(category);
-                await _categoryRepository.SaveChangesAsync();
+            CategoryResponseDto createdCategory = await _categoryService.CreateAsync(request);
 
-                CategoryDTO dto = new CategoryDTO
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    Description = category.Description,
-                    IsActive = category.IsActive,
-                    CreatedAt = category.CreatedAt,
-                    UpdatedAt = category.UpdatedAt
-                };
-
-                return CreatedAtAction(nameof(GetById), new { id = category.Id }, dto);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al crear la categoría", detail = ex.Message });
-            }
+            return CreatedAtAction(nameof(GetById), new { id = createdCategory.Id }, createdCategory);
         }
 
         /// <summary>
         /// Actualiza una categoría existente
         /// </summary>
+        /// <param name="id">ID de la categoría</param>
+        /// <param name="request">Datos a actualizar</param>
+        /// <returns>Categoría actualizada</returns>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryDTO updateDto)
+        [ProducesResponseType(typeof(CategoryResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (id <= 0) return BadRequest("Invalid category ID");
 
-            Category? category = await _categoryRepository.GetByIdAsync(id);
-            if (category == null)
-                return NotFound(new { message = "Categoría no encontrada" });
+            if (request == null) return BadRequest("Request cannot be null");
 
-            try
-            {
-                category.Update(updateDto.Name, updateDto.Description);
-                _categoryRepository.Update(category);
-                await _categoryRepository.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al actualizar la categoría", detail = ex.Message });
-            }
+            CategoryResponseDto updatedCategory = await _categoryService.UpdateAsync(id, request);
+            return Ok(updatedCategory);
         }
 
         /// <summary>
-        /// Desactiva una categoría
+        /// Elimina una categoría
         /// </summary>
+        /// <param name="id">ID de la categoría</param>
+        /// <returns>Sin contenido</returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> Delete(int id)
         {
-            Category? category = await _categoryRepository.GetByIdAsync(id);
-            if (category == null)
-                return NotFound(new { message = "Categoría no encontrada" });
+            if (id <= 0) return BadRequest("Invalid category ID");
 
-            try
-            {
-                category.Deactivate();
-                _categoryRepository.Update(category);
-                await _categoryRepository.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al desactivar la categoría", detail = ex.Message });
-            }
+            await _categoryService.DeleteAsync(id);
+            return NoContent();
         }
 
         /// <summary>
-        /// Activa una categoría
+        /// Verifica si una categoría existe
         /// </summary>
-        [HttpPost("{id}/activate")]
-        public async Task<IActionResult> Activate(int id)
+        /// <param name="id">ID de la categoría</param>
+        /// <returns>True si existe, False si no</returns>
+        [HttpGet("{id}/exists")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Exists(int id)
         {
-            Category? category = await _categoryRepository.GetByIdAsync(id);
-            if (category == null)
-                return NotFound(new { message = "Categoría no encontrada" });
+            if (id <= 0) return BadRequest("Invalid category ID");
 
-            try
-            {
-                category.Activate();
-                _categoryRepository.Update(category);
-                await _categoryRepository.SaveChangesAsync();
+            bool exists = await _categoryService.ExistsAsync(id);
+            return Ok(new { Exists = exists });
+        }
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al activar la categoría", detail = ex.Message });
-            }
+        /// <summary>
+        /// Verifica si una categoría puede ser eliminada
+        /// </summary>
+        /// <param name="id">ID de la categoría</param>
+        /// <returns>True si se puede eliminar, False si no</returns>
+        [HttpGet("{id}/can-delete")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> CanDelete(int id)
+        {
+            if (id <= 0) return BadRequest("Invalid category ID");
+
+            bool canDelete = await _categoryService.CanDeleteAsync(id);
+            return Ok(new { CanDelete = canDelete });
         }
     }
 }

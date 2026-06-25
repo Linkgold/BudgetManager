@@ -2,10 +2,11 @@ using Infrastructure.Data;
 using Domain.Entities;
 using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
+using Domain.Interfaces;
 
 namespace Infrastructure.Repositories
 {
-    public class ExpenseRepository
+    public class ExpenseRepository : IExpenseRepository
     {
         private readonly ApplicationDbContext _context;
 

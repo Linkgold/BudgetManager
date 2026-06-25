@@ -3,6 +3,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data
 {
+    /// <summary>
+    /// Contexto principal de Entity Framework Core
+    /// </summary>
     public class ApplicationDbContext : DbContext
     {
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
@@ -14,8 +17,24 @@ namespace Infrastructure.Data
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
             base.OnModelCreating(modelBuilder);
+            modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
+        }
+
+        /// <summary>
+        /// Método para asegurar que la base de datos está creada
+        /// </summary>
+        public void EnsureDatabaseCreated()
+        {
+            this.Database.EnsureCreated();
+        }
+
+        /// <summary>
+        /// Método para aplicar migraciones pendientes
+        /// </summary>
+        public void MigrateDatabase()
+        {
+            this.Database.Migrate();
         }
     }
 }

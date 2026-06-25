@@ -65,11 +65,11 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            builder.HasOne(fe => fe.Category)
+            /*builder.HasOne(fe => fe.Category)
                 .WithMany(c => c.FixedExpenses)
                 .HasForeignKey(fe => fe.CategoryId)
                 .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.SetNull);*/
 
             // Indexes
             builder.HasIndex(fe => new { fe.ChargeMonth, fe.Year });

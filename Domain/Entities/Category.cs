@@ -1,4 +1,6 @@
-﻿namespace Domain.Entities
+﻿using Domain.ValueObjects;
+
+namespace Domain.Entities
 {
     public class Category
     {
@@ -9,21 +11,11 @@
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
-        // Navigation properties
-        private List<Budget> _budgets = new();
-        public IReadOnlyCollection<Budget> Budgets => _budgets.AsReadOnly();
-
-        private List<FixedExpense> _fixedExpenses = new();
-        public IReadOnlyCollection<FixedExpense> FixedExpenses => _fixedExpenses.AsReadOnly();
-
         private Category() { } // For EF Core
 
         public Category(string name, string? description = null)
         {
-            if (string.IsNullOrWhiteSpace(name))
-                throw new ArgumentException("Name is required", nameof(name));
-
-            Name = name;
+            Name = new CategoryName(name);
             Description = description;
             IsActive = true;
             CreatedAt = DateTime.UtcNow;
@@ -31,14 +23,8 @@
 
         public void Update(string name, string? description = null)
         {
-            Name = name;
+            Name = new CategoryName(name);
             Description = description;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void Deactivate()
-        {
-            IsActive = false;
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -48,9 +34,34 @@
             UpdatedAt = DateTime.UtcNow;
         }
 
+        public void Deactivate()
+        {
+            IsActive = false;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateName(string newName)
+        {
+            Name = new CategoryName(newName);
+            UpdatedAt = DateTime.UtcNow;
+        }
+
+        public void UpdateDescription(string newDescription)
+        {
+            Description = newDescription;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
         public bool CanBeDeleted()
         {
-            return !_budgets.Any() && !_fixedExpenses.Any();
+            // Por ahora siempre true, luego se validará con repositorios
+            return true;
+            //return !_budgets.Any() && !_fixedExpenses.Any();
+        }
+
+        public override string ToString()
+        {
+            return $"Category: {Name} (ID: {Id})";
         }
     }
 }

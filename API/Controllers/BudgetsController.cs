@@ -33,8 +33,6 @@ namespace API.Controllers
                 Year = b.Period.Year,
                 CategoryId = b.CategoryId,
                 CategoryName = b.Category?.Name,
-                TotalSpent = b.GetTotalSpent(),
-                Remaining = b.GetRemaining(),
                 CreatedAt = b.CreatedAt,
                 UpdatedAt = b.UpdatedAt
             }).ToList();
@@ -60,8 +58,6 @@ namespace API.Controllers
                 Year = budget.Period.Year,
                 CategoryId = budget.CategoryId,
                 CategoryName = budget.Category?.Name,
-                TotalSpent = budget.GetTotalSpent(),
-                Remaining = budget.GetRemaining(),
                 CreatedAt = budget.CreatedAt,
                 UpdatedAt = budget.UpdatedAt
             };
@@ -101,8 +97,6 @@ namespace API.Controllers
                     Year = budget.Period.Year,
                     CategoryId = budget.CategoryId,
                     CategoryName = budget.Category?.Name,
-                    TotalSpent = budget.GetTotalSpent(),
-                    Remaining = budget.GetRemaining(),
                     CreatedAt = budget.CreatedAt,
                     UpdatedAt = budget.UpdatedAt
                 };
@@ -191,8 +185,6 @@ namespace API.Controllers
                 Year = b.Period.Year,
                 CategoryId = b.CategoryId,
                 CategoryName = b.Category?.Name,
-                TotalSpent = b.GetTotalSpent(),
-                Remaining = b.GetRemaining(),
                 CreatedAt = b.CreatedAt,
                 UpdatedAt = b.UpdatedAt
             }).ToList();

@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -11,30 +12,31 @@ namespace Infrastructure.Data.Configurations
         {
             builder.ToTable("Categories");
 
-            builder.HasKey(c => c.Id);
+            builder.HasKey(category => category.Id);
 
-            builder.Property(c => c.Name)
+            builder.Property(category => category.Name)
+                .HasConversion(name => name, value => new CategoryName(value))
                 .HasMaxLength(50)
                 .IsRequired();
 
-            builder.Property(c => c.Description)
+            builder.Property(category => category.Description)
                 .HasMaxLength(200)
                 .IsRequired(false);
 
-            builder.Property(c => c.IsActive)
+            builder.Property(category => category.IsActive)
                 .IsRequired();
 
-            builder.Property(c => c.CreatedAt)
+            builder.Property(category => category.CreatedAt)
                 .IsRequired();
 
-            builder.Property(c => c.UpdatedAt)
+            builder.Property(category => category.UpdatedAt)
                 .IsRequired(false);
 
-            builder.HasIndex(c => c.Name).IsUnique();
-            builder.HasIndex(c => c.IsActive);
+            builder.HasIndex(category => category.Name).IsUnique();
+            builder.HasIndex(category => category.IsActive);
 
-            // Property for HasData with Id assignment
-            builder.Property(c => c.Id).ValueGeneratedNever();
+            /*// Property for HasData with Id assignment
+            builder.Property(category => category.Id).ValueGeneratedNever();
 
             // Seed data
             builder.HasData(
@@ -49,7 +51,7 @@ namespace Infrastructure.Data.Configurations
                 new { Id = 9, Name = "Services", Description = "Subscriptions and various services", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = (DateTime?)null },
                 new { Id = 10, Name = "Savings", Description = "Savings and investments", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = (DateTime?)null },
                 new { Id = 11, Name = "Other", Description = "Miscellaneous expenses", IsActive = true, CreatedAt = DateTime.UtcNow, UpdatedAt = (DateTime?)null }
-            );
+            );*/
         }
     }
 }

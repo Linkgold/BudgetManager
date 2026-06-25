@@ -17,7 +17,6 @@ namespace Infrastructure.Repositories
         public async Task<Budget?> GetByIdAsync(int id)
         {
             return await _context.Budgets
-                .Include(b => b.Expenses)
                 .FirstOrDefaultAsync(b => b.Id == id);
         }
 
@@ -25,14 +24,12 @@ namespace Infrastructure.Repositories
         {
             return await _context.Budgets
                 .Include(b => b.Category)
-                .Include(b => b.Expenses)
                 .ToListAsync();
         }
 
         public async Task<List<Budget>> GetByPeriodAsync(Period period)
         {
             return await _context.Budgets
-                .Include(b => b.Expenses)
                 .Where(b => b.Period.Month == period.Month &&
                            b.Period.Year == period.Year)
                 .ToListAsync();

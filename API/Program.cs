@@ -4,47 +4,39 @@ using Microsoft.EntityFrameworkCore;
 
 namespace API
 {
+    /// <summary>
+    /// Punto de entrada principal de la aplicación
+    /// </summary>
     public static class Program
     {
+        /// <summary>
+        /// Método Main - Entry point de la aplicación
+        /// </summary>
+        /// <param name="args">Argumentos de línea de comandos</param>
         public static void Main(string[] args)
         {
-            WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
+            IHostBuilder hostBuilder = CreateHostBuilder(args);
+            IHost host = hostBuilder.Build();
+            host.Run();
+        }
 
-            // Add services to the container
-            builder.Services.AddControllers();
-            builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddSwaggerGen();
+        /// <summary>
+        /// Crea y configura el HostBuilder de la aplicación
+        /// </summary>
+        /// <param name="args">Argumentos de línea de comandos</param>
+        /// <returns>IHostBuilder configurado</returns>
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            IHostBuilder hostBuilder = Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults
+                (
+                    webBuilder =>
+                    {
+                        webBuilder.UseStartup<Startup>();
+                    }
+                );
 
-            // Database configuration
-            builder.Services.AddDbContext<ApplicationDbContext>(options => options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-            // Register repositories
-            builder.Services.AddScoped<BudgetRepository>();
-            builder.Services.AddScoped<CategoryRepository>();
-            builder.Services.AddScoped<ExpenseRepository>();
-            builder.Services.AddScoped<FixedExpenseRepository>();
-
-            WebApplication app = builder.Build();
-
-            // Configure the HTTP request pipeline
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
-
-            app.UseHttpsRedirection();
-            app.UseAuthorization();
-            app.MapControllers();
-
-            // Apply migrations automatically
-            using (IServiceScope scope = app.Services.CreateScope())
-            {
-                ApplicationDbContext dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                dbContext.Database.Migrate();
-            }
-
-            app.Run();
+            return hostBuilder;
         }
     }
 }
