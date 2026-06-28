@@ -35,7 +35,7 @@ namespace Infrastructure.Repositories
         {
             List<Category> categories = await _dbSet
                 .AsNoTracking()
-                .OrderBy(category => category.Name)
+                .OrderBy(category => category.Info.Name)
                 .ToListAsync();
 
             return categories;
@@ -48,7 +48,7 @@ namespace Infrastructure.Repositories
             Category? category = await _dbSet
                 .AsNoTracking()
                 .FirstOrDefaultAsync(category =>
-                    category.Name.ToLower() == name.ToLower());
+                    category.Info.Name.ToLower() == name.ToLower());
 
             return category;
         }
@@ -58,7 +58,7 @@ namespace Infrastructure.Repositories
             List<Category> categories = await _dbSet
                 .AsNoTracking()
                 .Where(category => category.IsActive == true)
-                .OrderBy(category => category.Name)
+                .OrderBy(category => category.Info.Name)
                 .ToListAsync();
 
             return categories;
@@ -112,7 +112,7 @@ namespace Infrastructure.Repositories
 
             bool exists = await _dbSet
                 .AsNoTracking()
-                .AnyAsync(category => category.Name.ToLower() == name.ToLower());
+                .AnyAsync(category => category.Info.Name.ToLower() == name.ToLower());
 
             return exists;
         }

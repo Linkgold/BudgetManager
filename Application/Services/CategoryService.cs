@@ -4,6 +4,7 @@ using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Domain.ValueObjects;
 
 namespace Application.Services
 {
@@ -61,7 +62,7 @@ namespace Application.Services
             if (await _categoryRepository.ExistsByNameAsync(request.Name)) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
 
             // Crear entidad de dominio
-            Category category = new Category(request.Name, request.Description);
+            Category category = new Category(new EntityInfo(request.Name, request.Description));
 
             // Guardar
             await _categoryRepository.AddAsync(category);
@@ -83,7 +84,7 @@ namespace Application.Services
             if (existingCategory != null && existingCategory.Id != id) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
 
             // Actualizar entidad de dominio
-            category.Update(request.Name, request.Description);
+            category.Update(new EntityInfo(request.Name, request.Description));
 
             // Guardar
             await _categoryRepository.UpdateAsync(category);

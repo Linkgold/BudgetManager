@@ -1,5 +1,6 @@
 ﻿using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -33,7 +34,7 @@ namespace Tests.Infrastructure
         public async Task AddAsync_ShouldAddCategoryToDatabase()
         {
             // Arrange
-            Category category = new Category("Prueba", "Descripción de prueba");
+            Category category = new Category(new EntityInfo("Prueba", "Descripción de prueba"));
 
             // Act
             await _repository.AddAsync(category);
@@ -41,8 +42,8 @@ namespace Tests.Infrastructure
             // Assert
             Category retrieved = await _dbContext.Categories.FindAsync(category.Id);
             Assert.NotNull(retrieved);
-            Assert.Equal("Prueba", retrieved.Name);
-            Assert.Equal("Descripción de prueba", retrieved.Description);
+            Assert.Equal("Prueba", retrieved.Info.Name);
+            Assert.Equal("Descripción de prueba", retrieved.Info.Description);
             Assert.True(retrieved.IsActive);
             Assert.NotEqual(default(DateTime), retrieved.CreatedAt);
         }
@@ -53,7 +54,7 @@ namespace Tests.Infrastructure
         public async Task GetByIdAsync_WithExistingId_ReturnsCategory()
         {
             // Arrange
-            Category category = new Category("Existente", null);
+            Category category = new Category(new EntityInfo("Existente", null));
             await _repository.AddAsync(category);
 
             // Act
@@ -62,7 +63,7 @@ namespace Tests.Infrastructure
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(category.Id, retrieved.Id);
-            Assert.Equal("Existente", retrieved.Name);
+            Assert.Equal("Existente", retrieved.Info.Name);
         }
 
         [Fact]
@@ -81,8 +82,8 @@ namespace Tests.Infrastructure
         public async Task GetAllAsync_ReturnsAllCategories()
         {
             // Arrange
-            Category cat1 = new Category("Cat1", null);
-            Category cat2 = new Category("Cat2", null);
+            Category cat1 = new Category(new EntityInfo("Cat1", null));
+            Category cat2 = new Category(new EntityInfo("Cat2", null));
             await _repository.AddAsync(cat1);
             await _repository.AddAsync(cat2);
 
@@ -91,8 +92,8 @@ namespace Tests.Infrastructure
 
             // Assert
             Assert.Equal(2, result.Count);
-            Assert.Contains(result, c => c.Name == "Cat1");
-            Assert.Contains(result, c => c.Name == "Cat2");
+            Assert.Contains(result, c => c.Info.Name == "Cat1");
+            Assert.Contains(result, c => c.Info.Name == "Cat2");
         }
 
         // ==================== TEST: GET BY NAME ====================
@@ -101,7 +102,7 @@ namespace Tests.Infrastructure
         public async Task GetByNameAsync_WithExistingName_ReturnsCategory()
         {
             // Arrange
-            Category category = new Category("NombreUnico", null);
+            Category category = new Category(new EntityInfo("NombreUnico", null));
             await _repository.AddAsync(category);
 
             // Act
@@ -110,7 +111,7 @@ namespace Tests.Infrastructure
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(category.Id, retrieved.Id);
-            Assert.Equal("NombreUnico", retrieved.Name);
+            Assert.Equal("NombreUnico", retrieved.Info.Name);
         }
 
         [Fact]
@@ -129,8 +130,8 @@ namespace Tests.Infrastructure
         public async Task GetActiveCategoriesAsync_ReturnsOnlyActiveCategories()
         {
             // Arrange
-            Category active = new Category("Activa", null);
-            Category inactive = new Category("Inactiva", null);
+            Category active = new Category(new EntityInfo("Activa", null));
+            Category inactive = new Category(new EntityInfo("Inactiva", null));
             inactive.Deactivate(); // Desactivamos
 
             await _repository.AddAsync(active);
@@ -141,7 +142,7 @@ namespace Tests.Infrastructure
 
             // Assert
             Assert.Single(result);
-            Assert.Equal("Activa", result[0].Name);
+            Assert.Equal("Activa", result[0].Info.Name);
         }
 
         // ==================== TEST: UPDATE ====================
@@ -150,11 +151,11 @@ namespace Tests.Infrastructure
         public async Task UpdateAsync_ShouldUpdateCategory()
         {
             // Arrange
-            Category category = new Category("Original", "Descripción original");
+            Category category = new Category(new EntityInfo("Original", "Descripción original"));
             await _repository.AddAsync(category);
 
             // Modificar la entidad
-            category.Update("Modificado", "Nueva descripción");
+            category.Update(new EntityInfo("Modificado", "Nueva descripción"));
 
             // Act
             await _repository.UpdateAsync(category);
@@ -162,8 +163,8 @@ namespace Tests.Infrastructure
             // Assert
             Category updated = await _repository.GetByIdAsync(category.Id);
             Assert.NotNull(updated);
-            Assert.Equal("Modificado", updated.Name);
-            Assert.Equal("Nueva descripción", updated.Description);
+            Assert.Equal("Modificado", updated.Info.Name);
+            Assert.Equal("Nueva descripción", updated.Info.Description);
             Assert.NotNull(updated.UpdatedAt);
         }
 
@@ -173,7 +174,7 @@ namespace Tests.Infrastructure
         public async Task DeleteAsync_ShouldRemoveCategory()
         {
             // Arrange
-            Category category = new Category("Eliminar", null);
+            Category category = new Category(new EntityInfo("Eliminar", null));
             await _repository.AddAsync(category);
             int id = category.Id;
 
@@ -202,7 +203,7 @@ namespace Tests.Infrastructure
         public async Task ExistsAsync_WithExistingId_ReturnsTrue()
         {
             // Arrange
-            Category category = new Category("Existe", null);
+            Category category = new Category(new EntityInfo("Existe", null));
             await _repository.AddAsync(category);
 
             // Act
@@ -228,7 +229,7 @@ namespace Tests.Infrastructure
         public async Task ExistsByNameAsync_WithExistingName_ReturnsTrue()
         {
             // Arrange
-            Category category = new Category("NombreTest", null);
+            Category category = new Category(new EntityInfo("NombreTest", null));
             await _repository.AddAsync(category);
 
             // Act
@@ -254,7 +255,7 @@ namespace Tests.Infrastructure
         public async Task HasExpensesAsync_ShouldReturnFalse_WhenNoExpensesExist()
         {
             // Arrange
-            Category category = new Category("SinGastos", null);
+            Category category = new Category(new EntityInfo("SinGastos", null));
             await _repository.AddAsync(category);
 
             // Act

@@ -12,10 +12,10 @@ namespace Tests.Domain
             string validName = "Alimentación";
 
             // Act
-            CategoryName categoryName = new CategoryName(validName);
+            EntityInfo categoryName = new EntityInfo(validName);
 
             // Assert
-            categoryName.Value.Should().Be("Alimentación");
+            categoryName.Name.Should().Be("Alimentación");
         }
 
         [Theory]
@@ -25,10 +25,10 @@ namespace Tests.Domain
         public void Constructor_WithNullOrWhiteSpace_ThrowsArgumentException(string invalidName)
         {
             // Act
-            Action act = () => new CategoryName(invalidName);
+            Action act = () => new EntityInfo(invalidName);
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("Category name cannot be empty*");
+            act.Should().Throw<ArgumentException>().WithMessage("Name cannot be empty*");
         }
 
         [Fact]
@@ -38,10 +38,10 @@ namespace Tests.Domain
             string shortName = "A";
 
             // Act
-            Action act = () => new CategoryName(shortName);
+            Action act = () => new EntityInfo(shortName);
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("Category name must have at least 2 characters*");
+            act.Should().Throw<ArgumentException>().WithMessage("Name must have at least 2 characters*");
         }
 
         [Fact]
@@ -51,10 +51,10 @@ namespace Tests.Domain
             string longName = new string('x', 51);
 
             // Act
-            Action act = () => new CategoryName(longName);
+            Action act = () => new EntityInfo(longName);
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("Category name cannot exceed 50 characters*");
+            act.Should().Throw<ArgumentException>().WithMessage("Name cannot exceed 50 characters*");
         }
 
         [Fact]
@@ -64,18 +64,18 @@ namespace Tests.Domain
             string emptySpaces = "  Alimentación  ";
 
             // Act
-            CategoryName categoryName = new CategoryName(emptySpaces);
+            EntityInfo categoryName = new EntityInfo(emptySpaces);
 
             // Assert
-            categoryName.Value.Should().Be("Alimentación");
+            categoryName.Name.Should().Be("Alimentación");
         }
 
         [Fact]
         public void Equals_SameValue_ReturnsTrue()
         {
             // Arrange
-            CategoryName name1 = new CategoryName("Comida");
-            CategoryName name2 = new CategoryName("comida"); // Diferente casing
+            EntityInfo name1 = new EntityInfo("Comida");
+            EntityInfo name2 = new EntityInfo("comida"); // Diferente casing
 
             // Act & Assert
             name1.Equals(name2).Should().BeTrue();
@@ -87,8 +87,8 @@ namespace Tests.Domain
         public void Equals_DifferentValue_ReturnsFalse()
         {
             // Arrange
-            CategoryName name1 = new CategoryName("Comida");
-            CategoryName name2 = new CategoryName("Bebida");
+            EntityInfo name1 = new EntityInfo("Comida");
+            EntityInfo name2 = new EntityInfo("Bebida");
 
             // Act & Assert
             name1.Equals(name2).Should().BeFalse();
@@ -100,7 +100,7 @@ namespace Tests.Domain
         public void ImplicitOperator_ReturnsStringValue()
         {
             // Arrange
-            CategoryName categoryName = new CategoryName("Transporte");
+            EntityInfo categoryName = new EntityInfo("Transporte");
 
             // Act
             string stringValue = categoryName; // conversión implícita
@@ -116,17 +116,17 @@ namespace Tests.Domain
             string name = "Salud";
 
             // Act
-            CategoryName categoryName = (CategoryName)name;
+            EntityInfo categoryName = (EntityInfo)name;
 
             // Assert
-            categoryName.Value.Should().Be("Salud");
+            categoryName.Name.Should().Be("Salud");
         }
 
         [Fact]
         public void ToString_ReturnsValue()
         {
             // Arrange
-            CategoryName categoryName = new CategoryName("Entretenimiento");
+            EntityInfo categoryName = new EntityInfo("Entretenimiento");
 
             // Act
             string result = categoryName.ToString();

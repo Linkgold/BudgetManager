@@ -32,7 +32,7 @@ namespace API.Controllers
                 Month = b.Period.Month,
                 Year = b.Period.Year,
                 CategoryId = b.CategoryId,
-                CategoryName = b.Category?.Name,
+                //CategoryName = b.Category?.Name,
                 CreatedAt = b.CreatedAt,
                 UpdatedAt = b.UpdatedAt
             }).ToList();
@@ -57,7 +57,7 @@ namespace API.Controllers
                 Month = budget.Period.Month,
                 Year = budget.Period.Year,
                 CategoryId = budget.CategoryId,
-                CategoryName = budget.Category?.Name,
+                //CategoryName = budget.Category?.Name,
                 CreatedAt = budget.CreatedAt,
                 UpdatedAt = budget.UpdatedAt
             };
@@ -96,7 +96,7 @@ namespace API.Controllers
                     Month = budget.Period.Month,
                     Year = budget.Period.Year,
                     CategoryId = budget.CategoryId,
-                    CategoryName = budget.Category?.Name,
+                    //CategoryName = budget.Category?.Name,
                     CreatedAt = budget.CreatedAt,
                     UpdatedAt = budget.UpdatedAt
                 };
@@ -184,7 +184,7 @@ namespace API.Controllers
                 Month = b.Period.Month,
                 Year = b.Period.Year,
                 CategoryId = b.CategoryId,
-                CategoryName = b.Category?.Name,
+                //CategoryName = b.Category?.Name,
                 CreatedAt = b.CreatedAt,
                 UpdatedAt = b.UpdatedAt
             }).ToList();

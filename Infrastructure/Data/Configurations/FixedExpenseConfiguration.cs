@@ -10,72 +10,98 @@ namespace Infrastructure.Data.Configurations
         {
             builder.ToTable("FixedExpenses");
 
-            builder.HasKey(fe => fe.Id);
+            // Llave primaria
+            builder.HasKey(fixedExpense => fixedExpense.Id);
 
-            builder.Property(fe => fe.Name)
-                .HasMaxLength(100)
-                .IsRequired();
+            builder.Property(fixedExpense => fixedExpense.Id)
+                .ValueGeneratedOnAdd();
 
-            builder.OwnsOne(fe => fe.Amount, money =>
+            // ==================== CONFIGURACIÓN DE ENTITYINFO ====================
+
+            builder.OwnsOne(fixedExpense => fixedExpense.Info, info =>
             {
-                money.Property(m => m.Value)
-                    .HasColumnName("Amount")
-                    .HasPrecision(18, 2)
-                    .IsRequired();
-
-                money.Property(m => m.Currency)
-                    .HasColumnName("Currency")
-                    .HasMaxLength(3)
+                info.Property(i => i.Name)
+                    .HasColumnName("Name")
                     .IsRequired()
+                    .HasMaxLength(50);
+
+                info.Property(i => i.Description)
+                    .HasColumnName("Description")
+                    .HasMaxLength(200)
+                    .IsRequired(false);
+            });
+
+            // ==================== CONFIGURACIÓN DE MONEY ====================
+
+            builder.OwnsOne(fixedExpense => fixedExpense.Amount, amount =>
+            {
+                amount.Property(m => m.Value)
+                    .HasColumnName("Amount")
+                    .IsRequired()
+                    .HasPrecision(18, 2);
+
+                amount.Property(m => m.Currency)
+                    .HasColumnName("Currency")
+                    .IsRequired()
+                    .HasMaxLength(3)
                     .HasDefaultValue("EUR");
             });
 
-            builder.Property(fe => fe.ChargeMonth)
-                .IsRequired();
+            // ==================== CONFIGURACIÓN DE PERIOD ====================
 
-            builder.Property(fe => fe.Year)
-                .IsRequired();
+            builder.OwnsOne(fixedExpense => fixedExpense.ChargePeriod, period =>
+            {
+                period.Property(p => p.Year)
+                    .HasColumnName("ChargeYear")
+                    .IsRequired();
 
-            builder.Property(fe => fe.ChargeDay)
+                period.Property(p => p.Month)
+                    .HasColumnName("ChargeMonth")
+                    .IsRequired();
+            });
+
+            // ==================== PROPIEDADES SIMPLES ====================
+
+            builder.Property(fixedExpense => fixedExpense.IsActive)
+                .HasColumnName("IsActive")
+                .IsRequired()
+                .HasDefaultValue(true);
+
+            builder.Property(fixedExpense => fixedExpense.CreatedAt)
+                .HasColumnName("CreatedAt")
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            builder.Property(fixedExpense => fixedExpense.UpdatedAt)
+                .HasColumnName("UpdatedAt")
                 .IsRequired(false);
 
-            builder.Property(fe => fe.Description)
-                .HasMaxLength(500)
-                .IsRequired(false);
+            // ==================== RELACIONES ====================
 
-            builder.Property(fe => fe.IsActive)
-                .IsRequired();
+            // Relación con Category (Muchos a Uno)
+            builder.HasOne(fixedExpense => fixedExpense.Category)
+                .WithMany() // ← Cuando se implementen las navigation properties en Category, se pondrá: .WithMany(category => category.FixedExpenses)
+                .HasForeignKey(fixedExpense => fixedExpense.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict); // No permitir eliminar una categoría si tiene gastos fijos
 
-            builder.Property(fe => fe.CreatedAt)
-                .IsRequired();
+            // ==================== ÍNDICES ====================
 
-            builder.Property(fe => fe.UpdatedAt)
-                .IsRequired(false);
+            builder.HasIndex(fixedExpense => fixedExpense.CategoryId)
+                .HasDatabaseName("IX_FixedExpenses_CategoryId");
 
-            builder.Property(fe => fe.BudgetId)
-                .IsRequired(false);
+            builder.HasIndex(fixedExpense => new { fixedExpense.CategoryId, fixedExpense.IsActive })
+                .HasDatabaseName("IX_FixedExpenses_CategoryId_IsActive");
 
-            builder.Property(fe => fe.CategoryId)
-                .IsRequired(false);
+            builder.HasIndex(fixedExpense => new { fixedExpense.ChargePeriod.Year, fixedExpense.ChargePeriod.Month })
+                .HasDatabaseName("IX_FixedExpenses_ChargePeriod");
 
-            // Relationships
-            builder.HasOne(fe => fe.Budget)
-                .WithMany()
-                .HasForeignKey(fe => fe.BudgetId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);
-
-            /*builder.HasOne(fe => fe.Category)
-                .WithMany(c => c.FixedExpenses)
-                .HasForeignKey(fe => fe.CategoryId)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.SetNull);*/
-
-            // Indexes
-            builder.HasIndex(fe => new { fe.ChargeMonth, fe.Year });
-            builder.HasIndex(fe => fe.BudgetId);
-            builder.HasIndex(fe => fe.CategoryId);
-            builder.HasIndex(fe => fe.IsActive);
+            // Índice compuesto para búsquedas rápidas por período y categoría
+            builder.HasIndex(fixedExpense => new {
+                fixedExpense.CategoryId,
+                fixedExpense.ChargePeriod.Year,
+                fixedExpense.ChargePeriod.Month,
+                fixedExpense.IsActive
+            }).HasDatabaseName("IX_FixedExpenses_Category_Period_Active");
         }
     }
 }

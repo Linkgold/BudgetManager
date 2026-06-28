@@ -1,12 +1,10 @@
-﻿using Domain.Interfaces.Repositories;
+﻿using Domain.Interfaces;
+using Domain.Interfaces.Repositories;
 using Infrastructure.Data;
 using Infrastructure.Data.Factories;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Infrastructure
 {
@@ -41,6 +39,7 @@ namespace Infrastructure
 
             // Registrar repositorios
             services.AddScoped<ICategoryRepository, CategoryRepository>();
+            services.AddScoped<IFixedExpenseRepository, FixedExpenseRepository>();
 
             return services;
         }

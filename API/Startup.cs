@@ -37,7 +37,7 @@ namespace API
         /// <param name="services">Colección de servicios</param>
         public void ConfigureServices(IServiceCollection services)
         {
-            if (services == null)                throw new ArgumentNullException(nameof(services));
+            if (services == null) throw new ArgumentNullException(nameof(services));
 
             // ==================== INFRASTRUCTURE ====================
             ConfigureInfrastructure(services);
@@ -61,7 +61,7 @@ namespace API
         /// <param name="app">Application Builder</param>
         public void Configure(IApplicationBuilder app)
         {
-            if (app == null)                throw new ArgumentNullException(nameof(app));
+            if (app == null) throw new ArgumentNullException(nameof(app));
 
             // ==================== MIDDLEWARE ====================
 
@@ -129,6 +129,7 @@ namespace API
         {
             // Registrar servicios de aplicación
             services.AddScoped<ICategoryService, CategoryService>();
+            services.AddScoped<IFixedExpenseService, FixedExpenseService>();
 
             // Registrar AutoMapper
             services.AddAutoMapper(typeof(AutoMapperProfile));
@@ -169,7 +170,7 @@ namespace API
             {
                 options.SwaggerDoc
                 (
-                    "v1", 
+                    "v1",
                     new OpenApiInfo
                     {
                         Title = "Budget API",
@@ -201,7 +202,7 @@ namespace API
                 {
                     options.AddPolicy
                     (
-                        "AllowAll", 
+                        "AllowAll",
                         policy =>
                         {
                             policy.AllowAnyOrigin()

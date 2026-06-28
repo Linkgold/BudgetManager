@@ -3,62 +3,57 @@ using Domain.ValueObjects;
 
 namespace Domain.Entities
 {
+    /// <summary>
+    /// Entidad que representa un gasto fijo recurrente (mensual)
+    /// </summary>
     public class FixedExpense
     {
+        // Propiedades
         public int Id { get; private set; }
-        public string Name { get; private set; }
+        public EntityInfo Info { get; private set; }
         public Money Amount { get; private set; }
-        public int ChargeMonth { get; private set; }
-        public int Year { get; private set; }
-        public int? ChargeDay { get; private set; }
-        public string? Description { get; private set; }
+        public Period ChargePeriod { get; private set; }
         public bool IsActive { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
-        public int? BudgetId { get; private set; }
-        public int? CategoryId { get; private set; }
+        // Foreign key
+        public int CategoryId { get; private set; }
 
-        public Budget Budget { get; private set; }
-
+        // Navigation property
         public Category Category { get; private set; }
 
-        private FixedExpense() { } // For EF Core
+        // Constructor privado para EF Core
+        private FixedExpense() { }
 
-        public FixedExpense(string name, Money amount, int chargeMonth, int year, int? chargeDay = null, string? description = null, Category? category = null)
+        // Constructor de dominio
+        public FixedExpense(Category category, EntityInfo info, Money amount, Period chargePeriod)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is required", nameof(name));
+            ArgumentNullException.ThrowIfNull(category);
+            ArgumentNullException.ThrowIfNull(info);
+            ArgumentNullException.ThrowIfNull(amount);
+            ArgumentNullException.ThrowIfNull(chargePeriod);
 
-            if (chargeMonth < 1 || chargeMonth > 12) throw new ArgumentException("Charge month must be between 1 and 12", nameof(chargeMonth));
-
-            Name = name;
-            Amount = amount;
-            ChargeMonth = chargeMonth;
-            Year = year;
-            ChargeDay = chargeDay;
-            Description = description;
             Category = category;
+            CategoryId = category.Id;
+            Info = info;
+            Amount = amount;
+            ChargePeriod = chargePeriod;
             IsActive = true;
             CreatedAt = DateTime.UtcNow;
         }
 
-        public void AssignBudget(Budget budget)
-        {
-            if (!budget.Period.IsSameMonth(new Period(ChargeMonth, Year)))
-                throw new InvalidOperationException("Fixed expense does not match budget period");
+        // ==================== MÉTODOS DE COMPORTAMIENTO ====================
 
-            Budget = budget;
-        }
-
-        public void AssignCategory(Category category)
+        public void Update(EntityInfo info, Money amount, Period chargePeriod)
         {
-            Category = category;
-            UpdatedAt = DateTime.UtcNow;
-        }
+            ArgumentNullException.ThrowIfNull(info);
+            ArgumentNullException.ThrowIfNull(amount);
+            ArgumentNullException.ThrowIfNull(chargePeriod);
 
-        public void Deactivate()
-        {
-            IsActive = false;
+            Info = info;
+            Amount = amount;
+            ChargePeriod = chargePeriod;
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -68,10 +63,33 @@ namespace Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
+        public void Deactivate()
+        {
+            IsActive = false;
+            UpdatedAt = DateTime.UtcNow;
+        }
+
         public void UpdateAmount(Money newAmount)
         {
+            if (newAmount == null) throw new ArgumentNullException(nameof(newAmount));
+
             Amount = newAmount;
             UpdatedAt = DateTime.UtcNow;
         }
+
+        /// <summary>
+        /// Verifica si el gasto fijo está activo para un período específico
+        /// </summary>
+        public bool IsActiveForPeriod(Period period)
+        {
+            ArgumentNullException.ThrowIfNull(period);
+
+            if (!IsActive) return false;
+
+            // El gasto fijo aplica si el período es igual o posterior al de inicio
+            return period.Year > ChargePeriod.Year || (period.Year == ChargePeriod.Year && period.Month >= ChargePeriod.Month);
+        }
+
+        public override string ToString() => $"FixedExpense: {Info.Name} - {Amount:F2} {Amount.Currency} (Desde {ChargePeriod})";
     }
 }

@@ -1,307 +1,310 @@
-using Application.DTOs;
-using Domain.Entities;
-using Domain.ValueObjects;
-using Infrastructure.Repositories;
+using Application.DTOs.Request;
+using Application.DTOs.Response;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
 {
+    /// <summary>
+    /// Controlador para gestionar gastos fijos
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class FixedExpensesController : ControllerBase
+    [Produces("application/json")]
+    public class FixedExpenseController : ControllerBase
     {
-        private readonly FixedExpenseRepository _fixedExpenseRepository;
-        private readonly CategoryRepository _categoryRepository;
-        private readonly BudgetRepository _budgetRepository;
+        private readonly IFixedExpenseService _fixedExpenseService;
 
-        public FixedExpensesController(
-            FixedExpenseRepository fixedExpenseRepository,
-            CategoryRepository categoryRepository,
-            BudgetRepository budgetRepository)
+        /// <summary>
+        /// Constructor del controlador
+        /// </summary>
+        /// <param name="fixedExpenseService">Servicio de gastos fijos</param>
+        public FixedExpenseController(IFixedExpenseService fixedExpenseService)
         {
-            _fixedExpenseRepository = fixedExpenseRepository;
-            _categoryRepository = categoryRepository;
-            _budgetRepository = budgetRepository;
+            ArgumentNullException.ThrowIfNull(fixedExpenseService);
+
+            _fixedExpenseService = fixedExpenseService;
         }
+
+        // ==================== CONSULTAS ====================
 
         /// <summary>
         /// Obtiene todos los gastos fijos
         /// </summary>
+        /// <returns>Lista de gastos fijos</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<FixedExpenseDTO>>> GetAll()
+        [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetAll()
         {
-            List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetAllAsync();
-            List<FixedExpenseDTO> dtos = fixedExpenses.Select(fe => new FixedExpenseDTO
-            {
-                Id = fe.Id,
-                Name = fe.Name,
-                Amount = fe.Amount.Value,
-                ChargeMonth = fe.ChargeMonth,
-                Year = fe.Year,
-                ChargeDay = fe.ChargeDay,
-                Description = fe.Description,
-                IsActive = fe.IsActive,
-                CategoryId = fe.CategoryId,
-                CategoryName = fe.Category?.Name,
-                BudgetId = fe.BudgetId,
-                CreatedAt = fe.CreatedAt,
-                UpdatedAt = fe.UpdatedAt
-            }).ToList();
+            List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetAllAsync();
 
-            return Ok(dtos);
+            return Ok(fixedExpenses);
         }
 
         /// <summary>
-        /// Obtiene un gasto fijo por ID
+        /// Obtiene un gasto fijo por su ID
         /// </summary>
+        /// <param name="id">ID del gasto fijo</param>
+        /// <returns>Gasto fijo encontrado</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<FixedExpenseDTO>> GetById(int id)
+        [ProducesResponseType(typeof(FixedExpenseResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetById(int id)
         {
-            FixedExpense? fixedExpense = await _fixedExpenseRepository.GetByIdAsync(id);
-            if (fixedExpense == null)
-                return NotFound(new { message = "Gasto fijo no encontrado" });
+            if (id <= 0) return BadRequest("Invalid fixed expense ID");
 
-            FixedExpenseDTO dto = new FixedExpenseDTO
-            {
-                Id = fixedExpense.Id,
-                Name = fixedExpense.Name,
-                Amount = fixedExpense.Amount.Value,
-                ChargeMonth = fixedExpense.ChargeMonth,
-                Year = fixedExpense.Year,
-                ChargeDay = fixedExpense.ChargeDay,
-                Description = fixedExpense.Description,
-                IsActive = fixedExpense.IsActive,
-                CategoryId = fixedExpense.CategoryId,
-                CategoryName = fixedExpense.Category?.Name,
-                BudgetId = fixedExpense.BudgetId,
-                CreatedAt = fixedExpense.CreatedAt,
-                UpdatedAt = fixedExpense.UpdatedAt
-            };
+            FixedExpenseResponseDto fixedExpense = await _fixedExpenseService.GetByIdAsync(id);
 
-            return Ok(dto);
+            return Ok(fixedExpense);
         }
+
+        /// <summary>
+        /// Obtiene todos los gastos fijos de una categoría
+        /// </summary>
+        /// <param name="categoryId">ID de la categoría</param>
+        /// <returns>Lista de gastos fijos de la categoría</returns>
+        [HttpGet("by-category/{categoryId}")]
+        [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetByCategory(int categoryId)
+        {
+            if (categoryId <= 0) return BadRequest("Invalid category ID");
+
+            List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetByCategoryIdAsync(categoryId);
+
+            return Ok(fixedExpenses);
+        }
+
+        /// <summary>
+        /// Obtiene todos los gastos fijos activos
+        /// </summary>
+        /// <returns>Lista de gastos fijos activos</returns>
+        [HttpGet("active")]
+        [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetActive()
+        {
+            List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetActiveAsync();
+
+            return Ok(fixedExpenses);
+        }
+
+        /// <summary>
+        /// Obtiene los gastos fijos activos de una categoría
+        /// </summary>
+        /// <param name="categoryId">ID de la categoría</param>
+        /// <returns>Lista de gastos fijos activos de la categoría</returns>
+        [HttpGet("active/by-category/{categoryId}")]
+        [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetActiveByCategory(int categoryId)
+        {
+            if (categoryId <= 0) return BadRequest("Invalid category ID");
+
+            List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetActiveByCategoryIdAsync(categoryId);
+
+            return Ok(fixedExpenses);
+        }
+
+        /// <summary>
+        /// Obtiene los gastos fijos activos para un período específico
+        /// </summary>
+        /// <param name="year">Año</param>
+        /// <param name="month">Mes (1-12)</param>
+        /// <returns>Lista de gastos fijos activos para el período</returns>
+        [HttpGet("active/period")]
+        [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetActiveForPeriod([FromQuery] int year, [FromQuery] int month)
+        {
+            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
+
+            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
+
+            List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetActiveForPeriodAsync(year, month);
+
+            return Ok(fixedExpenses);
+        }
+
+        /// <summary>
+        /// Obtiene los gastos fijos activos para un período y categoría específicos
+        /// </summary>
+        /// <param name="categoryId">ID de la categoría</param>
+        /// <param name="year">Año</param>
+        /// <param name="month">Mes (1-12)</param>
+        /// <returns>Lista de gastos fijos activos para el período y categoría</returns>
+        [HttpGet("active/period/category/{categoryId}")]
+        [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetActiveForPeriodByCategory(int categoryId, [FromQuery] int year, [FromQuery] int month)
+        {
+            if (categoryId <= 0) return BadRequest("Invalid category ID");
+
+            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
+
+            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
+
+            List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetActiveForPeriodByCategoryAsync(categoryId, year, month);
+
+            return Ok(fixedExpenses);
+        }
+
+        /// <summary>
+        /// Obtiene el total de gastos fijos para un período y categoría
+        /// </summary>
+        /// <param name="categoryId">ID de la categoría</param>
+        /// <param name="year">Año</param>
+        /// <param name="month">Mes (1-12)</param>
+        /// <returns>Total de gastos fijos</returns>
+        [HttpGet("total/period/category/{categoryId}")]
+        [ProducesResponseType(typeof(decimal), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetTotalForPeriodByCategory(int categoryId, [FromQuery] int year, [FromQuery] int month)
+        {
+            if (categoryId <= 0) return BadRequest("Invalid category ID");
+
+            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
+
+            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
+
+            decimal total = await _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, year, month);
+
+            return Ok(new { CategoryId = categoryId, Year = year, Month = month, Total = total });
+        }
+
+        // ==================== COMANDOS ====================
 
         /// <summary>
         /// Crea un nuevo gasto fijo
         /// </summary>
+        /// <param name="request">Datos del gasto fijo a crear</param>
+        /// <returns>Gasto fijo creado</returns>
         [HttpPost]
-        public async Task<ActionResult<FixedExpenseDTO>> Create([FromBody] CreateFixedExpenseDTO createDto)
+        [ProducesResponseType(typeof(FixedExpenseResponseDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> Create([FromBody] CreateFixedExpenseRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (request == null) return BadRequest("Request cannot be null");
 
-            try
-            {
-                Category? category = null;
-                if (createDto.CategoryId.HasValue)
-                {
-                    category = await _categoryRepository.GetByIdAsync(createDto.CategoryId.Value);
-                    if (category == null)
-                        return BadRequest(new { message = "Categoría no encontrada" });
-                }
+            FixedExpenseResponseDto createdFixedExpense = await _fixedExpenseService.CreateAsync(request);
 
-                FixedExpense fixedExpense = new FixedExpense(
-                    createDto.Name,
-                    new Money(createDto.Amount),
-                    createDto.ChargeMonth,
-                    createDto.Year,
-                    createDto.ChargeDay,
-                    createDto.Description,
-                    category
-                );
-
-                // If BudgetId is provided, assign the budget
-                if (createDto.BudgetId.HasValue)
-                {
-                    Budget? budget = await _budgetRepository.GetByIdAsync(createDto.BudgetId.Value);
-                    if (budget == null)
-                        return BadRequest(new { message = "Presupuesto no encontrado" });
-
-                    fixedExpense.AssignBudget(budget);
-                }
-
-                await _fixedExpenseRepository.AddAsync(fixedExpense);
-                await _fixedExpenseRepository.SaveChangesAsync();
-
-                FixedExpenseDTO dto = new FixedExpenseDTO
-                {
-                    Id = fixedExpense.Id,
-                    Name = fixedExpense.Name,
-                    Amount = fixedExpense.Amount.Value,
-                    ChargeMonth = fixedExpense.ChargeMonth,
-                    Year = fixedExpense.Year,
-                    ChargeDay = fixedExpense.ChargeDay,
-                    Description = fixedExpense.Description,
-                    IsActive = fixedExpense.IsActive,
-                    CategoryId = fixedExpense.CategoryId,
-                    CategoryName = fixedExpense.Category?.Name,
-                    BudgetId = fixedExpense.BudgetId,
-                    CreatedAt = fixedExpense.CreatedAt,
-                    UpdatedAt = fixedExpense.UpdatedAt
-                };
-
-                return CreatedAtAction(nameof(GetById), new { id = fixedExpense.Id }, dto);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al crear el gasto fijo", detail = ex.Message });
-            }
+            return CreatedAtAction(nameof(GetById), new { id = createdFixedExpense.Id }, createdFixedExpense);
         }
 
         /// <summary>
         /// Actualiza un gasto fijo existente
         /// </summary>
+        /// <param name="id">ID del gasto fijo</param>
+        /// <param name="request">Datos a actualizar</param>
+        /// <returns>Gasto fijo actualizado</returns>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateFixedExpenseDTO updateDto)
+        [ProducesResponseType(typeof(FixedExpenseResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateFixedExpenseRequestDto request)
         {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (id <= 0) return BadRequest("Invalid fixed expense ID");
 
-            var fixedExpense = await _fixedExpenseRepository.GetByIdAsync(id);
-            if (fixedExpense == null)
-                return NotFound(new { message = "Gasto fijo no encontrado" });
+            if (request == null) return BadRequest("Request cannot be null");
 
-            try
-            {
-                Category? category = null;
-                if (updateDto.CategoryId.HasValue)
-                {
-                    category = await _categoryRepository.GetByIdAsync(updateDto.CategoryId.Value);
-                    if (category == null)
-                        return BadRequest(new { message = "Categoría no encontrada" });
+            FixedExpenseResponseDto updatedFixedExpense = await _fixedExpenseService.UpdateAsync(id, request);
 
-                    fixedExpense.AssignCategory(category);
-                }
-
-                fixedExpense.UpdateAmount(new Money(updateDto.Amount));
-
-                _fixedExpenseRepository.Update(fixedExpense);
-                await _fixedExpenseRepository.SaveChangesAsync();
-
-                return NoContent();
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al actualizar el gasto fijo", detail = ex.Message });
-            }
+            return Ok(updatedFixedExpense);
         }
 
         /// <summary>
-        /// Desactiva un gasto fijo
+        /// Elimina un gasto fijo
         /// </summary>
+        /// <param name="id">ID del gasto fijo</param>
+        /// <returns>Sin contenido</returns>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Delete(int id)
         {
-            FixedExpense? fixedExpense = await _fixedExpenseRepository.GetByIdAsync(id);
-            if (fixedExpense == null)
-                return NotFound(new { message = "Gasto fijo no encontrado" });
+            if (id <= 0) return BadRequest("Invalid fixed expense ID");
 
-            try
-            {
-                fixedExpense.Deactivate();
-                _fixedExpenseRepository.Update(fixedExpense);
-                await _fixedExpenseRepository.SaveChangesAsync();
+            await _fixedExpenseService.DeleteAsync(id);
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al desactivar el gasto fijo", detail = ex.Message });
-            }
+            return NoContent();
         }
 
         /// <summary>
         /// Activa un gasto fijo
         /// </summary>
-        [HttpPost("{id}/activate")]
+        /// <param name="id">ID del gasto fijo</param>
+        /// <returns>Sin contenido</returns>
+        [HttpPatch("{id}/activate")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Activate(int id)
         {
-            FixedExpense? fixedExpense = await _fixedExpenseRepository.GetByIdAsync(id);
-            if (fixedExpense == null)
-                return NotFound(new { message = "Gasto fijo no encontrado" });
+            if (id <= 0) return BadRequest("Invalid fixed expense ID");
 
-            try
-            {
-                fixedExpense.Activate();
-                _fixedExpenseRepository.Update(fixedExpense);
-                await _fixedExpenseRepository.SaveChangesAsync();
+            await _fixedExpenseService.ActivateAsync(id);
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al activar el gasto fijo", detail = ex.Message });
-            }
+            return NoContent();
         }
 
         /// <summary>
-        /// Obtiene gastos fijos por categoría
+        /// Desactiva un gasto fijo
         /// </summary>
-        [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult<IEnumerable<FixedExpenseDTO>>> GetByCategory(int categoryId)
+        /// <param name="id">ID del gasto fijo</param>
+        /// <returns>Sin contenido</returns>
+        [HttpPatch("{id}/deactivate")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Deactivate(int id)
         {
-            List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetAllAsync();
-            IEnumerable<FixedExpense> categoryExpenses = fixedExpenses.Where(fe => fe.CategoryId == categoryId);
+            if (id <= 0) return BadRequest("Invalid fixed expense ID");
 
-            List<FixedExpenseDTO> dtos = categoryExpenses.Select(fe => new FixedExpenseDTO
-            {
-                Id = fe.Id,
-                Name = fe.Name,
-                Amount = fe.Amount.Value,
-                ChargeMonth = fe.ChargeMonth,
-                Year = fe.Year,
-                ChargeDay = fe.ChargeDay,
-                Description = fe.Description,
-                IsActive = fe.IsActive,
-                CategoryId = fe.CategoryId,
-                CategoryName = fe.Category?.Name,
-                BudgetId = fe.BudgetId,
-                CreatedAt = fe.CreatedAt,
-                UpdatedAt = fe.UpdatedAt
-            }).ToList();
+            await _fixedExpenseService.DeactivateAsync(id);
 
-            return Ok(dtos);
+            return NoContent();
         }
 
         /// <summary>
-        /// Obtiene gastos fijos activos
+        /// Verifica si un gasto fijo existe
         /// </summary>
-        [HttpGet("active")]
-        public async Task<ActionResult<IEnumerable<FixedExpenseDTO>>> GetActive()
+        /// <param name="id">ID del gasto fijo</param>
+        /// <returns>True si existe, False si no</returns>
+        [HttpGet("{id}/exists")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Exists(int id)
         {
-            List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetAllAsync();
-            IEnumerable<FixedExpense> activeExpenses = fixedExpenses.Where(fe => fe.IsActive);
+            if (id <= 0) return BadRequest("Invalid fixed expense ID");
 
-            List<FixedExpenseDTO> dtos = activeExpenses.Select(fe => new FixedExpenseDTO
-            {
-                Id = fe.Id,
-                Name = fe.Name,
-                Amount = fe.Amount.Value,
-                ChargeMonth = fe.ChargeMonth,
-                Year = fe.Year,
-                ChargeDay = fe.ChargeDay,
-                Description = fe.Description,
-                IsActive = fe.IsActive,
-                CategoryId = fe.CategoryId,
-                CategoryName = fe.Category?.Name,
-                BudgetId = fe.BudgetId,
-                CreatedAt = fe.CreatedAt,
-                UpdatedAt = fe.UpdatedAt
-            }).ToList();
+            bool exists = await _fixedExpenseService.ExistsAsync(id);
 
-            return Ok(dtos);
+            return Ok(new { Exists = exists });
+        }
+
+        /// <summary>
+        /// Verifica si un gasto fijo está activo
+        /// </summary>
+        /// <param name="id">ID del gasto fijo</param>
+        /// <returns>True si está activo, False si no</returns>
+        [HttpGet("{id}/is-active")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> IsActive(int id)
+        {
+            if (id <= 0) return BadRequest("Invalid fixed expense ID");
+
+            bool isActive = await _fixedExpenseService.IsActiveAsync(id);
+
+            return Ok(new { Id = id, IsActive = isActive });
         }
     }
 }

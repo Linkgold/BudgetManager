@@ -14,26 +14,46 @@ namespace Infrastructure.Data.Configurations
 
             builder.HasKey(category => category.Id);
 
-            builder.Property(category => category.Name)
-                .HasConversion(name => name, value => new CategoryName(value))
-                .HasMaxLength(50)
-                .IsRequired();
+            builder.Property(category => category.Id)
+                .ValueGeneratedOnAdd();
 
-            builder.Property(category => category.Description)
-                .HasMaxLength(200)
-                .IsRequired(false);
+            builder.OwnsOne
+            (
+                category => category.Info, 
+                info =>
+                {
+                    info.Property(i => i.Name)
+                        .HasColumnName("Name")
+                        .IsRequired()
+                        .HasMaxLength(50);
+
+                    info.Property(i => i.Description)
+                        .HasColumnName("Description")
+                        .HasMaxLength(500)
+                        .IsRequired(false);
+                }
+            );
 
             builder.Property(category => category.IsActive)
-                .IsRequired();
+                .HasColumnName("IsActive")
+                .IsRequired()
+                .HasDefaultValue(true);
 
             builder.Property(category => category.CreatedAt)
-                .IsRequired();
+                .HasColumnName("CreatedAt")
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
 
             builder.Property(category => category.UpdatedAt)
+                .HasColumnName("UpdatedAt")
                 .IsRequired(false);
 
-            builder.HasIndex(category => category.Name).IsUnique();
-            builder.HasIndex(category => category.IsActive);
+            builder.HasIndex(category => category.Info.Name)
+                .IsUnique()
+                .HasDatabaseName("IX_Categories_Name");
+
+            builder.HasIndex(category => category.IsActive)
+                .HasDatabaseName("IX_Categories_IsActive");
 
             /*// Property for HasData with Id assignment
             builder.Property(category => category.Id).ValueGeneratedNever();

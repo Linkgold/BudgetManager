@@ -1,4 +1,5 @@
 ﻿using Domain.Entities;
+using Domain.ValueObjects;
 using FluentAssertions;
 using System;
 using System.Collections.Generic;
@@ -16,11 +17,11 @@ namespace Tests.Domain
             string description = "Gastos de comida y supermercado";
 
             // Act
-            Category category = new Category(name, description);
+            Category category = new Category(new EntityInfo(name, description));
 
             // Assert
-            category.Name.Should().Be("Alimentación");
-            category.Description.Should().Be(description);
+            category.Info.Name.Should().Be("Alimentación");
+            category.Info.Description.Should().Be(description);
             category.IsActive.Should().BeTrue();
             category.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
             category.UpdatedAt.Should().BeNull();
@@ -30,35 +31,34 @@ namespace Tests.Domain
         public void Constructor_WithValidNameAndNullDescription_CreatesCategory()
         {
             // Act
-            Category category = new Category("Ocio", null);
+            Category category = new Category(new EntityInfo("Ocio", null));
 
             // Assert
-            category.Description.Should().BeNull();
+            category.Info.Description.Should().BeNull();
         }
 
         [Fact]
         public void Constructor_WithInvalidName_ThrowsArgumentException()
         {
             // Act
-            Action act = () => new Category("", "Descripción");
+            Action act = () => new Category(new EntityInfo("", "Descripción"));
 
             // Assert
-            act.Should().Throw<ArgumentException>()
-                .WithMessage("Category name cannot be empty*");
+            act.Should().Throw<ArgumentException>().WithMessage("Category name cannot be empty*");
         }
 
         [Fact]
         public void Update_WithValidData_UpdatesCategory()
         {
             // Arrange
-            Category category = new Category("Viejo nombre", "Vieja descripción");
+            Category category = new Category(new EntityInfo("Viejo nombre", "Vieja descripción"));
 
             // Act
-            category.Update("Nuevo nombre", "Nueva descripción");
+            category.Update(new EntityInfo("Nuevo nombre", "Nueva descripción"));
 
             // Assert
-            category.Name.Should().Be("Nuevo nombre");
-            category.Description.Should().Be("Nueva descripción");
+            category.Info.Name.Should().Be("Nuevo nombre");
+            category.Info.Description.Should().Be("Nueva descripción");
             category.UpdatedAt.Should().NotBeNull();
             category.UpdatedAt.Value.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         }
@@ -67,10 +67,10 @@ namespace Tests.Domain
         public void Update_WithInvalidName_ThrowsArgumentException()
         {
             // Arrange
-            Category category = new Category("Válido", "Descripción");
+            Category category = new Category(new EntityInfo("Válido", "Descripción"));
 
             // Act
-            Action act = () => category.Update("", "Nueva descripción");
+            Action act = () => category.Update(new EntityInfo("", "Nueva descripción"));
 
             // Assert
             act.Should().Throw<ArgumentException>()
@@ -81,7 +81,7 @@ namespace Tests.Domain
         public void Activate_WhenInactive_SetsActiveTrueAndUpdatesTimestamp()
         {
             // Arrange
-            Category category = new Category("Inactiva", "Descripción");
+            Category category = new Category(new EntityInfo("Inactiva", "Descripción"));
             category.Deactivate(); // Ponemos inactiva
 
             // Act
@@ -96,7 +96,7 @@ namespace Tests.Domain
         public void Deactivate_WhenActive_SetsActiveFalseAndUpdatesTimestamp()
         {
             // Arrange
-            Category category = new Category("Activa", "Descripción");
+            Category category = new Category(new EntityInfo("Activa", "Descripción"));
 
             // Act
             category.Deactivate();
@@ -107,66 +107,10 @@ namespace Tests.Domain
         }
 
         [Fact]
-        public void UpdateName_WithValidName_UpdatesNameAndTimestamp()
-        {
-            // Arrange
-            Category category = new Category("Antiguo", "Descripción");
-
-            // Act
-            category.UpdateName("Nuevo nombre");
-
-            // Assert
-            category.Name.Should().Be("Nuevo nombre");
-            category.UpdatedAt.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void UpdateName_WithInvalidName_ThrowsArgumentException()
-        {
-            // Arrange
-            Category category = new Category("Válido", "Descripción");
-
-            // Act
-            Action act = () => category.UpdateName("");
-
-            // Assert
-            act.Should().Throw<ArgumentException>()
-                .WithMessage("Category name cannot be empty*");
-        }
-
-        [Fact]
-        public void UpdateDescription_WithValidDescription_UpdatesDescriptionAndTimestamp()
-        {
-            // Arrange
-            Category category = new Category("Categoría", "Vieja descripción");
-
-            // Act
-            category.UpdateDescription("Nueva descripción");
-
-            // Assert
-            category.Description.Should().Be("Nueva descripción");
-            category.UpdatedAt.Should().NotBeNull();
-        }
-
-        [Fact]
-        public void UpdateDescription_WithNullDescription_SetsNullAndUpdatesTimestamp()
-        {
-            // Arrange
-            Category category = new Category("Categoría", "Descripción existente");
-
-            // Act
-            category.UpdateDescription(null);
-
-            // Assert
-            category.Description.Should().BeNull();
-            category.UpdatedAt.Should().NotBeNull();
-        }
-
-        [Fact]
         public void ToString_ReturnsFormattedString()
         {
             // Arrange
-            Category category = new Category("Trabajo", "Gastos de oficina");
+            Category category = new Category(new EntityInfo("Trabajo", "Gastos de oficina"));
 
             // Act
             string result = category.ToString();
@@ -182,7 +126,7 @@ namespace Tests.Domain
         public void Category_IdIsZeroByDefault()
         {
             // Arrange & Act
-            Category category = new Category("Prueba", "");
+            Category category = new Category(new EntityInfo("Prueba", ""));
 
             // Assert
             category.Id.Should().Be(0);

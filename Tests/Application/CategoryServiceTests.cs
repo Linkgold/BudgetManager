@@ -6,6 +6,7 @@ using Application.Services;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces.Repositories;
+using Domain.ValueObjects;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -44,7 +45,7 @@ namespace Tests.Application
         {
             // Arrange
             int categoryId = 1;
-            Category expectedCategory = new Category("Test Category", "Test Description");
+            Category expectedCategory = new Category(new EntityInfo( "Test Category", "Test Description"));
             // Simular que el repositorio devuelve la categoría
             _mockRepository
                 .Setup(repo => repo.GetByIdAsync(categoryId))
@@ -56,8 +57,8 @@ namespace Tests.Application
             // Assert
             result.Should().NotBeNull();
             result.Id.Should().Be(expectedCategory.Id);
-            result.Name.Should().Be(expectedCategory.Name);
-            result.Description.Should().Be(expectedCategory.Description);
+            result.Name.Should().Be(expectedCategory.Info.Name);
+            result.Description.Should().Be(expectedCategory.Info.Description);
             result.IsActive.Should().Be(expectedCategory.IsActive);
 
             _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId), Times.Once);
@@ -84,9 +85,9 @@ namespace Tests.Application
             // Arrange
             List<Category> categories = new List<Category>
             {
-                new Category("Category 1", "Description 1"),
-                new Category("Category 2", "Description 2"),
-                new Category("Category 3", "Description 3")
+                new Category(new EntityInfo("Category 1", "Description 1")),
+                new Category(new EntityInfo("Category 2", "Description 2")),
+                new Category(new EntityInfo("Category 3", "Description 3"))
             };
 
             _mockRepository
@@ -109,8 +110,8 @@ namespace Tests.Application
             // Arrange
             List<Category> categories = new List<Category>
             {
-                new Category("Active 1", "Desc"),
-                new Category("Active 2", "Desc")
+                new Category(new EntityInfo("Active 1", "Desc")),
+                new Category(new EntityInfo("Active 2", "Desc"))
             };
 
             // Simular que solo devuelve las activas
@@ -133,7 +134,7 @@ namespace Tests.Application
         {
             // Arrange
             string categoryName = "Alimentación";
-            Category expectedCategory = new Category(categoryName, "Gastos de comida");
+            Category expectedCategory = new Category(new EntityInfo(categoryName, "Gastos de comida"));
             _mockRepository
                 .Setup(repo => repo.GetByNameAsync(categoryName))
                 .ReturnsAsync(expectedCategory);
@@ -225,7 +226,7 @@ namespace Tests.Application
         {
             // Arrange
             int categoryId = 1;
-            Category existingCategory = new Category("Nombre Antiguo", "Descripción Antigua");
+            Category existingCategory = new Category(new EntityInfo("Nombre Antiguo", "Descripción Antigua"));
             UpdateCategoryRequestDto request = new UpdateCategoryRequestDto
             {
                 Name = "Nuevo Nombre",
@@ -282,8 +283,8 @@ namespace Tests.Application
         {
             // Arrange
             int categoryId = 1;
-            Category existingCategory = new Category("Nombre Antiguo", "Descripción Antigua");
-            Category otherCategory = new Category("Nuevo Nombre", "Otra Descripción");
+            Category existingCategory = new Category(new EntityInfo("Nombre Antiguo", "Descripción Antigua"));
+            Category otherCategory = new Category(new EntityInfo("Nuevo Nombre", "Otra Descripción"));
             otherCategory.GetType().GetProperty("Id").SetValue(otherCategory, 2); // Simular ID diferente
 
             UpdateCategoryRequestDto request = new UpdateCategoryRequestDto
