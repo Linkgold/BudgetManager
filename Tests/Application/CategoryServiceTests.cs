@@ -5,7 +5,7 @@ using Application.Mappings;
 using Application.Services;
 using AutoMapper;
 using Domain.Entities;
-using Domain.Interfaces.Repositories;
+using Domain.Interfaces;
 using Domain.ValueObjects;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;

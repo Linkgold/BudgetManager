@@ -31,10 +31,8 @@ namespace API.Controllers
         /// <summary>
         /// Obtiene todos los gastos fijos
         /// </summary>
-        /// <returns>Lista de gastos fijos</returns>
         [HttpGet]
         [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAll()
         {
             List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetAllAsync();
@@ -45,8 +43,6 @@ namespace API.Controllers
         /// <summary>
         /// Obtiene un gasto fijo por su ID
         /// </summary>
-        /// <param name="id">ID del gasto fijo</param>
-        /// <returns>Gasto fijo encontrado</returns>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(FixedExpenseResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -63,8 +59,6 @@ namespace API.Controllers
         /// <summary>
         /// Obtiene todos los gastos fijos de una categoría
         /// </summary>
-        /// <param name="categoryId">ID de la categoría</param>
-        /// <returns>Lista de gastos fijos de la categoría</returns>
         [HttpGet("by-category/{categoryId}")]
         [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -81,7 +75,6 @@ namespace API.Controllers
         /// <summary>
         /// Obtiene todos los gastos fijos activos
         /// </summary>
-        /// <returns>Lista de gastos fijos activos</returns>
         [HttpGet("active")]
         [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetActive()
@@ -92,29 +85,8 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Obtiene los gastos fijos activos de una categoría
-        /// </summary>
-        /// <param name="categoryId">ID de la categoría</param>
-        /// <returns>Lista de gastos fijos activos de la categoría</returns>
-        [HttpGet("active/by-category/{categoryId}")]
-        [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetActiveByCategory(int categoryId)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetActiveByCategoryIdAsync(categoryId);
-
-            return Ok(fixedExpenses);
-        }
-
-        /// <summary>
         /// Obtiene los gastos fijos activos para un período específico
         /// </summary>
-        /// <param name="year">Año</param>
-        /// <param name="month">Mes (1-12)</param>
-        /// <returns>Lista de gastos fijos activos para el período</returns>
         [HttpGet("active/period")]
         [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -130,36 +102,8 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Obtiene los gastos fijos activos para un período y categoría específicos
-        /// </summary>
-        /// <param name="categoryId">ID de la categoría</param>
-        /// <param name="year">Año</param>
-        /// <param name="month">Mes (1-12)</param>
-        /// <returns>Lista de gastos fijos activos para el período y categoría</returns>
-        [HttpGet("active/period/category/{categoryId}")]
-        [ProducesResponseType(typeof(List<FixedExpenseResponseDto>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetActiveForPeriodByCategory(int categoryId, [FromQuery] int year, [FromQuery] int month)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            List<FixedExpenseResponseDto> fixedExpenses = await _fixedExpenseService.GetActiveForPeriodByCategoryAsync(categoryId, year, month);
-
-            return Ok(fixedExpenses);
-        }
-
-        /// <summary>
         /// Obtiene el total de gastos fijos para un período y categoría
         /// </summary>
-        /// <param name="categoryId">ID de la categoría</param>
-        /// <param name="year">Año</param>
-        /// <param name="month">Mes (1-12)</param>
-        /// <returns>Total de gastos fijos</returns>
         [HttpGet("total/period/category/{categoryId}")]
         [ProducesResponseType(typeof(decimal), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -182,8 +126,6 @@ namespace API.Controllers
         /// <summary>
         /// Crea un nuevo gasto fijo
         /// </summary>
-        /// <param name="request">Datos del gasto fijo a crear</param>
-        /// <returns>Gasto fijo creado</returns>
         [HttpPost]
         [ProducesResponseType(typeof(FixedExpenseResponseDto), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -200,9 +142,6 @@ namespace API.Controllers
         /// <summary>
         /// Actualiza un gasto fijo existente
         /// </summary>
-        /// <param name="id">ID del gasto fijo</param>
-        /// <param name="request">Datos a actualizar</param>
-        /// <returns>Gasto fijo actualizado</returns>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(FixedExpenseResponseDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -221,8 +160,6 @@ namespace API.Controllers
         /// <summary>
         /// Elimina un gasto fijo
         /// </summary>
-        /// <param name="id">ID del gasto fijo</param>
-        /// <returns>Sin contenido</returns>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -239,8 +176,6 @@ namespace API.Controllers
         /// <summary>
         /// Activa un gasto fijo
         /// </summary>
-        /// <param name="id">ID del gasto fijo</param>
-        /// <returns>Sin contenido</returns>
         [HttpPatch("{id}/activate")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -257,8 +192,6 @@ namespace API.Controllers
         /// <summary>
         /// Desactiva un gasto fijo
         /// </summary>
-        /// <param name="id">ID del gasto fijo</param>
-        /// <returns>Sin contenido</returns>
         [HttpPatch("{id}/deactivate")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -275,8 +208,6 @@ namespace API.Controllers
         /// <summary>
         /// Verifica si un gasto fijo existe
         /// </summary>
-        /// <param name="id">ID del gasto fijo</param>
-        /// <returns>True si existe, False si no</returns>
         [HttpGet("{id}/exists")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -292,8 +223,6 @@ namespace API.Controllers
         /// <summary>
         /// Verifica si un gasto fijo está activo
         /// </summary>
-        /// <param name="id">ID del gasto fijo</param>
-        /// <returns>True si está activo, False si no</returns>
         [HttpGet("{id}/is-active")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

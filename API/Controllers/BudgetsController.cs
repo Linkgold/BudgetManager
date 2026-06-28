@@ -2,6 +2,7 @@ using Application.DTOs;
 using Domain.Entities;
 using Infrastructure.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Reflection.Metadata.Ecma335;
 
 namespace API.Controllers
 {
@@ -24,7 +25,7 @@ namespace API.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BudgetDTO>>> GetAll()
         {
-            List<Budget> budgets = await _budgetRepository.GetAllAsync();
+            /*List<Budget> budgets = await _budgetRepository.GetAllAsync();
             List<BudgetDTO> dtos = budgets.Select(b => new BudgetDTO
             {
                 Id = b.Id,
@@ -37,7 +38,9 @@ namespace API.Controllers
                 UpdatedAt = b.UpdatedAt
             }).ToList();
 
-            return Ok(dtos);
+            return Ok(dtos);*/
+
+            return null;
         }
 
         /// <summary>
@@ -46,7 +49,7 @@ namespace API.Controllers
         [HttpGet("{id}")]
         public async Task<ActionResult<BudgetDTO>> GetById(int id)
         {
-            Budget? budget = await _budgetRepository.GetByIdAsync(id);
+            /*Budget? budget = await _budgetRepository.GetByIdAsync(id);
             if (budget == null)
                 return NotFound(new { message = "Presupuesto no encontrado" });
 
@@ -62,7 +65,9 @@ namespace API.Controllers
                 UpdatedAt = budget.UpdatedAt
             };
 
-            return Ok(dto);
+            return Ok(dto);*/
+
+            return null;
         }
 
         /// <summary>
@@ -71,7 +76,7 @@ namespace API.Controllers
         [HttpPost]
         public async Task<ActionResult<BudgetDTO>> Create([FromBody] CreateBudgetDTO createDto)
         {
-            if (!ModelState.IsValid)
+            /*if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
@@ -110,7 +115,10 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error al crear el presupuesto", detail = ex.Message });
-            }
+            }*/
+
+
+            return null;
         }
 
         /// <summary>
@@ -119,7 +127,7 @@ namespace API.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateBudgetDTO updateDto)
         {
-            if (!ModelState.IsValid)
+            /*if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             Budget? budget = await _budgetRepository.GetByIdAsync(id);
@@ -142,7 +150,9 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error al actualizar el presupuesto", detail = ex.Message });
-            }
+            }*/
+
+            return null;
         }
 
         /// <summary>
@@ -151,7 +161,7 @@ namespace API.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            Budget? budget = await _budgetRepository.GetByIdAsync(id);
+            /*Budget? budget = await _budgetRepository.GetByIdAsync(id);
             if (budget == null)
                 return NotFound(new { message = "Presupuesto no encontrado" });
 
@@ -165,7 +175,9 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error al eliminar el presupuesto", detail = ex.Message });
-            }
+            }*/
+
+            return null;
         }
 
         /// <summary>
@@ -174,7 +186,7 @@ namespace API.Controllers
         [HttpGet("category/{categoryId}")]
         public async Task<ActionResult<IEnumerable<BudgetDTO>>> GetByCategory(int categoryId)
         {
-            List<Budget> budgets = await _budgetRepository.GetAllAsync();
+            /*List<Budget> budgets = await _budgetRepository.GetAllAsync();
             IEnumerable<Budget> categoryBudgets = budgets.Where(b => b.CategoryId == categoryId);
 
             List<BudgetDTO> dtos = categoryBudgets.Select(b => new BudgetDTO
@@ -189,7 +201,9 @@ namespace API.Controllers
                 UpdatedAt = b.UpdatedAt
             }).ToList();
 
-            return Ok(dtos);
+            return Ok(dtos);*/
+
+            return null;
         }
     }
 }

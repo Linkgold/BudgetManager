@@ -1,6 +1,4 @@
-﻿using Domain.Interfaces.Repositories;
-
-namespace Domain.Interfaces
+﻿namespace Domain.Interfaces
 {
     /// <summary>
     /// Unit of Work para gestionar transacciones

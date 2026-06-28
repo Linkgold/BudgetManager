@@ -22,12 +22,26 @@
         public bool Equals(EntityInfo other)
         {
             if (other is null) return false;
-            return Name == other.Name && Description == other.Description;
+            //return Name == other.Name && Description == other.Description;
+
+            // Comparación case-insensitive usando StringComparison.OrdinalIgnoreCase
+            return string.Equals(Name ?? "", other.Name ?? "", StringComparison.InvariantCultureIgnoreCase) &&
+                   string.Equals(Description ?? "", other.Description ?? "", StringComparison.InvariantCultureIgnoreCase);
         }
 
         public override bool Equals(object obj) => Equals(obj as EntityInfo);
 
-        public override int GetHashCode() => HashCode.Combine(Name, Description);
+        public override int GetHashCode()
+        {
+            // Usar StringComparer.OrdinalIgnoreCase para consistencia
+            StringComparer comparer = StringComparer.OrdinalIgnoreCase;
+
+            return HashCode.Combine
+            (
+                comparer.GetHashCode(Name ?? string.Empty),
+                comparer.GetHashCode(Description ?? string.Empty)
+            );
+        }
 
         public override string ToString()
         {
@@ -36,17 +50,9 @@
             return $"{Name}: {Description}";
         }
 
-        public static bool operator ==(EntityInfo a, EntityInfo b)
-        {
-            if (a is null && b is null) return true;
-            if (a is null || b is null) return false;
-            return a.Equals(b);
-        }
+        public static bool operator ==(EntityInfo a, EntityInfo b) => Equals(a, b);
 
-        public static bool operator !=(EntityInfo a, EntityInfo b)
-        {
-            return !(a == b);
-        }
+        public static bool operator !=(EntityInfo a, EntityInfo b) => !Equals(a, b);
 
         public static implicit operator string(EntityInfo info) => info.Name;
         public static explicit operator EntityInfo(string name) => new EntityInfo(name);

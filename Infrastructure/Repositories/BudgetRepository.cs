@@ -7,7 +7,7 @@ namespace Infrastructure.Repositories
 {
     public class BudgetRepository
     {
-        private readonly ApplicationDbContext _context;
+        /*private readonly ApplicationDbContext _context;
 
         public BudgetRepository(ApplicationDbContext context)
         {
@@ -53,6 +53,6 @@ namespace Infrastructure.Repositories
         public async Task SaveChangesAsync()
         {
             await _context.SaveChangesAsync();
-        }
+        }*/
     }
 }

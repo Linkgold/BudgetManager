@@ -4,7 +4,6 @@ using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
-using Domain.Interfaces.Repositories;
 using Domain.ValueObjects;
 
 namespace Application.Services
@@ -80,7 +79,7 @@ namespace Application.Services
 
         public async Task<List<FixedExpenseResponseDto>> GetActiveForPeriodAsync(int year, int month)
         {
-            Period period = new Period(year, month);
+            Period period = new Period(month, year);
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveForPeriodAsync(period);
 
             return _mapper.Map<List<FixedExpenseResponseDto>>(fixedExpenses);
@@ -92,7 +91,7 @@ namespace Application.Services
 
             if (!await _categoryRepository.ExistsAsync(categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
-            Period period = new Period(year, month);
+            Period period = new Period(month, year);
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveForPeriodByCategoryAsync(categoryId, period);
 
             return _mapper.Map<List<FixedExpenseResponseDto>>(fixedExpenses);
@@ -105,7 +104,7 @@ namespace Application.Services
             ArgumentNullException.ThrowIfNull(request);
 
             // Validar que la categoría existe
-            Category category = await _categoryRepository.GetByIdAsync(request.CategoryId);
+            Category category = await _categoryRepository.GetByIdAsync(request.CategoryId, true);
             if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
 
             // Validar que no exista un gasto fijo con el mismo nombre en la misma categoría
@@ -115,7 +114,7 @@ namespace Application.Services
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
             Money amount = new Money(request.Amount);
-            Period chargePeriod = new Period(request.Year, request.Month);
+            Period chargePeriod = new Period(request.Month, request.Year);
 
             // Crear entidad de dominio
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
@@ -143,7 +142,7 @@ namespace Application.Services
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
             Money amount = new Money(request.Amount);
-            Period chargePeriod = new Period(request.Year, request.Month);
+            Period chargePeriod = new Period(request.Month, request.Year);
 
             // Actualizar entidad de dominio
             fixedExpense.Update(info, amount, chargePeriod);
@@ -206,7 +205,7 @@ namespace Application.Services
 
             if (!await _categoryRepository.ExistsAsync(categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
-            Period period = new Period(year, month);
+            Period period = new Period(month, year);
             return await _fixedExpenseRepository.GetTotalByCategoryAndPeriodAsync(categoryId, period);
         }
     }

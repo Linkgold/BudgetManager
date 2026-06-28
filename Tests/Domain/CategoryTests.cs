@@ -44,7 +44,7 @@ namespace Tests.Domain
             Action act = () => new Category(new EntityInfo("", "Descripción"));
 
             // Assert
-            act.Should().Throw<ArgumentException>().WithMessage("Category name cannot be empty*");
+            act.Should().Throw<ArgumentException>().WithMessage("Name cannot be empty*");
         }
 
         [Fact]
@@ -73,8 +73,7 @@ namespace Tests.Domain
             Action act = () => category.Update(new EntityInfo("", "Nueva descripción"));
 
             // Assert
-            act.Should().Throw<ArgumentException>()
-                .WithMessage("Category name cannot be empty*");
+            act.Should().Throw<ArgumentException>().WithMessage("Name cannot be empty*");
         }
 
         [Fact]

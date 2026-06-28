@@ -60,9 +60,8 @@ namespace API.Filters
                 return;
             }
 
-            // Obtener el método ValidateAsync mediante reflexión, pero de forma tipada
-            // Usamos el método genérico para obtener el ValidationResult
-            System.Reflection.MethodInfo? validateMethod = validatorType.GetMethod("ValidateAsync", new[] { argumentType });
+            // Obtener el método ValidateAsync con CancellationToken
+            System.Reflection.MethodInfo? validateMethod = validatorType.GetMethod("ValidateAsync", new[] { argumentType, typeof(CancellationToken) });
 
             if (validateMethod == null)
             {
@@ -72,7 +71,7 @@ namespace API.Filters
 
             // Invocar el método ValidateAsync y obtener el resultado tipado
             // Convertimos el resultado a Task<ValidationResult> y luego obtenemos el ValidationResult
-            object? invokeResult = validateMethod.Invoke(validator, new object[] { requestArgument });
+            object? invokeResult = validateMethod.Invoke(validator, new object[] { requestArgument, CancellationToken.None });
 
             if (invokeResult == null)
             {

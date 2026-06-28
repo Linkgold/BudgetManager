@@ -11,51 +11,66 @@ namespace Infrastructure.Data.Configurations
         {
             builder.ToTable("Budgets");
 
-            builder.HasKey(b => b.Id);
+            builder.HasKey(budget => budget.Id);
+            
+            builder.Property(budget => budget.Id)
+                .ValueGeneratedOnAdd();
 
-            builder.OwnsOne(b => b.MonthlyAmount, money =>
+            // ==================== CONFIGURACIÓN DE PERIOD ====================
+            builder.OwnsOne(budget => budget.Period, period =>
             {
-                money.Property(m => m.Value)
-                    .HasColumnName("MonthlyAmount")
-                    .HasPrecision(18, 2)
-                    .IsRequired();
-
-                money.Property(m => m.Currency)
-                    .HasColumnName("Currency")
-                    .HasMaxLength(3)
-                    .IsRequired()
-                    .HasDefaultValue("EUR");
-            });
-
-            builder.OwnsOne(b => b.Period, period =>
-            {
-                period.Property(p => p.Month)
-                    .HasColumnName("Month")
-                    .IsRequired();
-
                 period.Property(p => p.Year)
                     .HasColumnName("Year")
                     .IsRequired();
 
-                // Indexes for Period properties
-                period.HasIndex(p => p.Month);
-                period.HasIndex(p => p.Year);
+                period.Property(p => p.Month)
+                    .HasColumnName("Month")
+                    .IsRequired();
+
+                // Índice opcional
+                period.HasIndex(p => new { p.Year, p.Month })
+                    .HasDatabaseName("IX_Budgets_Period");
             });
 
-            builder.Property(b => b.CreatedAt)
-                .IsRequired();
+            // ==================== CONFIGURACIÓN DE MONEY ====================
+            builder.OwnsOne(budget => budget.MonthlyAmount, amount =>
+            {
+                amount.Property(m => m.Value)
+                    .HasColumnName("MonthlyAmount")
+                    .IsRequired()
+                    .HasPrecision(18, 2);
 
-            builder.Property(b => b.UpdatedAt)
+                amount.Property(m => m.Currency)
+                    .HasColumnName("Currency")
+                    .IsRequired()
+                    .HasMaxLength(3)
+                    .HasDefaultValue("EUR");
+            });
+
+            // ==================== PROPIEDADES SIMPLES ====================
+            builder.Property(budget => budget.CreatedAt)
+                .HasColumnName("CreatedAt")
+                .IsRequired()
+                .HasDefaultValueSql("CURRENT_TIMESTAMP");
+
+            builder.Property(budget => budget.UpdatedAt)
+                .HasColumnName("UpdatedAt")
                 .IsRequired(false);
 
-            // Relationships
-            /*builder.HasOne(b => b.Category)
-                .WithMany(c => c.Budgets)
-                .HasForeignKey(b => b.CategoryId)
-                .OnDelete(DeleteBehavior.Restrict);*/
+            // ==================== RELACIONES ====================
+            builder.HasOne(budget => budget.Category)
+                .WithMany()
+                .HasForeignKey(budget => budget.CategoryId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // Indexes
-            builder.HasIndex(b => b.CategoryId);
+            // ==================== ÍNDICES ====================
+            builder.HasIndex(budget => budget.CategoryId)
+                .HasDatabaseName("IX_Budgets_CategoryId");
+
+            // Índice único: Una categoría solo puede tener un presupuesto por período
+            builder.HasIndex(budget => new { budget.CategoryId, budget.Period.Year, budget.Period.Month })
+                .IsUnique()
+                .HasDatabaseName("IX_Budgets_Category_Period");
         }
     }
 }

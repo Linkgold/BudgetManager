@@ -1,11 +1,11 @@
 ﻿using Domain.Entities;
 using Domain.ValueObjects;
 
-namespace Domain.Interfaces.Repositories
+namespace Domain.Interfaces
 {
     public interface ICategoryRepository
     {
-        Task<Category> GetByIdAsync(int id);
+        Task<Category> GetByIdAsync(int id, bool withTracking = false);
         Task<List<Category>> GetAllAsync();
         Task<Category> GetByNameAsync(string name);
         Task<List<Category>> GetActiveCategoriesAsync();

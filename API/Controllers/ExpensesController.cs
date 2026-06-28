@@ -72,7 +72,7 @@ namespace API.Controllers
         [HttpPost]
         public async Task<ActionResult<ExpenseDTO>> Create([FromBody] CreateExpenseDTO createDto)
         {
-            if (!ModelState.IsValid)
+            /*if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             try
@@ -123,7 +123,9 @@ namespace API.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { message = "Error al crear el gasto", detail = ex.Message });
-            }
+            }*/
+
+            return null;
         }
 
         /// <summary>

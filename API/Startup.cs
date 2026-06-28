@@ -1,5 +1,4 @@
 ﻿using API.Filters;
-using API.Middleware;
 using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
@@ -8,7 +7,9 @@ using FluentValidation;
 using Infrastructure;
 using Infrastructure.Data;
 using Infrastructure.Data.Factories;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.OpenApi;
+using System.Text.Json;
 
 namespace API
 {
@@ -63,11 +64,6 @@ namespace API
         {
             if (app == null) throw new ArgumentNullException(nameof(app));
 
-            // ==================== MIDDLEWARE ====================
-
-            // Manejo de excepciones
-            app.UseMiddleware<ExceptionHandlingMiddleware>();
-
             // Desarrollo
             if (_environment.IsDevelopment())
             {
@@ -80,6 +76,48 @@ namespace API
                         options.SwaggerEndpoint("/swagger/v1/swagger.json", "Budget API v1");
                     }
                 );
+            }
+            else
+            {
+                // Manejo de excepciones
+                app.UseExceptionHandler(errorApp =>
+                {
+                    errorApp.Run(async context =>
+                    {
+                        IExceptionHandlerFeature? exceptionFeature = context.Features.Get<IExceptionHandlerFeature>();
+                        Exception? exception = exceptionFeature?.Error;
+
+                        if (exception != null)
+                        {
+                            int statusCode = exception switch
+                            {
+                                KeyNotFoundException => StatusCodes.Status404NotFound,
+                                ArgumentException => StatusCodes.Status400BadRequest,
+                                InvalidOperationException => StatusCodes.Status400BadRequest,
+                                UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
+                                _ => StatusCodes.Status500InternalServerError
+                            };
+
+                            context.Response.StatusCode = statusCode;
+                            context.Response.ContentType = "application/json";
+
+                            ErrorResponse errorResponse = new ErrorResponse
+                            {
+                                StatusCode = statusCode,
+                                Message = exception.Message,
+                                Detail = exception.StackTrace,
+                                Timestamp = DateTime.UtcNow
+                            };
+
+                            string jsonResponse = JsonSerializer.Serialize(errorResponse, new JsonSerializerOptions
+                            {
+                                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                            });
+
+                            await context.Response.WriteAsync(jsonResponse);
+                        }
+                    });
+                });
             }
 
             // HTTPS
@@ -143,6 +181,9 @@ namespace API
         /// </summary>
         private void ConfigureControllers(IServiceCollection services)
         {
+            // Registrar el filtro de validación
+            services.AddScoped<ValidationFilter>();
+
             services.AddControllers
             (
                 options =>
@@ -227,6 +268,17 @@ namespace API
                 // Crear la base de datos si no existe (SQLite)
                 dbContext.EnsureDatabaseCreated();
             }
+        }
+
+        /// <summary>
+        /// DTO para respuesta de error
+        /// </summary>
+        private class ErrorResponse
+        {
+            public int StatusCode { get; set; }
+            public string Message { get; set; }
+            public string Detail { get; set; }
+            public DateTime Timestamp { get; set; }
         }
     }
 }

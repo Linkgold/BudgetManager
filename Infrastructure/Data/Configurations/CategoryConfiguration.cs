@@ -1,5 +1,4 @@
 ﻿using Domain.Entities;
-using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -31,6 +30,10 @@ namespace Infrastructure.Data.Configurations
                         .HasColumnName("Description")
                         .HasMaxLength(500)
                         .IsRequired(false);
+
+                    info.HasIndex(i => i.Name)
+                    .IsUnique()
+                    .HasDatabaseName("IX_Categories_Name");
                 }
             );
 
@@ -47,10 +50,6 @@ namespace Infrastructure.Data.Configurations
             builder.Property(category => category.UpdatedAt)
                 .HasColumnName("UpdatedAt")
                 .IsRequired(false);
-
-            builder.HasIndex(category => category.Info.Name)
-                .IsUnique()
-                .HasDatabaseName("IX_Categories_Name");
 
             builder.HasIndex(category => category.IsActive)
                 .HasDatabaseName("IX_Categories_IsActive");

@@ -1,7 +1,7 @@
 using Infrastructure.Data;
 using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
-using Domain.Interfaces.Repositories;
+using Domain.Interfaces;
 
 namespace Infrastructure.Repositories
 {
@@ -20,13 +20,20 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<Category> GetByIdAsync(int id)
+        public async Task<Category> GetByIdAsync(int id, bool withTracking = false)
         {
             if (id <= 0) throw new ArgumentException("Invalid category ID", nameof(id));
 
-            Category? category = await _dbSet
-                .AsNoTracking()
-                .FirstOrDefaultAsync(category => category.Id == id);
+            IQueryable<Category> query = _dbSet;
+
+            // 🔥 Solo aplicar AsNoTracking() si NO se pide tracking
+            if (!withTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            Category? category = await query
+                .FirstOrDefaultAsync(c => c.Id == id);
 
             return category;
         }

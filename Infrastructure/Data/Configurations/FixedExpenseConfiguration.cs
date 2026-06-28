@@ -49,16 +49,24 @@ namespace Infrastructure.Data.Configurations
 
             // ==================== CONFIGURACIÓN DE PERIOD ====================
 
-            builder.OwnsOne(fixedExpense => fixedExpense.ChargePeriod, period =>
-            {
-                period.Property(p => p.Year)
-                    .HasColumnName("ChargeYear")
-                    .IsRequired();
+            builder.OwnsOne
+            (
+                fixedExpense => fixedExpense.ChargePeriod, 
+                period =>
+                {
+                    period.Property(p => p.Year)
+                        .HasColumnName("ChargeYear")
+                        .IsRequired();
 
-                period.Property(p => p.Month)
-                    .HasColumnName("ChargeMonth")
-                    .IsRequired();
-            });
+                    period.Property(p => p.Month)
+                        .HasColumnName("ChargeMonth")
+                        .IsRequired();
+
+                    // Índice simple sobre el período (para búsquedas por año/mes)
+                    period.HasIndex(p => new { p.Month, p.Year })
+                    .HasDatabaseName("IX_FixedExpenses_ChargePeriod");
+                }
+            );
 
             // ==================== PROPIEDADES SIMPLES ====================
 
@@ -92,16 +100,30 @@ namespace Infrastructure.Data.Configurations
             builder.HasIndex(fixedExpense => new { fixedExpense.CategoryId, fixedExpense.IsActive })
                 .HasDatabaseName("IX_FixedExpenses_CategoryId_IsActive");
 
-            builder.HasIndex(fixedExpense => new { fixedExpense.ChargePeriod.Year, fixedExpense.ChargePeriod.Month })
-                .HasDatabaseName("IX_FixedExpenses_ChargePeriod");
+            // 1. Definir Shadow Properties para el período (para usarlas en índices compuestos)
+            builder.Property<int>("ChargeYear")
+                .HasColumnName("ChargeYear")
+                .IsRequired();
 
-            // Índice compuesto para búsquedas rápidas por período y categoría
+            builder.Property<int>("ChargeMonth")
+                .HasColumnName("ChargeMonth")
+                .IsRequired();
+
+            // ✅ ÍNDICE COMPUESTO USANDO SHADOW PROPERTIES
+            builder.HasIndex("CategoryId", "ChargeYear", "ChargeMonth", "IsActive")
+                .HasDatabaseName("IX_FixedExpenses_Category_Period_Active");
+
+            /*// Índice compuesto para búsquedas rápidas por período y categoría
             builder.HasIndex(fixedExpense => new {
                 fixedExpense.CategoryId,
                 fixedExpense.ChargePeriod.Year,
                 fixedExpense.ChargePeriod.Month,
                 fixedExpense.IsActive
-            }).HasDatabaseName("IX_FixedExpenses_Category_Period_Active");
+            }).HasDatabaseName("IX_FixedExpenses_Category_Period_Active");*/
+
+            // Índice para IsActive (si haces búsquedas globales de activos)
+            builder.HasIndex(fixedExpense => fixedExpense.IsActive)
+                .HasDatabaseName("IX_FixedExpenses_IsActive");
         }
     }
 }

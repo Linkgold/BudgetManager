@@ -1,7 +1,3 @@
-using Infrastructure.Data;
-using Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
-
 namespace API
 {
     /// <summary>

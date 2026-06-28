@@ -17,81 +17,97 @@ namespace Infrastructure.Repositories
 
         public async Task<Expense?> GetByIdAsync(int id)
         {
-            return await _context.Expenses
+            /*return await _context.Expenses
                 .Include(e => e.Budget)
-                .FirstOrDefaultAsync(e => e.Id == id);
+                .FirstOrDefaultAsync(e => e.Id == id);*/
+
+            return null;
         }
 
         public async Task<List<Expense>> GetAllAsync()
         {
-            return await _context.Expenses
+            /*return await _context.Expenses
                 .Include(e => e.Budget)
-                .ToListAsync();
+                .ToListAsync();*/
+
+            return null;
         }
 
         public async Task<List<Expense>> GetByBudgetIdAsync(int budgetId)
         {
-            return await _context.Expenses
+            /*return await _context.Expenses
                 .Where(e => e.BudgetId == budgetId)
                 .Include(e => e.Budget)
-                .ToListAsync();
+                .ToListAsync();*/
+
+                return new();
         }
 
         public async Task<List<Expense>> GetByPeriodAsync(Period period)
         {
-            return await _context.Expenses
+            /*return await _context.Expenses
                 .Where(e => e.DateTime.Month == period.Month &&
                            e.DateTime.Year == period.Year)
                 .Include(e => e.Budget)
-                .ToListAsync();
+                .ToListAsync();*/
+
+            return new();
         }
 
         public async Task<List<Expense>> GetByPeriodAndBudgetAsync(Period period, int budgetId)
         {
-            return await _context.Expenses
+            /*return await _context.Expenses
                 .Where(e => e.BudgetId == budgetId &&
                            e.DateTime.Month == period.Month &&
                            e.DateTime.Year == period.Year)
                 .Include(e => e.Budget)
-                .ToListAsync();
+                .ToListAsync();*/
+
+            return new();
         }
 
         public async Task<List<Expense>> GetByCategoryAsync(string category)
         {
-            return await _context.Expenses
+            /*return await _context.Expenses
                 .Where(e => e.Category == category)
                 .Include(e => e.Budget)
-                .ToListAsync();
+                .ToListAsync();*/
+
+            return new();
         }
 
         public async Task<decimal> GetTotalByBudgetAsync(int budgetId)
         {
-            return await _context.Expenses
+            /*return await _context.Expenses
                 .Where(e => e.BudgetId == budgetId)
-                .SumAsync(e => e.Amount.Value);
+                .SumAsync(e => e.Amount.Value);*/
+
+            return new();
         }
 
         public async Task<decimal> GetTotalByPeriodAsync(Period period)
         {
-            return await _context.Expenses
+            /*return await _context.Expenses
                 .Where(e => e.DateTime.Month == period.Month &&
                            e.DateTime.Year == period.Year)
-                .SumAsync(e => e.Amount.Value);
+                .SumAsync(e => e.Amount.Value);*/
+
+            return new();
         }
 
         public async Task AddAsync(Expense expense)
         {
-            await _context.Expenses.AddAsync(expense);
+            //await _context.Expenses.AddAsync(expense);
         }
 
         public void Update(Expense expense)
         {
-            _context.Expenses.Update(expense);
+            //_context.Expenses.Update(expense);
         }
 
         public void Delete(Expense expense)
         {
-            _context.Expenses.Remove(expense);
+            //_context.Expenses.Remove(expense);
         }
 
         public async Task SaveChangesAsync()

@@ -3,7 +3,7 @@ using Application.DTOs.Response;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
-using Domain.Interfaces.Repositories;
+using Domain.Interfaces;
 using Domain.ValueObjects;
 
 namespace Application.Services
