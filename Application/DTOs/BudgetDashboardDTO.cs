@@ -10,7 +10,7 @@ namespace Application.DTOs
         public decimal TotalFixedExpenses { get; set; }
         public decimal Remaining { get; set; }
         public decimal PercentageUsed { get; set; }
-        public BudgetStatus Status { get; set; }
+        public BudgetStatusEnum Status { get; set; }
         public List<Expense> RecentExpenses { get; set; } // Solo últimos 10
     }
 }

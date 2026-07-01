@@ -3,7 +3,7 @@
     /// <summary>
     /// DTO para devolver información de una categoría
     /// </summary>
-    public class CategoryResponseDto
+    public class CategoryResponseDTO
     {
         public int Id { get; set; }
         public string Name { get; set; }

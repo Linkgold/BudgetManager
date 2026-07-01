@@ -31,7 +31,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            List<CategoryResponseDto> categories = JsonConvert.DeserializeObject<List<CategoryResponseDto>>(content);
+            List<CategoryResponseDTO> categories = JsonConvert.DeserializeObject<List<CategoryResponseDTO>>(content);
 
             Assert.NotNull(categories);
         }
@@ -42,7 +42,7 @@ namespace Tests.API.Controllers
         public async Task GetById_WithExistingId_ReturnsCategory()
         {
             // Arrange - Crear una categoría primero
-            CreateCategoryRequestDto createRequest = new CreateCategoryRequestDto
+            CreateCategoryRequestDTO createRequest = new CreateCategoryRequestDTO
             {
                 Name = "TestCategory",
                 Description = "Test Description"
@@ -53,7 +53,7 @@ namespace Tests.API.Controllers
 
             HttpResponseMessage createResponse = await _client.PostAsync("/api/category", createContent);
             string createContentString = await createResponse.Content.ReadAsStringAsync();
-            CategoryResponseDto createdCategory = JsonConvert.DeserializeObject<CategoryResponseDto>(createContentString);
+            CategoryResponseDTO createdCategory = JsonConvert.DeserializeObject<CategoryResponseDTO>(createContentString);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/category/{createdCategory.Id}");
@@ -62,7 +62,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            CategoryResponseDto category = JsonConvert.DeserializeObject<CategoryResponseDto>(content);
+            CategoryResponseDTO category = JsonConvert.DeserializeObject<CategoryResponseDTO>(content);
 
             Assert.NotNull(category);
             Assert.Equal(createdCategory.Id, category.Id);
@@ -95,7 +95,7 @@ namespace Tests.API.Controllers
         public async Task Create_WithValidData_ReturnsCreatedCategory()
         {
             // Arrange
-            CreateCategoryRequestDto request = new CreateCategoryRequestDto
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "NewCategory",
                 Description = "New Description"
@@ -111,7 +111,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            CategoryResponseDto category = JsonConvert.DeserializeObject<CategoryResponseDto>(responseContent);
+            CategoryResponseDTO category = JsonConvert.DeserializeObject<CategoryResponseDTO>(responseContent);
 
             Assert.NotNull(category);
             Assert.Equal("NewCategory", category.Name);
@@ -123,7 +123,7 @@ namespace Tests.API.Controllers
         public async Task Create_WithEmptyName_ReturnsBadRequest()
         {
             // Arrange
-            CreateCategoryRequestDto request = new CreateCategoryRequestDto
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "",
                 Description = "Test"
@@ -145,7 +145,7 @@ namespace Tests.API.Controllers
         public async Task Update_WithValidData_ReturnsUpdatedCategory()
         {
             // Arrange - Crear una categoría primero
-            CreateCategoryRequestDto createRequest = new CreateCategoryRequestDto
+            CreateCategoryRequestDTO createRequest = new CreateCategoryRequestDTO
             {
                 Name = "Original",
                 Description = "Original Description"
@@ -156,10 +156,10 @@ namespace Tests.API.Controllers
 
             HttpResponseMessage createResponse = await _client.PostAsync("/api/category", createContent);
             string createContentString = await createResponse.Content.ReadAsStringAsync();
-            CategoryResponseDto createdCategory = JsonConvert.DeserializeObject<CategoryResponseDto>(createContentString);
+            CategoryResponseDTO createdCategory = JsonConvert.DeserializeObject<CategoryResponseDTO>(createContentString);
 
             // Act - Actualizar
-            UpdateCategoryRequestDto updateRequest = new UpdateCategoryRequestDto
+            UpdateCategoryRequestDTO updateRequest = new UpdateCategoryRequestDTO
             {
                 Name = "Updated",
                 Description = "Updated Description"
@@ -174,7 +174,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            CategoryResponseDto updatedCategory = JsonConvert.DeserializeObject<CategoryResponseDto>(responseContent);
+            CategoryResponseDTO updatedCategory = JsonConvert.DeserializeObject<CategoryResponseDTO>(responseContent);
 
             Assert.NotNull(updatedCategory);
             Assert.Equal("Updated", updatedCategory.Name);
@@ -187,7 +187,7 @@ namespace Tests.API.Controllers
         public async Task Delete_WithExistingId_ReturnsNoContent()
         {
             // Arrange - Crear una categoría primero
-            CreateCategoryRequestDto createRequest = new CreateCategoryRequestDto
+            CreateCategoryRequestDTO createRequest = new CreateCategoryRequestDTO
             {
                 Name = "ToDelete",
                 Description = "To Delete"
@@ -198,7 +198,7 @@ namespace Tests.API.Controllers
 
             HttpResponseMessage createResponse = await _client.PostAsync("/api/category", createContent);
             string createContentString = await createResponse.Content.ReadAsStringAsync();
-            CategoryResponseDto createdCategory = JsonConvert.DeserializeObject<CategoryResponseDto>(createContentString);
+            CategoryResponseDTO createdCategory = JsonConvert.DeserializeObject<CategoryResponseDTO>(createContentString);
 
             // Act
             HttpResponseMessage response = await _client.DeleteAsync($"/api/category/{createdCategory.Id}");

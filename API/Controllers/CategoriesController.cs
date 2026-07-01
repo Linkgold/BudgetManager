@@ -29,11 +29,11 @@ namespace API.Controllers
         /// </summary>
         /// <returns>Lista de categorías</returns>
         [HttpGet]
-        [ProducesResponseType(typeof(List<CategoryResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<CategoryResponseDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public async Task<IActionResult> GetAll()
         {
-            List<CategoryResponseDto> categories = await _categoryService.GetAllAsync();
+            List<CategoryResponseDTO> categories = await _categoryService.GetAllAsync();
             return Ok(categories);
         }
 
@@ -43,14 +43,14 @@ namespace API.Controllers
         /// <param name="id">ID de la categoría</param>
         /// <returns>Categoría encontrada</returns>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(CategoryResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(CategoryResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetById(int id)
         {
             if (id <= 0) return BadRequest("Invalid category ID");
 
-            CategoryResponseDto category = await _categoryService.GetByIdAsync(id);
+            CategoryResponseDTO category = await _categoryService.GetByIdAsync(id);
             return Ok(category);
         }
 
@@ -59,10 +59,10 @@ namespace API.Controllers
         /// </summary>
         /// <returns>Lista de categorías activas</returns>
         [HttpGet("active")]
-        [ProducesResponseType(typeof(List<CategoryResponseDto>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<CategoryResponseDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetActive()
         {
-            List<CategoryResponseDto> categories = await _categoryService.GetActiveCategoriesAsync();
+            List<CategoryResponseDTO> categories = await _categoryService.GetActiveCategoriesAsync();
             return Ok(categories);
         }
 
@@ -72,14 +72,14 @@ namespace API.Controllers
         /// <param name="name">Nombre de la categoría</param>
         /// <returns>Categoría encontrada</returns>
         [HttpGet("byname/{name}")]
-        [ProducesResponseType(typeof(CategoryResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(CategoryResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetByName(string name)
         {
             if (string.IsNullOrWhiteSpace(name)) return BadRequest("Category name cannot be empty");
 
-            CategoryResponseDto category = await _categoryService.GetByNameAsync(name);
+            CategoryResponseDTO category = await _categoryService.GetByNameAsync(name);
             return Ok(category);
         }
 
@@ -89,14 +89,14 @@ namespace API.Controllers
         /// <param name="request">Datos de la categoría a crear</param>
         /// <returns>Categoría creada</returns>
         [HttpPost]
-        [ProducesResponseType(typeof(CategoryResponseDto), StatusCodes.Status201Created)]
+        [ProducesResponseType(typeof(CategoryResponseDTO), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Create([FromBody] CreateCategoryRequestDto request)
+        public async Task<IActionResult> Create([FromBody] CreateCategoryRequestDTO request)
         {
             if (request == null) return BadRequest("Request cannot be null");
 
-            CategoryResponseDto createdCategory = await _categoryService.CreateAsync(request);
+            CategoryResponseDTO createdCategory = await _categoryService.CreateAsync(request);
 
             return CreatedAtAction(nameof(GetById), new { id = createdCategory.Id }, createdCategory);
         }
@@ -108,17 +108,17 @@ namespace API.Controllers
         /// <param name="request">Datos a actualizar</param>
         /// <returns>Categoría actualizada</returns>
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(CategoryResponseDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(CategoryResponseDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryRequestDto request)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateCategoryRequestDTO request)
         {
             if (id <= 0) return BadRequest("Invalid category ID");
 
             if (request == null) return BadRequest("Request cannot be null");
 
-            CategoryResponseDto updatedCategory = await _categoryService.UpdateAsync(id, request);
+            CategoryResponseDTO updatedCategory = await _categoryService.UpdateAsync(id, request);
             return Ok(updatedCategory);
         }
 

@@ -3,7 +3,7 @@
     /// <summary>
     /// DTO para actualizar una categoría existente
     /// </summary>
-    public class UpdateCategoryRequestDto
+    public class UpdateCategoryRequestDTO
     {
         public string Name { get; set; }
         public string Description { get; set; }

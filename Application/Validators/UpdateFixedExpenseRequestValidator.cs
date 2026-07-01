@@ -3,7 +3,7 @@ using FluentValidation;
 
 namespace Application.Validators
 {
-    public class UpdateFixedExpenseRequestValidator : AbstractValidator<UpdateFixedExpenseRequestDto>
+    public class UpdateFixedExpenseRequestValidator : AbstractValidator<UpdateFixedExpenseRequestDTO>
     {
         public UpdateFixedExpenseRequestValidator()
         {

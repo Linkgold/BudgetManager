@@ -57,7 +57,7 @@ namespace Tests.Application
             return category;
         }
 
-        private FixedExpense CreateFixedExpense(int id, Category category, string name, decimal amount, int year, int month)
+        private FixedExpense CreateFixedExpense(int id, Category category, string name, decimal amount, int month, int year)
         {
             EntityInfo info = new EntityInfo(name, null);
             Money money = new Money(amount);
@@ -79,22 +79,22 @@ namespace Tests.Application
             // Arrange
             int fixedExpenseId = 1;
             Category category = CreateCategory(1, "Suscripciones");
-            FixedExpense fixedExpense = CreateFixedExpense(fixedExpenseId, category, "Netflix", 15.99m, 2024, 1);
+            FixedExpense fixedExpense = CreateFixedExpense(fixedExpenseId, category, "Netflix", 15.99m, 1, 2024);
 
             _fixedExpenseRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(fixedExpenseId))
                 .ReturnsAsync(fixedExpense);
 
             // Act
-            FixedExpenseResponseDto result = await _fixedExpenseService.GetByIdAsync(fixedExpenseId);
+            FixedExpenseResponseDTO result = await _fixedExpenseService.GetByIdAsync(fixedExpenseId);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(fixedExpenseId, result.Id);
             Assert.Equal("Netflix", result.Name);
             Assert.Equal(15.99m, result.Amount);
-            Assert.Equal(2024, result.Year);
             Assert.Equal(1, result.Month);
+            Assert.Equal(2024, result.Year);
             Assert.Equal("Suscripciones", result.CategoryName);
             Assert.True(result.IsActive);
         }
@@ -131,8 +131,8 @@ namespace Tests.Application
             // Arrange
             Category category = CreateCategory(1, "Suscripciones");
 
-            FixedExpense fixedExpense1 = CreateFixedExpense(1, category, "Netflix", 15.99m, 2024, 1);
-            FixedExpense fixedExpense2 = CreateFixedExpense(2, category, "Spotify", 9.99m, 2024, 1);
+            FixedExpense fixedExpense1 = CreateFixedExpense(1, category, "Netflix", 15.99m, 1, 2024);
+            FixedExpense fixedExpense2 = CreateFixedExpense(2, category, "Spotify", 9.99m, 1, 2024);
 
             List<FixedExpense> fixedExpenses = new List<FixedExpense> { fixedExpense1, fixedExpense2 };
 
@@ -141,7 +141,7 @@ namespace Tests.Application
                 .ReturnsAsync(fixedExpenses);
 
             // Act
-            List<FixedExpenseResponseDto> result = await _fixedExpenseService.GetAllAsync();
+            List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetAllAsync();
 
             // Assert
             Assert.NotNull(result);
@@ -159,8 +159,8 @@ namespace Tests.Application
             int categoryId = 1;
             Category category = CreateCategory(categoryId, "Suscripciones");
 
-            FixedExpense fixedExpense1 = CreateFixedExpense(1, category, "Netflix", 15.99m, 2024, 1);
-            FixedExpense fixedExpense2 = CreateFixedExpense(2, category, "Spotify", 9.99m, 2024, 1);
+            FixedExpense fixedExpense1 = CreateFixedExpense(1, category, "Netflix", 15.99m, 1, 2024);
+            FixedExpense fixedExpense2 = CreateFixedExpense(2, category, "Spotify", 9.99m, 1, 2024);
 
             List<FixedExpense> fixedExpenses = new List<FixedExpense> { fixedExpense1, fixedExpense2 };
 
@@ -173,7 +173,7 @@ namespace Tests.Application
                 .ReturnsAsync(fixedExpenses);
 
             // Act
-            List<FixedExpenseResponseDto> result = await _fixedExpenseService.GetByCategoryIdAsync(categoryId);
+            List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetByCategoryIdAsync(categoryId);
 
             // Assert
             Assert.NotNull(result);
@@ -205,8 +205,8 @@ namespace Tests.Application
             // Arrange
             Category category = CreateCategory(1, "Suscripciones");
 
-            FixedExpense activeExpense = CreateFixedExpense(1, category, "Netflix", 15.99m, 2024, 1);
-            FixedExpense inactiveExpense = CreateFixedExpense(2, category, "Disney+", 11.99m, 2024, 1);
+            FixedExpense activeExpense = CreateFixedExpense(1, category, "Netflix", 15.99m, 1, 2024);
+            FixedExpense inactiveExpense = CreateFixedExpense(2, category, "Disney+", 11.99m, 1, 2024);
             inactiveExpense.Deactivate(); // Desactivar uno
 
             List<FixedExpense> activeExpenses = new List<FixedExpense> { activeExpense };
@@ -216,7 +216,7 @@ namespace Tests.Application
                 .ReturnsAsync(activeExpenses);
 
             // Act
-            List<FixedExpenseResponseDto> result = await _fixedExpenseService.GetActiveAsync();
+            List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetActiveAsync();
 
             // Assert
             Assert.NotNull(result);
@@ -231,31 +231,23 @@ namespace Tests.Application
         {
             // Arrange
             int categoryId = 1;
-            CreateFixedExpenseRequestDto request = new CreateFixedExpenseRequestDto
-            {
-                CategoryId = categoryId,
-                Name = "Netflix",
-                Description = "Suscripción mensual",
-                Amount = 15.99m,
-                Year = 2024,
-                Month = 1
-            };
+            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Name = "Netflix", Description = "Suscripción mensual", Amount = 15.99m, Month = 1, Year = 2024 };
 
             Category category = CreateCategory(categoryId, "Suscripciones");
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, true))
                 .ReturnsAsync(category);
 
             // Act
-            FixedExpenseResponseDto result = await _fixedExpenseService.CreateAsync(request);
+            FixedExpenseResponseDTO result = await _fixedExpenseService.CreateAsync(request);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal("Netflix", result.Name);
             Assert.Equal(15.99m, result.Amount);
-            Assert.Equal(2024, result.Year);
             Assert.Equal(1, result.Month);
+            Assert.Equal(2024, result.Year);
             Assert.Equal("Suscripciones", result.CategoryName);
             Assert.True(result.IsActive);
 
@@ -267,17 +259,10 @@ namespace Tests.Application
         {
             // Arrange
             int categoryId = 999;
-            CreateFixedExpenseRequestDto request = new CreateFixedExpenseRequestDto
-            {
-                CategoryId = categoryId,
-                Name = "Netflix",
-                Amount = 15.99m,
-                Year = 2024,
-                Month = 1
-            };
+            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Name = "Netflix", Amount = 15.99m, Month = 1, Year = 2024 };
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId,true))
                 .ReturnsAsync((Category)null);
 
             // Act & Assert
@@ -291,19 +276,12 @@ namespace Tests.Application
         {
             // Arrange
             int categoryId = 1;
-            CreateFixedExpenseRequestDto request = new CreateFixedExpenseRequestDto
-            {
-                CategoryId = categoryId,
-                Name = "Netflix",
-                Amount = -15.99m, // ← Amount negativo
-                Year = 2024,
-                Month = 1
-            };
+            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Name = "Netflix", Amount = -15.99m, Month = 1, Year = 2024 };
 
             Category category = CreateCategory(categoryId, "Suscripciones");
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, true))
                 .ReturnsAsync(category);
 
             // Act & Assert
@@ -321,32 +299,25 @@ namespace Tests.Application
             int fixedExpenseId = 1;
             int categoryId = 1;
 
-            UpdateFixedExpenseRequestDto request = new UpdateFixedExpenseRequestDto
-            {
-                Name = "Netflix Premium",
-                Description = "Suscripción mensual Premium",
-                Amount = 17.99m,
-                Year = 2024,
-                Month = 2
-            };
+            UpdateFixedExpenseRequestDTO request = new UpdateFixedExpenseRequestDTO { Name = "Netflix Premium", Description = "Suscripción mensual Premium", Amount = 17.99m, Month = 2, Year = 2024 };
 
             Category category = CreateCategory(categoryId, "Suscripciones");
-            FixedExpense existingFixedExpense = CreateFixedExpense(fixedExpenseId, category, "Netflix", 15.99m, 2024, 1);
+            FixedExpense existingFixedExpense = CreateFixedExpense(fixedExpenseId, category, "Netflix", 15.99m, 1,2024);
 
             _fixedExpenseRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(fixedExpenseId))
                 .ReturnsAsync(existingFixedExpense);
 
             // Act
-            FixedExpenseResponseDto result = await _fixedExpenseService.UpdateAsync(fixedExpenseId, request);
+            FixedExpenseResponseDTO result = await _fixedExpenseService.UpdateAsync(fixedExpenseId, request);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(fixedExpenseId, result.Id);
             Assert.Equal("Netflix Premium", result.Name);
             Assert.Equal(17.99m, result.Amount);
-            Assert.Equal(2024, result.Year);
             Assert.Equal(2, result.Month);
+            Assert.Equal(2024, result.Year);
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<FixedExpense>()), Times.Once);
         }
@@ -356,13 +327,7 @@ namespace Tests.Application
         {
             // Arrange
             int fixedExpenseId = 999;
-            UpdateFixedExpenseRequestDto request = new UpdateFixedExpenseRequestDto
-            {
-                Name = "Netflix Premium",
-                Amount = 17.99m,
-                Year = 2024,
-                Month = 2
-            };
+            UpdateFixedExpenseRequestDTO request = new UpdateFixedExpenseRequestDTO { Name = "Netflix Premium", Amount = 17.99m, Month = 2, Year = 2024 };
 
             _fixedExpenseRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(fixedExpenseId))
@@ -499,7 +464,7 @@ namespace Tests.Application
                 .ReturnsAsync(expectedTotal);
 
             // Act
-            decimal result = await _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, year, month);
+            decimal result = await _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, month, year);
 
             // Assert
             Assert.Equal(expectedTotal, result);
@@ -517,7 +482,7 @@ namespace Tests.Application
                 .ReturnsAsync(false);
 
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, 2024, 1));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, 1, 2024));
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(It.IsAny<int>(), It.IsAny<Period>()), Times.Never);
         }
@@ -569,9 +534,7 @@ namespace Tests.Application
 
             // Assert
             Assert.False(result);
-            _fixedExpenseRepositoryMock.Verify(
-                repo => repo.ExistsAsync(It.IsAny<int>()),
-                Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.ExistsAsync(It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: IS ACTIVE ====================

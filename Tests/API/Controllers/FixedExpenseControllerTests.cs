@@ -23,7 +23,7 @@ namespace Tests.API.Controllers
 
         private async Task<int> CreateCategoryAsync(string name)
         {
-            CreateCategoryRequestDto request = new CreateCategoryRequestDto
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = name,
                 Description = "Test Category"
@@ -34,14 +34,14 @@ namespace Tests.API.Controllers
 
             HttpResponseMessage response = await _client.PostAsync("/api/category", content);
             string responseContent = await response.Content.ReadAsStringAsync();
-            CategoryResponseDto category = JsonConvert.DeserializeObject<CategoryResponseDto>(responseContent);
+            CategoryResponseDTO category = JsonConvert.DeserializeObject<CategoryResponseDTO>(responseContent);
 
             return category.Id;
         }
 
         private async Task<int> CreateFixedExpenseAsync(int categoryId, string name, decimal amount, int year, int month)
         {
-            CreateFixedExpenseRequestDto request = new CreateFixedExpenseRequestDto
+            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO
             {
                 CategoryId = categoryId,
                 Name = name,
@@ -56,7 +56,7 @@ namespace Tests.API.Controllers
 
             HttpResponseMessage response = await _client.PostAsync("/api/fixedexpense", content);
             string responseContent = await response.Content.ReadAsStringAsync();
-            FixedExpenseResponseDto fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDto>(responseContent);
+            FixedExpenseResponseDTO fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDTO>(responseContent);
 
             return fixedExpense.Id;
         }
@@ -69,7 +69,7 @@ namespace Tests.API.Controllers
             // Arrange
             int categoryId = await CreateCategoryAsync("Suscripciones");
 
-            CreateFixedExpenseRequestDto request = new CreateFixedExpenseRequestDto
+            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO
             {
                 CategoryId = categoryId,
                 Name = "Netflix",
@@ -89,7 +89,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            FixedExpenseResponseDto fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDto>(responseContent);
+            FixedExpenseResponseDTO fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDTO>(responseContent);
 
             Assert.NotNull(fixedExpense);
             Assert.Equal("Netflix", fixedExpense.Name);
@@ -103,7 +103,7 @@ namespace Tests.API.Controllers
         public async Task Create_WithNonExistingCategory_ReturnsNotFound()
         {
             // Arrange
-            CreateFixedExpenseRequestDto request = new CreateFixedExpenseRequestDto
+            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO
             {
                 CategoryId = 999,
                 Name = "Netflix",
@@ -138,7 +138,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            FixedExpenseResponseDto fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDto>(content);
+            FixedExpenseResponseDTO fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDTO>(content);
 
             Assert.NotNull(fixedExpense);
             Assert.Equal(fixedExpenseId, fixedExpense.Id);
@@ -168,7 +168,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            List<FixedExpenseResponseDto> fixedExpenses = JsonConvert.DeserializeObject<List<FixedExpenseResponseDto>>(content);
+            List<FixedExpenseResponseDTO> fixedExpenses = JsonConvert.DeserializeObject<List<FixedExpenseResponseDTO>>(content);
 
             Assert.NotNull(fixedExpenses);
         }
@@ -190,7 +190,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            List<FixedExpenseResponseDto> fixedExpenses = JsonConvert.DeserializeObject<List<FixedExpenseResponseDto>>(content);
+            List<FixedExpenseResponseDTO> fixedExpenses = JsonConvert.DeserializeObject<List<FixedExpenseResponseDTO>>(content);
 
             Assert.NotNull(fixedExpenses);
             // Solo Netflix debe estar activo en febrero (Spotify empieza en marzo)

@@ -30,7 +30,7 @@ namespace Application.Services
 
         // ==================== CONSULTAS ====================
 
-        public async Task<FixedExpenseResponseDto> GetByIdAsync(int id)
+        public async Task<FixedExpenseResponseDTO> GetByIdAsync(int id)
         {
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
 
@@ -38,17 +38,17 @@ namespace Application.Services
 
             if (fixedExpense == null) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
 
-            return _mapper.Map<FixedExpenseResponseDto>(fixedExpense);
+            return _mapper.Map<FixedExpenseResponseDTO>(fixedExpense);
         }
 
-        public async Task<List<FixedExpenseResponseDto>> GetAllAsync()
+        public async Task<List<FixedExpenseResponseDTO>> GetAllAsync()
         {
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetAllAsync();
 
-            return _mapper.Map<List<FixedExpenseResponseDto>>(fixedExpenses);
+            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
 
-        public async Task<List<FixedExpenseResponseDto>> GetByCategoryIdAsync(int categoryId)
+        public async Task<List<FixedExpenseResponseDTO>> GetByCategoryIdAsync(int categoryId)
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
@@ -56,17 +56,17 @@ namespace Application.Services
 
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetByCategoryAsync(categoryId);
 
-            return _mapper.Map<List<FixedExpenseResponseDto>>(fixedExpenses);
+            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
 
-        public async Task<List<FixedExpenseResponseDto>> GetActiveAsync()
+        public async Task<List<FixedExpenseResponseDTO>> GetActiveAsync()
         {
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveAsync();
 
-            return _mapper.Map<List<FixedExpenseResponseDto>>(fixedExpenses);
+            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
 
-        public async Task<List<FixedExpenseResponseDto>> GetActiveByCategoryIdAsync(int categoryId)
+        public async Task<List<FixedExpenseResponseDTO>> GetActiveByCategoryIdAsync(int categoryId)
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
@@ -74,18 +74,18 @@ namespace Application.Services
 
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveByCategoryAsync(categoryId);
 
-            return _mapper.Map<List<FixedExpenseResponseDto>>(fixedExpenses);
+            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
 
-        public async Task<List<FixedExpenseResponseDto>> GetActiveForPeriodAsync(int year, int month)
+        public async Task<List<FixedExpenseResponseDTO>> GetActiveForPeriodAsync(int month, int year)
         {
             Period period = new Period(month, year);
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveForPeriodAsync(period);
 
-            return _mapper.Map<List<FixedExpenseResponseDto>>(fixedExpenses);
+            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
 
-        public async Task<List<FixedExpenseResponseDto>> GetActiveForPeriodByCategoryAsync(int categoryId, int year, int month)
+        public async Task<List<FixedExpenseResponseDTO>> GetActiveForPeriodByCategoryAsync(int categoryId, int month, int year)
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
@@ -94,12 +94,12 @@ namespace Application.Services
             Period period = new Period(month, year);
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveForPeriodByCategoryAsync(categoryId, period);
 
-            return _mapper.Map<List<FixedExpenseResponseDto>>(fixedExpenses);
+            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
 
         // ==================== COMANDOS ====================
 
-        public async Task<FixedExpenseResponseDto> CreateAsync(CreateFixedExpenseRequestDto request)
+        public async Task<FixedExpenseResponseDTO> CreateAsync(CreateFixedExpenseRequestDTO request)
         {
             ArgumentNullException.ThrowIfNull(request);
 
@@ -123,10 +123,10 @@ namespace Application.Services
             await _fixedExpenseRepository.AddAsync(fixedExpense);
 
             // Devolver DTO
-            return _mapper.Map<FixedExpenseResponseDto>(fixedExpense);
+            return _mapper.Map<FixedExpenseResponseDTO>(fixedExpense);
         }
 
-        public async Task<FixedExpenseResponseDto> UpdateAsync(int id, UpdateFixedExpenseRequestDto request)
+        public async Task<FixedExpenseResponseDTO> UpdateAsync(int id, UpdateFixedExpenseRequestDTO request)
         {
             ArgumentNullException.ThrowIfNull(request);
 
@@ -151,7 +151,7 @@ namespace Application.Services
             await _fixedExpenseRepository.UpdateAsync(fixedExpense);
 
             // Devolver DTO
-            return _mapper.Map<FixedExpenseResponseDto>(fixedExpense);
+            return _mapper.Map<FixedExpenseResponseDTO>(fixedExpense);
         }
 
         public async Task DeleteAsync(int id)
@@ -199,7 +199,7 @@ namespace Application.Services
             return await _fixedExpenseRepository.IsActiveAsync(id);
         }
 
-        public async Task<decimal> GetTotalForPeriodByCategoryAsync(int categoryId, int year, int month)
+        public async Task<decimal> GetTotalForPeriodByCategoryAsync(int categoryId, int month, int year)
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 

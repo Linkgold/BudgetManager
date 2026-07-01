@@ -13,8 +13,8 @@
 
             if (currency.Length != 3) throw new ArgumentException("Currency must be a 3-letter ISO code", nameof(currency));
 
-            Value = value;
-            Currency = currency;
+            Value = Math.Truncate(value * 100) / 100;
+            Currency = currency.ToUpperInvariant();
         }
 
         public bool Equals(Money other)

@@ -16,6 +16,21 @@ namespace Infrastructure.Data.Configurations
             builder.Property(budget => budget.Id)
                 .ValueGeneratedOnAdd();
 
+            // ==================== CONFIGURACIÓN DE MONEY ====================
+            builder.OwnsOne(budget => budget.MonthlyAmount, amount =>
+            {
+                amount.Property(m => m.Value)
+                    .HasColumnName("MonthlyAmount")
+                    .IsRequired()
+                    .HasPrecision(18, 2);
+
+                amount.Property(m => m.Currency)
+                    .HasColumnName("Currency")
+                    .IsRequired()
+                    .HasMaxLength(3)
+                    .HasDefaultValue("EUR");
+            });
+
             // ==================== CONFIGURACIÓN DE PERIOD ====================
             builder.OwnsOne(budget => budget.Period, period =>
             {
@@ -30,21 +45,6 @@ namespace Infrastructure.Data.Configurations
                 // Índice opcional
                 period.HasIndex(p => new { p.Year, p.Month })
                     .HasDatabaseName("IX_Budgets_Period");
-            });
-
-            // ==================== CONFIGURACIÓN DE MONEY ====================
-            builder.OwnsOne(budget => budget.MonthlyAmount, amount =>
-            {
-                amount.Property(m => m.Value)
-                    .HasColumnName("MonthlyAmount")
-                    .IsRequired()
-                    .HasPrecision(18, 2);
-
-                amount.Property(m => m.Currency)
-                    .HasColumnName("Currency")
-                    .IsRequired()
-                    .HasMaxLength(3)
-                    .HasDefaultValue("EUR");
             });
 
             // ==================== PROPIEDADES SIMPLES ====================

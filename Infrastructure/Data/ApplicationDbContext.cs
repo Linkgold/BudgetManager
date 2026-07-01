@@ -9,21 +9,20 @@ namespace Infrastructure.Data
     /// </summary>
     public class ApplicationDbContext : DbContext
     {
-        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
-
-        //public DbSet<Budget> Budgets { get; set; }
         public DbSet<Category> Categories { get; set; }
-        //public DbSet<Expense> Expenses { get; set; }
         public DbSet<FixedExpense> FixedExpenses { get; set; }
+        public DbSet<Budget> Budgets { get; set; }
+        //public DbSet<Expense> Expenses { get; set; }
+
+        public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            //modelBuilder.ApplyConfigurationsFromAssembly(typeof(ApplicationDbContext).Assembly);
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
             modelBuilder.ApplyConfiguration(new FixedExpenseConfiguration());
-            //modelBuilder.ApplyConfiguration(new BudgetConfiguration());
+            modelBuilder.ApplyConfiguration(new BudgetConfiguration());
         }
 
         /// <summary>

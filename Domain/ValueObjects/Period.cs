@@ -2,14 +2,17 @@
 {
     public class Period
     {
+        private const int JANUARY = 1;
+        private const int DECEMBER = 12;
+
         public int Month { get; private set; }
         public int Year { get; private set; }
 
         public Period(int month, int year)
         {
-            if (month < 1 || month > 12) throw new ArgumentException("Month must be between 1 and 12", nameof(month));
+            if (month < JANUARY || month > DECEMBER) throw new ArgumentException("Month must be between 1 and 12", nameof(month));
 
-            if (year < 1900 || year > 2100) throw new ArgumentException("Invalid year", nameof(year));
+            if (year < 1900 || year > 2100) throw new ArgumentException("Year must be between 1900 and 2100", nameof(year));
 
             Month = month;
             Year = year;
@@ -23,14 +26,14 @@
 
         public Period NextMonth()
         {
-            if (Month == 12) return new Period(Year + 1, 1);
-            return new Period(Year, Month + 1);
+            if (Month == DECEMBER) return new Period(JANUARY, Year + 1);
+            return new Period(Month + 1, Year);
         }
 
         public Period PreviousMonth()
         {
-            if (Month == 1) return new Period(Year - 1, 12);
-            return new Period(Year, Month - 1);
+            if (Month == JANUARY) return new Period(DECEMBER, Year - 1);
+            return new Period(Month - 1, Year);
         }
 
         public bool Equals(Period other)
@@ -43,7 +46,7 @@
 
         public override int GetHashCode() => HashCode.Combine(Year, Month);
 
-        public override string ToString() => $"{Year:0000}-{Month:00}";
+        public override string ToString() => $"{Month:00}-{Year:0000}";
 
         public static bool operator ==(Period a, Period b)
         {

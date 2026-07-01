@@ -6,14 +6,14 @@ namespace Application.Interfaces
     public interface ICategoryService
     {
         // Consultas
-        Task<CategoryResponseDto> GetByIdAsync(int id);
-        Task<List<CategoryResponseDto>> GetAllAsync();
-        Task<List<CategoryResponseDto>> GetActiveCategoriesAsync();
-        Task<CategoryResponseDto> GetByNameAsync(string name);
+        Task<CategoryResponseDTO> GetByIdAsync(int id);
+        Task<List<CategoryResponseDTO>> GetAllAsync();
+        Task<List<CategoryResponseDTO>> GetActiveCategoriesAsync();
+        Task<CategoryResponseDTO> GetByNameAsync(string name);
 
         // Comandos
-        Task<CategoryResponseDto> CreateAsync(CreateCategoryRequestDto request);
-        Task<CategoryResponseDto> UpdateAsync(int id, UpdateCategoryRequestDto request);
+        Task<CategoryResponseDTO> CreateAsync(CreateCategoryRequestDTO request);
+        Task<CategoryResponseDTO> UpdateAsync(int id, UpdateCategoryRequestDTO request);
         Task DeleteAsync(int id);
 
         // Validaciones

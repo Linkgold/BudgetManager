@@ -1,40 +1,27 @@
 ﻿using Domain.Entities;
-using Domain.Enums;
 using Domain.ValueObjects;
 
 namespace Domain.Interfaces
 {
+    /// <summary>
+    /// Repositorio para la entidad Budget
+    /// </summary>
     public interface IBudgetRepository
     {
-        // CRUD Básico
+        // ==================== CONSULTAS ====================
         Task<Budget> GetByIdAsync(int id);
-        Task<Budget> GetByIdWithCategoryAsync(int id);
         Task<IEnumerable<Budget>> GetAllAsync();
-        Task<IEnumerable<Budget>> GetByCategoryAsync(int categoryId);
-        Task<Budget> GetByCategoryAndPeriodAsync(int categoryId, Period period);
-
-        // Métodos de búsqueda
+        Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, Period period);
         Task<IEnumerable<Budget>> GetByPeriodAsync(Period period);
-        Task<IEnumerable<Budget>> GetByYearAsync(int year);
-        Task<IEnumerable<Budget>> GetOverBudgetAsync();
-        Task<IEnumerable<Budget>> GetByStatusAsync(BudgetStatus status);
+        Task<IEnumerable<Budget>> GetByCategoryIdAsync(int categoryId);
 
-        // Métodos de agregación
-        Task<decimal> GetTotalBudgetForPeriodAsync(Period period);
-        Task<decimal> GetTotalBudgetForCategoryAsync(int categoryId);
+        // ==================== VERIFICACIONES ====================
+        Task<bool> ExistsAsync(int id);
+        Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, Period period);
 
-        // Métodos de negocio
-        Task<bool> ExistsAsync(int categoryId, Period period);
-        Task<bool> IsOverBudgetAsync(int categoryId, Period period);
-        Task<IEnumerable<Budget>> GetExpiringBudgetsAsync(int daysThreshold = 30);
-
-        // Métodos de escritura
+        // ==================== COMANDOS ====================
         Task AddAsync(Budget budget);
         Task UpdateAsync(Budget budget);
         Task DeleteAsync(int id);
-
-        // Métodos batch
-        Task AddRangeAsync(IEnumerable<Budget> budgets);
-        Task UpdateRangeAsync(IEnumerable<Budget> budgets);
     }
 }

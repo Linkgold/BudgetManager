@@ -168,6 +168,7 @@ namespace API
             // Registrar servicios de aplicación
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IFixedExpenseService, FixedExpenseService>();
+            services.AddScoped<IBudgetService, BudgetService>();
 
             // Registrar AutoMapper
             services.AddAutoMapper(typeof(AutoMapperProfile));

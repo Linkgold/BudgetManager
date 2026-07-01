@@ -10,18 +10,18 @@ namespace Application.Interfaces
     {
         // ==================== CONSULTAS ====================
 
-        Task<FixedExpenseResponseDto> GetByIdAsync(int id);
-        Task<List<FixedExpenseResponseDto>> GetAllAsync();
-        Task<List<FixedExpenseResponseDto>> GetByCategoryIdAsync(int categoryId);
-        Task<List<FixedExpenseResponseDto>> GetActiveAsync();
-        Task<List<FixedExpenseResponseDto>> GetActiveByCategoryIdAsync(int categoryId);
-        Task<List<FixedExpenseResponseDto>> GetActiveForPeriodAsync(int year, int month);
-        Task<List<FixedExpenseResponseDto>> GetActiveForPeriodByCategoryAsync(int categoryId, int year, int month);
+        Task<FixedExpenseResponseDTO> GetByIdAsync(int id);
+        Task<List<FixedExpenseResponseDTO>> GetAllAsync();
+        Task<List<FixedExpenseResponseDTO>> GetByCategoryIdAsync(int categoryId);
+        Task<List<FixedExpenseResponseDTO>> GetActiveAsync();
+        Task<List<FixedExpenseResponseDTO>> GetActiveByCategoryIdAsync(int categoryId);
+        Task<List<FixedExpenseResponseDTO>> GetActiveForPeriodAsync(int month, int year);
+        Task<List<FixedExpenseResponseDTO>> GetActiveForPeriodByCategoryAsync(int categoryId, int month, int year);
 
         // ==================== COMANDOS ====================
 
-        Task<FixedExpenseResponseDto> CreateAsync(CreateFixedExpenseRequestDto request);
-        Task<FixedExpenseResponseDto> UpdateAsync(int id, UpdateFixedExpenseRequestDto request);
+        Task<FixedExpenseResponseDTO> CreateAsync(CreateFixedExpenseRequestDTO request);
+        Task<FixedExpenseResponseDTO> UpdateAsync(int id, UpdateFixedExpenseRequestDTO request);
         Task DeleteAsync(int id);
         Task ActivateAsync(int id);
         Task DeactivateAsync(int id);
@@ -30,6 +30,6 @@ namespace Application.Interfaces
 
         Task<bool> ExistsAsync(int id);
         Task<bool> IsActiveAsync(int id);
-        Task<decimal> GetTotalForPeriodByCategoryAsync(int categoryId, int year, int month);
+        Task<decimal> GetTotalForPeriodByCategoryAsync(int categoryId, int month, int year);
     }
 }

@@ -1,209 +1,219 @@
-using Application.DTOs;
-using Domain.Entities;
-using Infrastructure.Repositories;
+using Application.DTOs.Request;
+using Application.DTOs.Response;
+using Application.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Reflection.Metadata.Ecma335;
 
 namespace API.Controllers
 {
+    /// <summary>
+    /// Controlador para gestionar presupuestos
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
-    public class BudgetsController : ControllerBase
+    [Produces("application/json")]
+    public class BudgetController : ControllerBase
     {
-        private readonly BudgetRepository _budgetRepository;
-        private readonly CategoryRepository _categoryRepository;
+        private readonly IBudgetService _budgetService;
 
-        public BudgetsController(BudgetRepository budgetRepository, CategoryRepository categoryRepository)
+        /// <summary>
+        /// Constructor del controlador
+        /// </summary>
+        /// <param name="budgetService">Servicio de presupuestos</param>
+        public BudgetController(IBudgetService budgetService)
         {
-            _budgetRepository = budgetRepository;
-            _categoryRepository = categoryRepository;
+            ArgumentNullException.ThrowIfNull(budgetService);
+
+            _budgetService = budgetService;
         }
+
+        // ==================== CONSULTAS ====================
 
         /// <summary>
         /// Obtiene todos los presupuestos
         /// </summary>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BudgetDTO>>> GetAll()
+        [ProducesResponseType(typeof(List<BudgetResponseDTO>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAll()
         {
-            /*List<Budget> budgets = await _budgetRepository.GetAllAsync();
-            List<BudgetDTO> dtos = budgets.Select(b => new BudgetDTO
-            {
-                Id = b.Id,
-                MonthlyAmount = b.MonthlyAmount.Value,
-                Month = b.Period.Month,
-                Year = b.Period.Year,
-                CategoryId = b.CategoryId,
-                //CategoryName = b.Category?.Name,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt
-            }).ToList();
+            List<BudgetResponseDTO> budgets = await _budgetService.GetAllAsync();
 
-            return Ok(dtos);*/
-
-            return null;
+            return Ok(budgets);
         }
 
         /// <summary>
-        /// Obtiene un presupuesto por ID
+        /// Obtiene un presupuesto por su ID
         /// </summary>
         [HttpGet("{id}")]
-        public async Task<ActionResult<BudgetDTO>> GetById(int id)
+        [ProducesResponseType(typeof(BudgetResponseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetById(int id)
         {
-            /*Budget? budget = await _budgetRepository.GetByIdAsync(id);
-            if (budget == null)
-                return NotFound(new { message = "Presupuesto no encontrado" });
+            if (id <= 0) return BadRequest("Invalid budget ID");
 
-            BudgetDTO dto = new BudgetDTO
-            {
-                Id = budget.Id,
-                MonthlyAmount = budget.MonthlyAmount.Value,
-                Month = budget.Period.Month,
-                Year = budget.Period.Year,
-                CategoryId = budget.CategoryId,
-                //CategoryName = budget.Category?.Name,
-                CreatedAt = budget.CreatedAt,
-                UpdatedAt = budget.UpdatedAt
-            };
+            BudgetResponseDTO budget = await _budgetService.GetByIdAsync(id);
 
-            return Ok(dto);*/
-
-            return null;
+            return Ok(budget);
         }
+
+        /// <summary>
+        /// Obtiene todos los presupuestos de una categoría
+        /// </summary>
+        [HttpGet("by-category/{categoryId}")]
+        [ProducesResponseType(typeof(List<BudgetResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetByCategory(int categoryId)
+        {
+            if (categoryId <= 0) return BadRequest("Invalid category ID");
+
+            List<BudgetResponseDTO> budgets = await _budgetService.GetByCategoryIdAsync(categoryId);
+
+            return Ok(budgets);
+        }
+
+        /// <summary>
+        /// Obtiene todos los presupuestos de un período (mes/año)
+        /// </summary>
+        [HttpGet("by-period")]
+        [ProducesResponseType(typeof(List<BudgetResponseDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetByPeriod([FromQuery] int year, [FromQuery] int month)
+        {
+            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
+
+            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
+
+            List<BudgetResponseDTO> budgets = await _budgetService.GetByPeriodAsync(month,year);
+
+            return Ok(budgets);
+        }
+
+        /// <summary>
+        /// Obtiene un presupuesto por categoría y período
+        /// </summary>
+        [HttpGet("by-category-period")]
+        [ProducesResponseType(typeof(BudgetResponseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetByCategoryAndPeriod([FromQuery] int categoryId, [FromQuery] int year, [FromQuery] int month)
+        {
+            if (categoryId <= 0) return BadRequest("Invalid category ID");
+
+            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
+
+            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
+
+            BudgetResponseDTO budget = await _budgetService.GetByCategoryAndPeriodAsync(categoryId, month, year);
+
+            return Ok(budget);
+        }
+
+        /// <summary>
+        /// Obtiene un resumen completo del presupuesto (incluye estado y cálculos)
+        /// </summary>
+        [HttpGet("summary")]
+        [ProducesResponseType(typeof(BudgetSummaryDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetSummary([FromQuery] int categoryId, [FromQuery] int year, [FromQuery] int month)
+        {
+            if (categoryId <= 0) return BadRequest("Invalid category ID");
+
+            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
+
+            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
+
+            BudgetSummaryDTO summary = await _budgetService.GetSummaryByCategoryAndPeriodAsync(categoryId, month,year);
+
+            return Ok(summary);
+        }
+
+        // ==================== COMANDOS ====================
 
         /// <summary>
         /// Crea un nuevo presupuesto
         /// </summary>
         [HttpPost]
-        public async Task<ActionResult<BudgetDTO>> Create([FromBody] CreateBudgetDTO createDto)
+        [ProducesResponseType(typeof(BudgetResponseDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> Create([FromBody] CreateBudgetRequestDTO request)
         {
-            /*if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (request == null) return BadRequest("Request cannot be null");
 
-            try
-            {
-                Category? category = await _categoryRepository.GetByIdAsync(createDto.CategoryId);
-                if (category == null)
-                    return BadRequest(new { message = "Categoría no encontrada" });
+            BudgetResponseDTO createdBudget = await _budgetService.CreateAsync(request);
 
-                Budget budget = new Budget(
-                    category,
-                    new Domain.ValueObjects.Money(createDto.MonthlyAmount),
-                    new Domain.ValueObjects.Period(createDto.Month, createDto.Year)
-                );
-
-                await _budgetRepository.AddAsync(budget);
-                await _budgetRepository.SaveChangesAsync();
-
-                BudgetDTO dto = new BudgetDTO
-                {
-                    Id = budget.Id,
-                    MonthlyAmount = budget.MonthlyAmount.Value,
-                    Month = budget.Period.Month,
-                    Year = budget.Period.Year,
-                    CategoryId = budget.CategoryId,
-                    //CategoryName = budget.Category?.Name,
-                    CreatedAt = budget.CreatedAt,
-                    UpdatedAt = budget.UpdatedAt
-                };
-
-                return CreatedAtAction(nameof(GetById), new { id = budget.Id }, dto);
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al crear el presupuesto", detail = ex.Message });
-            }*/
-
-
-            return null;
+            return CreatedAtAction(nameof(GetById), new { id = createdBudget.Id }, createdBudget);
         }
 
         /// <summary>
-        /// Actualiza un presupuesto existente (solo el monto mensual)
+        /// Actualiza un presupuesto existente
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateBudgetDTO updateDto)
+        [ProducesResponseType(typeof(BudgetResponseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateBudgetRequestDTO request)
         {
-            /*if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+            if (id <= 0) return BadRequest("Invalid budget ID");
 
-            Budget? budget = await _budgetRepository.GetByIdAsync(id);
-            if (budget == null)
-                return NotFound(new { message = "Presupuesto no encontrado" });
+            if (request == null) return BadRequest("Request cannot be null");
 
-            try
-            {
-                // Update only the monthly amount as other properties are immutable after creation
-                budget.UpdateAmount(new Domain.ValueObjects.Money(updateDto.MonthlyAmount));
-                _budgetRepository.Update(budget);
-                await _budgetRepository.SaveChangesAsync();
+            BudgetResponseDTO updatedBudget = await _budgetService.UpdateAsync(id, request);
 
-                return NoContent();
-            }
-            catch (ArgumentException ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al actualizar el presupuesto", detail = ex.Message });
-            }*/
-
-            return null;
+            return Ok(updatedBudget);
         }
 
         /// <summary>
         /// Elimina un presupuesto
         /// </summary>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Delete(int id)
         {
-            /*Budget? budget = await _budgetRepository.GetByIdAsync(id);
-            if (budget == null)
-                return NotFound(new { message = "Presupuesto no encontrado" });
+            if (id <= 0) return BadRequest("Invalid budget ID");
 
-            try
-            {
-                _budgetRepository.Delete(budget);
-                await _budgetRepository.SaveChangesAsync();
+            await _budgetService.DeleteAsync(id);
 
-                return NoContent();
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "Error al eliminar el presupuesto", detail = ex.Message });
-            }*/
-
-            return null;
+            return NoContent();
         }
 
         /// <summary>
-        /// Obtiene presupuestos por categoría
+        /// Verifica si un presupuesto existe
         /// </summary>
-        [HttpGet("category/{categoryId}")]
-        public async Task<ActionResult<IEnumerable<BudgetDTO>>> GetByCategory(int categoryId)
+        [HttpGet("{id}/exists")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Exists(int id)
         {
-            /*List<Budget> budgets = await _budgetRepository.GetAllAsync();
-            IEnumerable<Budget> categoryBudgets = budgets.Where(b => b.CategoryId == categoryId);
+            if (id <= 0) return BadRequest("Invalid budget ID");
 
-            List<BudgetDTO> dtos = categoryBudgets.Select(b => new BudgetDTO
-            {
-                Id = b.Id,
-                MonthlyAmount = b.MonthlyAmount.Value,
-                Month = b.Period.Month,
-                Year = b.Period.Year,
-                CategoryId = b.CategoryId,
-                //CategoryName = b.Category?.Name,
-                CreatedAt = b.CreatedAt,
-                UpdatedAt = b.UpdatedAt
-            }).ToList();
+            bool exists = await _budgetService.ExistsAsync(id);
 
-            return Ok(dtos);*/
+            return Ok(new { Exists = exists });
+        }
 
-            return null;
+        /// <summary>
+        /// Verifica si existe un presupuesto para una categoría y período
+        /// </summary>
+        [HttpGet("exists-by-category-period")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> ExistsForCategoryAndPeriod([FromQuery] int categoryId, [FromQuery] int year, [FromQuery] int month)
+        {
+            if (categoryId <= 0) return BadRequest("Invalid category ID");
+
+            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
+
+            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
+
+            bool exists = await _budgetService.ExistsForCategoryAndPeriodAsync(categoryId, month, year);
+
+            return Ok(new { CategoryId = categoryId, Month=month, Year = year, Exists = exists });
         }
     }
 }

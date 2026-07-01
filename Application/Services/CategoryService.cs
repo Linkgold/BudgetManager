@@ -24,39 +24,39 @@ namespace Application.Services
 
         // ==================== CONSULTAS ====================
 
-        public async Task<CategoryResponseDto> GetByIdAsync(int id)
+        public async Task<CategoryResponseDTO> GetByIdAsync(int id)
         {
             Category category = await _categoryRepository.GetByIdAsync(id);
 
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found");
 
-            return _mapper.Map<CategoryResponseDto>(category);
+            return _mapper.Map<CategoryResponseDTO>(category);
         }
 
-        public async Task<List<CategoryResponseDto>> GetAllAsync()
+        public async Task<List<CategoryResponseDTO>> GetAllAsync()
         {
             List<Category> categories = await _categoryRepository.GetAllAsync();
-            return _mapper.Map<List<CategoryResponseDto>>(categories);
+            return _mapper.Map<List<CategoryResponseDTO>>(categories);
         }
 
-        public async Task<List<CategoryResponseDto>> GetActiveCategoriesAsync()
+        public async Task<List<CategoryResponseDTO>> GetActiveCategoriesAsync()
         {
             List<Category> categories = await _categoryRepository.GetActiveCategoriesAsync();
-            return _mapper.Map<List<CategoryResponseDto>>(categories);
+            return _mapper.Map<List<CategoryResponseDTO>>(categories);
         }
 
-        public async Task<CategoryResponseDto> GetByNameAsync(string name)
+        public async Task<CategoryResponseDTO> GetByNameAsync(string name)
         {
             Category category = await _categoryRepository.GetByNameAsync(name);
 
             if (category == null) throw new KeyNotFoundException($"Category with name '{name}' not found");
 
-            return _mapper.Map<CategoryResponseDto>(category);
+            return _mapper.Map<CategoryResponseDTO>(category);
         }
 
         // ==================== COMANDOS ====================
 
-        public async Task<CategoryResponseDto> CreateAsync(CreateCategoryRequestDto request)
+        public async Task<CategoryResponseDTO> CreateAsync(CreateCategoryRequestDTO request)
         {
             // Validar que no exista una categoría con el mismo nombre
             if (await _categoryRepository.ExistsByNameAsync(request.Name)) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
@@ -68,10 +68,10 @@ namespace Application.Services
             await _categoryRepository.AddAsync(category);
 
             // Devolver DTO
-            return _mapper.Map<CategoryResponseDto>(category);
+            return _mapper.Map<CategoryResponseDTO>(category);
         }
 
-        public async Task<CategoryResponseDto> UpdateAsync(int id, UpdateCategoryRequestDto request)
+        public async Task<CategoryResponseDTO> UpdateAsync(int id, UpdateCategoryRequestDTO request)
         {
             // Obtener categoría existente
             Category category = await _categoryRepository.GetByIdAsync(id);
@@ -90,7 +90,7 @@ namespace Application.Services
             await _categoryRepository.UpdateAsync(category);
 
             // Devolver DTO
-            return _mapper.Map<CategoryResponseDto>(category);
+            return _mapper.Map<CategoryResponseDTO>(category);
         }
 
         public async Task DeleteAsync(int id)

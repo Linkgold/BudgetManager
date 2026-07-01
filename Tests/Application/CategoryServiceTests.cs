@@ -52,7 +52,7 @@ namespace Tests.Application
                 .ReturnsAsync(expectedCategory);
 
             // Act
-            CategoryResponseDto result = await _service.GetByIdAsync(categoryId);
+            CategoryResponseDTO result = await _service.GetByIdAsync(categoryId);
 
             // Assert
             result.Should().NotBeNull();
@@ -95,7 +95,7 @@ namespace Tests.Application
                 .ReturnsAsync(categories);
 
             // Act
-            List<CategoryResponseDto> result = await _service.GetAllAsync();
+            List<CategoryResponseDTO> result = await _service.GetAllAsync();
 
             // Assert
             result.Should().NotBeNull();
@@ -120,7 +120,7 @@ namespace Tests.Application
                 .ReturnsAsync(categories);
 
             // Act
-            List<CategoryResponseDto> result = await _service.GetActiveCategoriesAsync();
+            List<CategoryResponseDTO> result = await _service.GetActiveCategoriesAsync();
 
             // Assert
             result.Should().NotBeNull();
@@ -140,7 +140,7 @@ namespace Tests.Application
                 .ReturnsAsync(expectedCategory);
 
             // Act
-            CategoryResponseDto result = await _service.GetByNameAsync(categoryName);
+            CategoryResponseDTO result = await _service.GetByNameAsync(categoryName);
 
             // Assert
             result.Should().NotBeNull();
@@ -169,7 +169,7 @@ namespace Tests.Application
         public async Task CreateAsync_ShouldCreateCategory_WhenNameIsUnique()
         {
             // Arrange
-            CreateCategoryRequestDto request = new CreateCategoryRequestDto
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "Nueva Categoría",
                 Description = "Descripción de la nueva categoría"
@@ -186,7 +186,7 @@ namespace Tests.Application
                 .Returns(Task.CompletedTask);
 
             // Act
-            CategoryResponseDto result = await _service.CreateAsync(request);
+            CategoryResponseDTO result = await _service.CreateAsync(request);
 
             // Assert
             result.Should().NotBeNull();
@@ -202,7 +202,7 @@ namespace Tests.Application
         public async Task CreateAsync_ShouldThrowInvalidOperationException_WhenNameAlreadyExists()
         {
             // Arrange
-            CreateCategoryRequestDto request = new CreateCategoryRequestDto
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "Categoría Duplicada",
                 Description = "Descripción"
@@ -227,7 +227,7 @@ namespace Tests.Application
             // Arrange
             int categoryId = 1;
             Category existingCategory = new Category(new EntityInfo("Nombre Antiguo", "Descripción Antigua"));
-            UpdateCategoryRequestDto request = new UpdateCategoryRequestDto
+            UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
             {
                 Name = "Nuevo Nombre",
                 Description = "Nueva Descripción"
@@ -242,7 +242,7 @@ namespace Tests.Application
                 .ReturnsAsync((Category)null);
 
             // Act
-            CategoryResponseDto result = await _service.UpdateAsync(categoryId, request);
+            CategoryResponseDTO result = await _service.UpdateAsync(categoryId, request);
 
             // Assert
             result.Should().NotBeNull();
@@ -259,7 +259,7 @@ namespace Tests.Application
         {
             // Arrange
             int categoryId = 999;
-            UpdateCategoryRequestDto request = new UpdateCategoryRequestDto
+            UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
             {
                 Name = "Nuevo Nombre",
                 Description = "Nueva Descripción"
@@ -287,7 +287,7 @@ namespace Tests.Application
             Category otherCategory = new Category(new EntityInfo("Nuevo Nombre", "Otra Descripción"));
             otherCategory.GetType().GetProperty("Id").SetValue(otherCategory, 2); // Simular ID diferente
 
-            UpdateCategoryRequestDto request = new UpdateCategoryRequestDto
+            UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
             {
                 Name = "Nuevo Nombre",
                 Description = "Nueva Descripción"

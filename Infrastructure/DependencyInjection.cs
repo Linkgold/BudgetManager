@@ -39,6 +39,7 @@ namespace Infrastructure
             // Registrar repositorios
             services.AddScoped<ICategoryRepository, CategoryRepository>();
             services.AddScoped<IFixedExpenseRepository, FixedExpenseRepository>();
+            services.AddScoped<IBudgetRepository, BudgetRepository>();
 
             return services;
         }

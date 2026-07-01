@@ -3,7 +3,7 @@
     /// <summary>
     /// DTO para crear un nuevo gasto fijo
     /// </summary>
-    public class CreateFixedExpenseRequestDto
+    public class CreateFixedExpenseRequestDTO
     {
         public int CategoryId { get; set; }
         public string Name { get; set; }
