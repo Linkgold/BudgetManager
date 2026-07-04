@@ -24,7 +24,7 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<Budget> GetByIdAsync(int id)
+        public async Task<Budget?> GetByIdAsync(int id)
         {
             if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));
 
@@ -41,12 +41,12 @@ namespace Infrastructure.Repositories
             IEnumerable<Budget> budgets = await _dbSet
                 .AsNoTracking()
                 .Include(b => b.Category)
-                .OrderBy(b => b.Period.Year)
-                .ThenBy(b => b.Period.Month)
-                .ThenBy(b => b.Category.Info.Name)
                 .ToListAsync();
 
-            return budgets;
+            return budgets
+                .OrderBy(b => b.Period.Year)
+                .ThenBy(b => b.Period.Month)
+                .ThenBy(b => b.Category.Info.Name);
         }
 
         public async Task<IEnumerable<Budget>> GetByCategoryIdAsync(int categoryId)
@@ -57,14 +57,15 @@ namespace Infrastructure.Repositories
                 .AsNoTracking()
                 .Include(b => b.Category)
                 .Where(b => b.CategoryId == categoryId)
-                .OrderBy(b => b.Period.Year)
-                .ThenBy(b => b.Period.Month)
+                
                 .ToListAsync();
 
-            return budgets;
+            return budgets
+                .OrderBy(b => b.Period.Year)
+                .ThenBy(b => b.Period.Month);
         }
 
-        public async Task<Budget> GetByCategoryAndPeriodAsync(int categoryId, Period period)
+        public async Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, Period period)
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
@@ -89,10 +90,9 @@ namespace Infrastructure.Repositories
                 .Include(b => b.Category)
                 .Where(b => b.Period.Year == period.Year &&
                             b.Period.Month == period.Month)
-                .OrderBy(b => b.Category.Info.Name)
                 .ToListAsync();
 
-            return budgets;
+            return budgets.OrderBy(b => b.Category.Info.Name);
         }
 
         // ==================== VERIFICACIONES ====================

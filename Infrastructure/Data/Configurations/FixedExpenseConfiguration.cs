@@ -54,12 +54,12 @@ namespace Infrastructure.Data.Configurations
                 fixedExpense => fixedExpense.ChargePeriod, 
                 period =>
                 {
-                    period.Property(p => p.Year)
-                        .HasColumnName("ChargeYear")
-                        .IsRequired();
-
                     period.Property(p => p.Month)
                         .HasColumnName("ChargeMonth")
+                        .IsRequired();
+
+                    period.Property(p => p.Year)
+                        .HasColumnName("ChargeYear")
                         .IsRequired();
 
                     // Índice simple sobre el período (para búsquedas por año/mes)
@@ -101,25 +101,17 @@ namespace Infrastructure.Data.Configurations
                 .HasDatabaseName("IX_FixedExpenses_CategoryId_IsActive");
 
             // 1. Definir Shadow Properties para el período (para usarlas en índices compuestos)
-            builder.Property<int>("ChargeYear")
-                .HasColumnName("ChargeYear")
+            builder.Property<int>("Month")
+                .HasColumnName("Month")
                 .IsRequired();
 
-            builder.Property<int>("ChargeMonth")
-                .HasColumnName("ChargeMonth")
+            builder.Property<int>("Year")
+                .HasColumnName("Year")
                 .IsRequired();
 
             // ✅ ÍNDICE COMPUESTO USANDO SHADOW PROPERTIES
-            builder.HasIndex("CategoryId", "ChargeYear", "ChargeMonth", "IsActive")
+            builder.HasIndex("CategoryId", "Month", "Year", "IsActive")
                 .HasDatabaseName("IX_FixedExpenses_Category_Period_Active");
-
-            /*// Índice compuesto para búsquedas rápidas por período y categoría
-            builder.HasIndex(fixedExpense => new {
-                fixedExpense.CategoryId,
-                fixedExpense.ChargePeriod.Year,
-                fixedExpense.ChargePeriod.Month,
-                fixedExpense.IsActive
-            }).HasDatabaseName("IX_FixedExpenses_Category_Period_Active");*/
 
             // Índice para IsActive (si haces búsquedas globales de activos)
             builder.HasIndex(fixedExpense => fixedExpense.IsActive)

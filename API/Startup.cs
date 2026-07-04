@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators;
+using Domain.Exceptions;
 using FluentValidation;
 using Infrastructure;
 using Infrastructure.Data;
@@ -94,6 +95,7 @@ namespace API
                                 KeyNotFoundException => StatusCodes.Status404NotFound,
                                 ArgumentException => StatusCodes.Status400BadRequest,
                                 InvalidOperationException => StatusCodes.Status400BadRequest,
+                                ConflictException => StatusCodes.Status409Conflict,
                                 UnauthorizedAccessException => StatusCodes.Status401Unauthorized,
                                 _ => StatusCodes.Status500InternalServerError
                             };
@@ -174,7 +176,12 @@ namespace API
             services.AddAutoMapper(typeof(AutoMapperProfile));
 
             // Registrar FluentValidation
+            services.AddValidatorsFromAssemblyContaining<CreateBudgetRequestValidator>();
             services.AddValidatorsFromAssemblyContaining<CreateCategoryRequestValidator>();
+            services.AddValidatorsFromAssemblyContaining<CreateFixedExpenseRequestValidator>();
+            services.AddValidatorsFromAssemblyContaining<UpdateBudgetRequestValidator>();
+            services.AddValidatorsFromAssemblyContaining<UpdateCategoryRequestValidator>();
+            services.AddValidatorsFromAssemblyContaining<UpdateFixedExpenseRequestValidator>();
         }
 
         /// <summary>

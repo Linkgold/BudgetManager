@@ -1,8 +1,6 @@
 ﻿using Application.DTOs.Request;
 using Application.DTOs.Response;
-using Newtonsoft.Json;
 using System.Net;
-using System.Text;
 using Tests.API.Fixtures;
 
 namespace Tests.API.Controllers
@@ -31,7 +29,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            List<CategoryResponseDTO> categories = JsonConvert.DeserializeObject<List<CategoryResponseDTO>>(content);
+            List<CategoryResponseDTO>? categories = _fixture.DeserializeResponse<List<CategoryResponseDTO>>(content);
 
             Assert.NotNull(categories);
         }
@@ -42,18 +40,19 @@ namespace Tests.API.Controllers
         public async Task GetById_WithExistingId_ReturnsCategory()
         {
             // Arrange - Crear una categoría primero
-            CreateCategoryRequestDTO createRequest = new CreateCategoryRequestDTO
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "TestCategory",
                 Description = "Test Description"
             };
-
-            string createJson = JsonConvert.SerializeObject(createRequest);
-            StringContent createContent = new StringContent(createJson, Encoding.UTF8, "application/json");
+                        
+            StringContent createContent = _fixture.SerializeRequest(request);
 
             HttpResponseMessage createResponse = await _client.PostAsync("/api/category", createContent);
             string createContentString = await createResponse.Content.ReadAsStringAsync();
-            CategoryResponseDTO createdCategory = JsonConvert.DeserializeObject<CategoryResponseDTO>(createContentString);
+            CategoryResponseDTO? createdCategory = _fixture.DeserializeResponse<CategoryResponseDTO>(createContentString);
+
+            Assert.NotNull(createdCategory);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/category/{createdCategory.Id}");
@@ -62,7 +61,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            CategoryResponseDTO category = JsonConvert.DeserializeObject<CategoryResponseDTO>(content);
+            CategoryResponseDTO? category = _fixture.DeserializeResponse<CategoryResponseDTO>(content);
 
             Assert.NotNull(category);
             Assert.Equal(createdCategory.Id, category.Id);
@@ -101,8 +100,7 @@ namespace Tests.API.Controllers
                 Description = "New Description"
             };
 
-            string json = JsonConvert.SerializeObject(request);
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            StringContent content = _fixture.SerializeRequest(request);
 
             // Act
             HttpResponseMessage response = await _client.PostAsync("/api/category", content);
@@ -111,7 +109,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            CategoryResponseDTO category = JsonConvert.DeserializeObject<CategoryResponseDTO>(responseContent);
+            CategoryResponseDTO? category = _fixture.DeserializeResponse<CategoryResponseDTO>(responseContent);
 
             Assert.NotNull(category);
             Assert.Equal("NewCategory", category.Name);
@@ -129,8 +127,7 @@ namespace Tests.API.Controllers
                 Description = "Test"
             };
 
-            string json = JsonConvert.SerializeObject(request);
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            StringContent content = _fixture.SerializeRequest(request);
 
             // Act
             HttpResponseMessage response = await _client.PostAsync("/api/category", content);
@@ -145,18 +142,17 @@ namespace Tests.API.Controllers
         public async Task Update_WithValidData_ReturnsUpdatedCategory()
         {
             // Arrange - Crear una categoría primero
-            CreateCategoryRequestDTO createRequest = new CreateCategoryRequestDTO
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "Original",
                 Description = "Original Description"
             };
 
-            string createJson = JsonConvert.SerializeObject(createRequest);
-            StringContent createContent = new StringContent(createJson, Encoding.UTF8, "application/json");
+            StringContent createContent = _fixture.SerializeRequest(request);
 
             HttpResponseMessage createResponse = await _client.PostAsync("/api/category", createContent);
             string createContentString = await createResponse.Content.ReadAsStringAsync();
-            CategoryResponseDTO createdCategory = JsonConvert.DeserializeObject<CategoryResponseDTO>(createContentString);
+            CategoryResponseDTO? createdCategory = _fixture.DeserializeResponse<CategoryResponseDTO>(createContentString);
 
             // Act - Actualizar
             UpdateCategoryRequestDTO updateRequest = new UpdateCategoryRequestDTO
@@ -165,8 +161,7 @@ namespace Tests.API.Controllers
                 Description = "Updated Description"
             };
 
-            string updateJson = JsonConvert.SerializeObject(updateRequest);
-            StringContent updateContent = new StringContent(updateJson, Encoding.UTF8, "application/json");
+            StringContent updateContent = _fixture.SerializeRequest(updateRequest);
 
             HttpResponseMessage response = await _client.PutAsync($"/api/category/{createdCategory.Id}", updateContent);
 
@@ -174,7 +169,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            CategoryResponseDTO updatedCategory = JsonConvert.DeserializeObject<CategoryResponseDTO>(responseContent);
+            CategoryResponseDTO? updatedCategory = _fixture.DeserializeResponse<CategoryResponseDTO>(responseContent);
 
             Assert.NotNull(updatedCategory);
             Assert.Equal("Updated", updatedCategory.Name);
@@ -187,18 +182,17 @@ namespace Tests.API.Controllers
         public async Task Delete_WithExistingId_ReturnsNoContent()
         {
             // Arrange - Crear una categoría primero
-            CreateCategoryRequestDTO createRequest = new CreateCategoryRequestDTO
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "ToDelete",
                 Description = "To Delete"
             };
-
-            string createJson = JsonConvert.SerializeObject(createRequest);
-            StringContent createContent = new StringContent(createJson, Encoding.UTF8, "application/json");
+;
+            StringContent createContent = _fixture.SerializeRequest(request);
 
             HttpResponseMessage createResponse = await _client.PostAsync("/api/category", createContent);
             string createContentString = await createResponse.Content.ReadAsStringAsync();
-            CategoryResponseDTO createdCategory = JsonConvert.DeserializeObject<CategoryResponseDTO>(createContentString);
+            CategoryResponseDTO? createdCategory = _fixture.DeserializeResponse<CategoryResponseDTO>(createContentString);
 
             // Act
             HttpResponseMessage response = await _client.DeleteAsync($"/api/category/{createdCategory.Id}");

@@ -11,6 +11,8 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Text;
+using System.Text.Json;
 
 namespace Tests.API.Fixtures
 {
@@ -20,6 +22,7 @@ namespace Tests.API.Fixtures
     public class ApiTestFixture : WebApplicationFactory<Startup>, IDisposable
     {
         public HttpClient Client { get; private set; }
+        private readonly JsonSerializerOptions _jsonOptions;
         private readonly string _databaseName;
         public ApplicationDbContext DbContext { get; private set; }
         public IServiceScope ServiceScope { get; private set; }
@@ -31,6 +34,8 @@ namespace Tests.API.Fixtures
 
             // Crear el cliente HTTP
             Client = CreateClient();
+
+            _jsonOptions = new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
 
             // Obtener el DbContext para las pruebas
             ServiceScope = Services.CreateScope();
@@ -47,6 +52,12 @@ namespace Tests.API.Fixtures
             Console.WriteLine($"✅ API levantada en memoria.");
         }
 
+        // 🔥 Método para serializar requests
+        public StringContent SerializeRequest<T>(T request) => new StringContent(JsonSerializer.Serialize(request, _jsonOptions), Encoding.UTF8, "application/json");
+
+        // 🔥 Método para deserializar responses
+        public T? DeserializeResponse<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOptions);
+        
         // 🔥 Método para limpiar la base de datos
         public void ClearDatabase()
         {
@@ -95,11 +106,6 @@ namespace Tests.API.Fixtures
                             return config.CreateMapper();
                         }
                     );
-
-                    // ==================== FLUENTVALIDATION ====================
-
-                    // Registrar validadores (necesario para que ValidationFilter funcione)
-                    services.AddValidatorsFromAssemblyContaining<CreateCategoryRequestValidator>();
 
                     // ==================== FILTROS ====================
 

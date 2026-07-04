@@ -181,39 +181,5 @@ namespace API.Controllers
 
             return NoContent();
         }
-
-        /// <summary>
-        /// Verifica si un presupuesto existe
-        /// </summary>
-        [HttpGet("{id}/exists")]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Exists(int id)
-        {
-            if (id <= 0) return BadRequest("Invalid budget ID");
-
-            bool exists = await _budgetService.ExistsAsync(id);
-
-            return Ok(new { Exists = exists });
-        }
-
-        /// <summary>
-        /// Verifica si existe un presupuesto para una categoría y período
-        /// </summary>
-        [HttpGet("exists-by-category-period")]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> ExistsForCategoryAndPeriod([FromQuery] int categoryId, [FromQuery] int year, [FromQuery] int month)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            bool exists = await _budgetService.ExistsForCategoryAndPeriodAsync(categoryId, month, year);
-
-            return Ok(new { CategoryId = categoryId, Month=month, Year = year, Exists = exists });
-        }
     }
 }

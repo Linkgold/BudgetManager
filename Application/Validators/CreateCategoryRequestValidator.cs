@@ -13,7 +13,7 @@ namespace Application.Validators
                 .MaximumLength(100).WithMessage("Category name cannot exceed 100 characters");
 
             RuleFor(x => x.Description)
-                .MaximumLength(500).WithMessage("Description cannot exceed 500 characters")
+                .MaximumLength(200).WithMessage("Description cannot exceed 200 characters")
                 .When(x => x.Description != null);
         }
     }

@@ -16,8 +16,8 @@ namespace Application.Validators
                 .MaximumLength(50).WithMessage("Name cannot exceed 50 characters");
 
             RuleFor(x => x.Description)
-                .MaximumLength(200).WithMessage("Description cannot exceed 200 characters")
-                .When(x => x.Description != null);
+                .MaximumLength(200)
+                    .When(x => !string.IsNullOrEmpty(x.Description));
 
             RuleFor(x => x.Amount)
                 .GreaterThan(0).WithMessage("Amount must be greater than zero");

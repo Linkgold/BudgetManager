@@ -1,6 +1,5 @@
 ﻿using Application.DTOs.Request;
 using Application.DTOs.Response;
-using Newtonsoft.Json;
 using System.Net;
 using System.Text;
 using Tests.API.Fixtures;
@@ -28,15 +27,14 @@ namespace Tests.API.Controllers
                 Name = name,
                 Description = "Test Category"
             };
-
-            string json = JsonConvert.SerializeObject(request);
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            
+            StringContent content = _fixture.SerializeRequest(request);
 
             HttpResponseMessage response = await _client.PostAsync("/api/category", content);
             string responseContent = await response.Content.ReadAsStringAsync();
-            CategoryResponseDTO category = JsonConvert.DeserializeObject<CategoryResponseDTO>(responseContent);
+            CategoryResponseDTO? category = _fixture.DeserializeResponse<CategoryResponseDTO>(responseContent);
 
-            return category.Id;
+            return category?.Id ?? -1;
         }
 
         private async Task<int> CreateFixedExpenseAsync(int categoryId, string name, decimal amount, int year, int month)
@@ -51,14 +49,13 @@ namespace Tests.API.Controllers
                 Month = month
             };
 
-            string json = JsonConvert.SerializeObject(request);
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            StringContent content = _fixture.SerializeRequest(request);
 
             HttpResponseMessage response = await _client.PostAsync("/api/fixedexpense", content);
             string responseContent = await response.Content.ReadAsStringAsync();
-            FixedExpenseResponseDTO fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDTO>(responseContent);
+            FixedExpenseResponseDTO? fixedExpense = _fixture.DeserializeResponse<FixedExpenseResponseDTO>(responseContent);
 
-            return fixedExpense.Id;
+            return fixedExpense?.Id ?? -1;
         }
 
         // ==================== TEST: CREATE ====================
@@ -79,8 +76,7 @@ namespace Tests.API.Controllers
                 Month = 1
             };
 
-            string json = JsonConvert.SerializeObject(request);
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            StringContent content = _fixture.SerializeRequest(request);
 
             // Act
             HttpResponseMessage response = await _client.PostAsync("/api/fixedexpense", content);
@@ -89,13 +85,13 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.Created, response.StatusCode);
 
             string responseContent = await response.Content.ReadAsStringAsync();
-            FixedExpenseResponseDTO fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDTO>(responseContent);
+            FixedExpenseResponseDTO? fixedExpense = _fixture.DeserializeResponse<FixedExpenseResponseDTO>(responseContent);
 
             Assert.NotNull(fixedExpense);
             Assert.Equal("Netflix", fixedExpense.Name);
             Assert.Equal(15.99m, fixedExpense.Amount);
-            Assert.Equal(2024, fixedExpense.Year);
             Assert.Equal(1, fixedExpense.Month);
+            Assert.Equal(2024, fixedExpense.Year);
             Assert.True(fixedExpense.IsActive);
         }
 
@@ -108,12 +104,11 @@ namespace Tests.API.Controllers
                 CategoryId = 999,
                 Name = "Netflix",
                 Amount = 15.99m,
-                Year = 2024,
-                Month = 1
+                Month = 1,
+                Year = 2024
             };
 
-            string json = JsonConvert.SerializeObject(request);
-            StringContent content = new StringContent(json, Encoding.UTF8, "application/json");
+            StringContent content = _fixture.SerializeRequest(request);
 
             // Act
             HttpResponseMessage response = await _client.PostAsync("/api/fixedexpense", content);
@@ -138,7 +133,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            FixedExpenseResponseDTO fixedExpense = JsonConvert.DeserializeObject<FixedExpenseResponseDTO>(content);
+            FixedExpenseResponseDTO? fixedExpense = _fixture.DeserializeResponse<FixedExpenseResponseDTO>(content);
 
             Assert.NotNull(fixedExpense);
             Assert.Equal(fixedExpenseId, fixedExpense.Id);
@@ -168,7 +163,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            List<FixedExpenseResponseDTO> fixedExpenses = JsonConvert.DeserializeObject<List<FixedExpenseResponseDTO>>(content);
+            List<FixedExpenseResponseDTO>? fixedExpenses = _fixture.DeserializeResponse<List<FixedExpenseResponseDTO>>(content);
 
             Assert.NotNull(fixedExpenses);
         }
@@ -190,7 +185,7 @@ namespace Tests.API.Controllers
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
             string content = await response.Content.ReadAsStringAsync();
-            List<FixedExpenseResponseDTO> fixedExpenses = JsonConvert.DeserializeObject<List<FixedExpenseResponseDTO>>(content);
+            List<FixedExpenseResponseDTO>? fixedExpenses = _fixture.DeserializeResponse<List<FixedExpenseResponseDTO>>(content);
 
             Assert.NotNull(fixedExpenses);
             // Solo Netflix debe estar activo en febrero (Spotify empieza en marzo)

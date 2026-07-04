@@ -6,10 +6,12 @@ using Application.Services;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;
+using System.Data;
 
 namespace Tests.Application
 {
@@ -308,7 +310,7 @@ namespace Tests.Application
             Category category = CreateCategory(categoryId, "Alimentación");
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, It.IsAny<bool>()))
                 .ReturnsAsync(category);
 
             _budgetRepositoryMock
@@ -355,7 +357,7 @@ namespace Tests.Application
             Category category = CreateCategory(categoryId, "Alimentación");
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, It.IsAny<bool>()))
                 .ReturnsAsync(category);
 
             _budgetRepositoryMock
@@ -363,7 +365,7 @@ namespace Tests.Application
                 .ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _budgetService.CreateAsync(request));
+            await Assert.ThrowsAsync<ConflictException>(() => _budgetService.CreateAsync(request));
 
             _budgetRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Budget>()), Times.Never);
         }

@@ -4,6 +4,7 @@ using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Enums;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using System;
@@ -126,7 +127,7 @@ namespace Application.Services
             ArgumentNullException.ThrowIfNull(request);
 
             // Validar que la categoría existe
-            Category category = await _categoryRepository.GetByIdAsync(request.CategoryId);
+            Category category = await _categoryRepository.GetByIdAsync(request.CategoryId, withTracking: true);
 
             if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
 
@@ -134,7 +135,7 @@ namespace Application.Services
             Period period = new Period(request.Month, request.Year);
             bool exists = await _budgetRepository.ExistsForCategoryAndPeriodAsync(request.CategoryId, period);
 
-            if (exists) throw new InvalidOperationException($"Budget already exists for category {request.CategoryId} in {request.Month}/{request.Year}");
+            if (exists) throw new ConflictException($"Budget already exists for category {request.CategoryId} in {request.Month}/{request.Year}");
 
             // Crear entidad de dominio
             Money amount = new Money(request.Amount);

@@ -9,7 +9,7 @@ namespace Domain.Interfaces
     public interface IBudgetRepository
     {
         // ==================== CONSULTAS ====================
-        Task<Budget> GetByIdAsync(int id);
+        Task<Budget?> GetByIdAsync(int id);
         Task<IEnumerable<Budget>> GetAllAsync();
         Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, Period period);
         Task<IEnumerable<Budget>> GetByPeriodAsync(Period period);
