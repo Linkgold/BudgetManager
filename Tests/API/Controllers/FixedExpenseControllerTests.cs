@@ -1,7 +1,6 @@
 ﻿using Application.DTOs.Request;
 using Application.DTOs.Response;
 using System.Net;
-using System.Text;
 using Tests.API.Fixtures;
 
 namespace Tests.API.Controllers

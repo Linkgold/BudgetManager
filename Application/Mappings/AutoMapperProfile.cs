@@ -56,7 +56,7 @@ namespace Application.Mappings
                     null, // Category se asigna después
                     new EntityInfo(src.Name, src.Description),
                     new Money(src.Amount),
-                    new Period(src.Month, src.Year)
+                    new MonthlyPeriod(src.Month, src.Year)
                 ));
 
             // ==================== BUDGET ====================
@@ -74,9 +74,32 @@ namespace Application.Mappings
                 .ConstructUsing(src => new Budget(
                     null, // Category se asigna en el servicio
                     new Money(src.Amount),
-                    new Period(src.Month, src.Year)));
+                    new MonthlyPeriod(src.Month, src.Year)));
 
             // Update DTO → no se mapea directamente, se usa el método Update de la entidad
+
+            // ==================== TRANSACTION ====================
+
+            // Domain → Response
+            CreateMap<Transaction, TransactionResponseDTO>()
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Info.Name : string.Empty))
+                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.Value))
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Amount.Currency))
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToDateTime()));
+
+            // Request → Domain
+            CreateMap<CreateTransactionRequestDTO, Transaction>()
+                .ConstructUsing
+                (
+                    src => new Transaction
+                    (
+                    null, // Category se asigna en el servicio
+                    new EntityInfo(src.Name, src.Description),
+                    new Money(src.Amount),
+                    src.Type,
+                    new DailyPeriod(src.Date.Day, src.Date.Month, src.Date.Year)
+                    )
+                );
         }
     }
 }

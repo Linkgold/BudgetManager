@@ -12,7 +12,7 @@ namespace Domain.Entities
 
         public int Id { get; private set; }
         public Money MonthlyAmount { get; private set; }
-        public Period Period { get; private set; }
+        public MonthlyPeriod Period { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
@@ -28,7 +28,7 @@ namespace Domain.Entities
         private Budget() { } // For EF Core
 
         // Constructor de dominio
-        public Budget(Category category, Money monthlyAmount, Period period)
+        public Budget(Category category, Money monthlyAmount, MonthlyPeriod period)
         {
             ArgumentNullException.ThrowIfNull(category);
             ArgumentNullException.ThrowIfNull(monthlyAmount);

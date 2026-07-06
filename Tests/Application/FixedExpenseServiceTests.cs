@@ -61,7 +61,7 @@ namespace Tests.Application
         {
             EntityInfo info = new EntityInfo(name, null);
             Money money = new Money(amount);
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
 
             FixedExpense fixedExpense = new FixedExpense(category, info, money, period);
 
@@ -460,7 +460,7 @@ namespace Tests.Application
                 .ReturnsAsync(true);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetTotalByCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.GetTotalByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(expectedTotal);
 
             // Act
@@ -468,7 +468,7 @@ namespace Tests.Application
 
             // Assert
             Assert.Equal(expectedTotal, result);
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()), Times.Once);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()), Times.Once);
         }
 
         [Fact]
@@ -484,7 +484,7 @@ namespace Tests.Application
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, 1, 2024));
 
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(It.IsAny<int>(), It.IsAny<Period>()), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(It.IsAny<int>(), It.IsAny<MonthlyPeriod>()), Times.Never);
         }
 
         // ==================== TEST: EXISTS ====================

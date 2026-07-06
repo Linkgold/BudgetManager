@@ -12,7 +12,7 @@ namespace Domain.Entities
         public int Id { get; private set; }
         public EntityInfo Info { get; private set; }
         public Money Amount { get; private set; }
-        public Period ChargePeriod { get; private set; }
+        public MonthlyPeriod ChargePeriod { get; private set; }
         public bool IsActive { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
@@ -27,7 +27,7 @@ namespace Domain.Entities
         private FixedExpense() { }
 
         // Constructor de dominio
-        public FixedExpense(Category category, EntityInfo info, Money amount, Period chargePeriod)
+        public FixedExpense(Category category, EntityInfo info, Money amount, MonthlyPeriod chargePeriod)
         {
             ArgumentNullException.ThrowIfNull(category);
             ArgumentNullException.ThrowIfNull(info);
@@ -45,7 +45,7 @@ namespace Domain.Entities
 
         // ==================== MÉTODOS DE COMPORTAMIENTO ====================
 
-        public void Update(EntityInfo info, Money amount, Period chargePeriod)
+        public void Update(EntityInfo info, Money amount, MonthlyPeriod chargePeriod)
         {
             ArgumentNullException.ThrowIfNull(info);
             ArgumentNullException.ThrowIfNull(amount);
@@ -80,7 +80,7 @@ namespace Domain.Entities
         /// <summary>
         /// Verifica si el gasto fijo está activo para un período específico
         /// </summary>
-        public bool IsActiveForPeriod(Period period)
+        public bool IsActiveForPeriod(MonthlyPeriod period)
         {
             ArgumentNullException.ThrowIfNull(period);
 

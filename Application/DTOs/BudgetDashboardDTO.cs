@@ -11,6 +11,6 @@ namespace Application.DTOs
         public decimal Remaining { get; set; }
         public decimal PercentageUsed { get; set; }
         public BudgetStatusEnum Status { get; set; }
-        public List<Expense> RecentExpenses { get; set; } // Solo últimos 10
+        public List<Transaction> RecentExpenses { get; set; } // Solo últimos 10
     }
 }

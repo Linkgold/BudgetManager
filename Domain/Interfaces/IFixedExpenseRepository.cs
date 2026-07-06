@@ -16,11 +16,11 @@ namespace Domain.Interfaces
         Task<List<FixedExpense>> GetActiveByCategoryAsync(int categoryId);
 
         // Métodos de período (para calcular gastos fijos en un mes concreto)
-        Task<List<FixedExpense>> GetActiveForPeriodAsync(Period period);
-        Task<List<FixedExpense>> GetActiveForPeriodByCategoryAsync(int categoryId, Period period);
+        Task<List<FixedExpense>> GetActiveForPeriodAsync(MonthlyPeriod period);
+        Task<List<FixedExpense>> GetActiveForPeriodByCategoryAsync(int categoryId, MonthlyPeriod period);
 
         // Métodos de agregación
-        Task<decimal> GetTotalByCategoryAndPeriodAsync(int categoryId, Period period);
+        Task<decimal> GetTotalByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period);
         Task<decimal> GetTotalActiveAsync();
         Task<decimal> GetTotalActiveByCategoryAsync(int categoryId);
 

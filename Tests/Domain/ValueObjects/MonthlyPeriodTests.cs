@@ -2,13 +2,13 @@
 
 namespace Tests.Domain.ValueObjects
 {
-    public class PeriodTests
+    public class MonthlyPeriodTests
     {
         [Fact]
         public void Constructor_WithValidValues_ShouldCreatePeriod()
         {
             // Act
-            Period period = new Period(6, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
 
             // Assert
             Assert.Equal(6, period.Month);
@@ -19,7 +19,7 @@ namespace Tests.Domain.ValueObjects
         public void Constructor_WithInvalidYear_ShouldThrowArgumentException()
         {
             // Act & Assert
-            ArgumentException exception = Assert.Throws<ArgumentException>(() => new Period(1, 1899));
+            ArgumentException exception = Assert.Throws<ArgumentException>(() => new MonthlyPeriod(1, 1899));
 
             Assert.Contains("Year must be between 1900 and 2100", exception.Message);
         }
@@ -28,7 +28,7 @@ namespace Tests.Domain.ValueObjects
         public void Constructor_WithInvalidMonth_ShouldThrowArgumentException()
         {
             // Act & Assert
-            ArgumentException exception = Assert.Throws<ArgumentException>(() => new Period(13, 2024));
+            ArgumentException exception = Assert.Throws<ArgumentException>(() => new MonthlyPeriod(13, 2024));
 
             Assert.Contains("Month must be between 1 and 12", exception.Message);
         }
@@ -37,8 +37,8 @@ namespace Tests.Domain.ValueObjects
         public void IsSameMonth_WithSamePeriod_ShouldReturnTrue()
         {
             // Arrange
-            Period period1 = new Period(6, 2024);
-            Period period2 = new Period(6, 2024);
+            MonthlyPeriod period1 = new MonthlyPeriod(6, 2024);
+            MonthlyPeriod period2 = new MonthlyPeriod(6, 2024);
 
             // Act & Assert
             Assert.True(period1.IsSameMonth(period2));
@@ -48,8 +48,8 @@ namespace Tests.Domain.ValueObjects
         public void IsSameMonth_WithDifferentPeriod_ShouldReturnFalse()
         {
             // Arrange
-            Period period1 = new Period(6, 2024);
-            Period period2 = new Period(7, 2024);
+            MonthlyPeriod period1 = new MonthlyPeriod(6, 2024);
+            MonthlyPeriod period2 = new MonthlyPeriod(7, 2024);
 
             // Act & Assert
             Assert.False(period1.IsSameMonth(period2));
@@ -59,10 +59,10 @@ namespace Tests.Domain.ValueObjects
         public void NextMonth_ShouldReturnNextPeriod()
         {
             // Arrange
-            Period period = new Period(6, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
 
             // Act
-            Period next = period.NextMonth();
+            MonthlyPeriod next = period.NextMonth();
 
             // Assert
             Assert.Equal(7, next.Month);
@@ -73,10 +73,10 @@ namespace Tests.Domain.ValueObjects
         public void NextMonth_ForDecember_ShouldReturnJanuaryNextYear()
         {
             // Arrange
-            Period period = new Period(12, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(12, 2024);
 
             // Act
-            Period next = period.NextMonth();
+            MonthlyPeriod next = period.NextMonth();
 
             // Assert
             Assert.Equal(1, next.Month);
@@ -87,10 +87,10 @@ namespace Tests.Domain.ValueObjects
         public void PreviousMonth_ShouldReturnPreviousPeriod()
         {
             // Arrange
-            Period period = new Period(6, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
 
             // Act
-            Period previous = period.PreviousMonth();
+            MonthlyPeriod previous = period.PreviousMonth();
 
             // Assert
             Assert.Equal(5, previous.Month);
@@ -101,10 +101,10 @@ namespace Tests.Domain.ValueObjects
         public void PreviousMonth_ForJanuary_ShouldReturnDecemberLastYear()
         {
             // Arrange
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
-            Period previous = period.PreviousMonth();
+            MonthlyPeriod previous = period.PreviousMonth();
 
             // Assert
             Assert.Equal(12, previous.Month);
@@ -115,8 +115,8 @@ namespace Tests.Domain.ValueObjects
         public void Equals_WithSameValues_ShouldReturnTrue()
         {
             // Arrange
-            Period period1 = new Period(6, 2024);
-            Period period2 = new Period(6, 2024);
+            MonthlyPeriod period1 = new MonthlyPeriod(6, 2024);
+            MonthlyPeriod period2 = new MonthlyPeriod(6, 2024);
 
             // Act & Assert
             Assert.True(period1.Equals(period2));
@@ -127,7 +127,7 @@ namespace Tests.Domain.ValueObjects
         public void ToString_ShouldReturnFormattedString()
         {
             // Arrange
-            Period period = new Period(6, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
 
             // Act
             string result = period.ToString();

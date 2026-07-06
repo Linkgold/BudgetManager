@@ -20,7 +20,7 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
 
             // Act
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
@@ -44,7 +44,7 @@ namespace Tests.Domain.Entities
             // Arrange
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new FixedExpense(null, info, amount, chargePeriod));
@@ -58,7 +58,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new FixedExpense(category, null, amount, chargePeriod));
@@ -72,7 +72,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new FixedExpense(category, info, null, chargePeriod));
@@ -103,7 +103,7 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act
@@ -122,7 +122,7 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act
@@ -142,13 +142,13 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act
             EntityInfo newInfo = new EntityInfo("Netflix Premium", "Suscripción mensual Premium");
             Money newAmount = new Money(17.99m, "EUR");
-            Period newChargePeriod = new Period(2, 2024);
+            MonthlyPeriod newChargePeriod = new MonthlyPeriod(2, 2024);
             fixedExpense.Update(newInfo, newAmount, newChargePeriod);
 
             // Assert
@@ -167,11 +167,11 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(null, new Money(17.99m, "EUR"), new Period(2, 2024)));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(null, new Money(17.99m, "EUR"), new MonthlyPeriod(2, 2024)));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -183,11 +183,11 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(new EntityInfo("Netflix Premium", "Suscripción mensual Premium"), null, new Period(2, 2024)));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(new EntityInfo("Netflix Premium", "Suscripción mensual Premium"), null, new MonthlyPeriod(2, 2024)));
 
             Assert.Equal("amount", exception.ParamName);
         }
@@ -199,7 +199,7 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act & Assert
@@ -217,7 +217,7 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act
@@ -236,7 +236,7 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act & Assert
@@ -254,10 +254,10 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
             bool result = fixedExpense.IsActiveForPeriod(period);
@@ -273,10 +273,10 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
-            Period period = new Period(2, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(2, 2024);
 
             // Act
             bool result = fixedExpense.IsActiveForPeriod(period);
@@ -292,10 +292,10 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(2, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(2, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
             bool result = fixedExpense.IsActiveForPeriod(period);
@@ -311,11 +311,11 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
             fixedExpense.Deactivate();
 
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
             bool result = fixedExpense.IsActiveForPeriod(period);
@@ -331,7 +331,7 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act & Assert
@@ -349,7 +349,7 @@ namespace Tests.Domain.Entities
             Category category = CreateCategory();
             EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
             Money amount = new Money(15.99m, "EUR");
-            Period chargePeriod = new Period(1, 2024);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
 
             // Act

@@ -18,7 +18,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
             Budget budget = new Budget(category, amount, period);
@@ -38,7 +38,7 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Budget(null, amount, period));
@@ -51,7 +51,7 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             Category category = CreateCategory();
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Budget(category, null, period));
@@ -78,7 +78,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -96,7 +96,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act & Assert
@@ -111,7 +111,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -127,7 +127,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -143,7 +143,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -159,7 +159,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -175,7 +175,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(0, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -191,7 +191,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act & Assert
@@ -206,7 +206,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -222,7 +222,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -238,7 +238,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(0, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -254,7 +254,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -271,7 +271,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -287,7 +287,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -303,7 +303,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -319,7 +319,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act
@@ -335,7 +335,7 @@ namespace Tests.Domain.Entities
             // Arrange
             Category category = CreateCategory();
             Money amount = new Money(500.00m, "EUR");
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
             Budget budget = new Budget(category, amount, period);
 
             // Act

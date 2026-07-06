@@ -44,7 +44,7 @@ namespace Tests.Infrastructure
         {
             EntityInfo info = new EntityInfo(name, null);
             Money money = new Money(amount);
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             FixedExpense fixedExpense = new FixedExpense(category, info, money, period);
 
             return fixedExpense;
@@ -246,7 +246,7 @@ namespace Tests.Infrastructure
             await SeedFixedExpenseAsync(category, "Spotify", 9.99m, 2024, 3);
             await SeedFixedExpenseAsync(category, "Disney+", 11.99m, 2025, 1);
 
-            Period period = new Period(2, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(2, 2024);
 
             // Act
             List<FixedExpense> result = await _repository.GetActiveForPeriodAsync(period);
@@ -277,7 +277,7 @@ namespace Tests.Infrastructure
             await SeedFixedExpenseAsync(category1, "Spotify", 9.99m, 2024, 3);
             await SeedFixedExpenseAsync(category2, "Seguro Coche", 50.00m, 2024, 1);
 
-            Period period = new Period(2, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(2, 2024);
 
             // Act
             List<FixedExpense> result = await _repository.GetActiveForPeriodByCategoryAsync(category1.Id, period);
@@ -300,7 +300,7 @@ namespace Tests.Infrastructure
             await SeedFixedExpenseAsync(category, "Spotify", 9.99m, 2024, 1);
             await SeedFixedExpenseAsync(category, "Disney+", 11.99m, 2025, 1);
 
-            Period period = new Period(2, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(2, 2024);
 
             // Act
             decimal total = await _repository.GetTotalByCategoryAndPeriodAsync(category.Id, period);
@@ -448,7 +448,7 @@ namespace Tests.Infrastructure
             // Modificar la entidad
             EntityInfo newInfo = new EntityInfo("Netflix Premium", "Suscripción Premium");
             Money newAmount = new Money(17.99m);
-            Period newPeriod = new Period(2, 2024);
+            MonthlyPeriod newPeriod = new MonthlyPeriod(2, 2024);
             fixedExpense.Update(newInfo, newAmount, newPeriod);
 
             // Act

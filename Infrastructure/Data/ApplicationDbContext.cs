@@ -12,7 +12,7 @@ namespace Infrastructure.Data
         public DbSet<Category> Categories { get; set; }
         public DbSet<FixedExpense> FixedExpenses { get; set; }
         public DbSet<Budget> Budgets { get; set; }
-        //public DbSet<Expense> Expenses { get; set; }
+        public DbSet<Transaction> Transactions { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -23,6 +23,7 @@ namespace Infrastructure.Data
             modelBuilder.ApplyConfiguration(new CategoryConfiguration());
             modelBuilder.ApplyConfiguration(new FixedExpenseConfiguration());
             modelBuilder.ApplyConfiguration(new BudgetConfiguration());
+            modelBuilder.ApplyConfiguration(new TransactionConfiguration());
         }
 
         /// <summary>

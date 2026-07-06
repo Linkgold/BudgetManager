@@ -171,6 +171,7 @@ namespace API
             services.AddScoped<ICategoryService, CategoryService>();
             services.AddScoped<IFixedExpenseService, FixedExpenseService>();
             services.AddScoped<IBudgetService, BudgetService>();
+            services.AddScoped<ITransactionService, TransactionService>();
 
             // Registrar AutoMapper
             services.AddAutoMapper(typeof(AutoMapperProfile));

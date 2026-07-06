@@ -84,7 +84,7 @@ namespace Infrastructure.Repositories
             return fixedExpenses;
         }
 
-        public async Task<List<FixedExpense>> GetActiveForPeriodAsync(Period period)
+        public async Task<List<FixedExpense>> GetActiveForPeriodAsync(MonthlyPeriod period)
         {
             ArgumentNullException.ThrowIfNull(period);
 
@@ -101,7 +101,7 @@ namespace Infrastructure.Repositories
             return fixedExpenses;
         }
 
-        public async Task<List<FixedExpense>> GetActiveForPeriodByCategoryAsync(int categoryId, Period period)
+        public async Task<List<FixedExpense>> GetActiveForPeriodByCategoryAsync(int categoryId, MonthlyPeriod period)
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
@@ -123,7 +123,7 @@ namespace Infrastructure.Repositories
 
         // ==================== MÉTODOS DE AGREGACIÓN ====================
 
-        public async Task<decimal> GetTotalByCategoryAndPeriodAsync(int categoryId, Period period)
+        public async Task<decimal> GetTotalByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period)
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 

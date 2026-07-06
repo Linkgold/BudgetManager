@@ -65,7 +65,7 @@ namespace Application.Services
 
         public async Task<List<BudgetResponseDTO>> GetByPeriodAsync(int month, int year)
         {
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             IEnumerable<Budget> budgets = await _budgetRepository.GetByPeriodAsync(period);
 
             return _mapper.Map<List<BudgetResponseDTO>>(budgets);
@@ -75,7 +75,7 @@ namespace Application.Services
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             Budget budget = await _budgetRepository.GetByCategoryAndPeriodAsync(categoryId, period);
 
             if (budget == null) throw new KeyNotFoundException($"Budget not found for category {categoryId} in {month}/{year}");
@@ -89,7 +89,7 @@ namespace Application.Services
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             Budget budget = await _budgetRepository.GetByCategoryAndPeriodAsync(categoryId, period);
 
             if (budget == null) throw new KeyNotFoundException($"Budget not found for category {categoryId} in {month}/{year}");
@@ -132,7 +132,7 @@ namespace Application.Services
             if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
 
             // Validar que no exista un presupuesto para la misma categoría y período
-            Period period = new Period(request.Month, request.Year);
+            MonthlyPeriod period = new MonthlyPeriod(request.Month, request.Year);
             bool exists = await _budgetRepository.ExistsForCategoryAndPeriodAsync(request.CategoryId, period);
 
             if (exists) throw new ConflictException($"Budget already exists for category {request.CategoryId} in {request.Month}/{request.Year}");
@@ -191,7 +191,7 @@ namespace Application.Services
         {
             if (categoryId <= 0) return false;
 
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             return await _budgetRepository.ExistsForCategoryAndPeriodAsync(categoryId, period);
         }
     }

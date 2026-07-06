@@ -5,7 +5,7 @@
     /// </summary>
     public interface IUnitOfWork : IDisposable
     {
-        IExpenseRepository Expenses { get; }
+        ITransactionRepository Expenses { get; }
         IFixedExpenseRepository FixedExpenses { get; }
         IBudgetRepository Budgets { get; }
         ICategoryRepository Categories { get; }

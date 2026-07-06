@@ -43,7 +43,7 @@ namespace Tests.Infrastructure
         private Budget CreateBudget(Category category, decimal amount, int month, int year)
         {
             Money money = new Money(amount);
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             Budget budget = new Budget(category, money, period);
 
             return budget;
@@ -191,7 +191,7 @@ namespace Tests.Infrastructure
             await SeedBudgetAsync(category, 300.00m, 1, 2024);
             await SeedBudgetAsync(category, 200.00m, 2, 2024);
 
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
             IEnumerable<Budget> result = await _repository.GetByPeriodAsync(period);
@@ -207,7 +207,7 @@ namespace Tests.Infrastructure
         public async Task GetByPeriodAsync_WithNonExistingPeriod_ReturnsEmptyList()
         {
             // Arrange
-            Period period = new Period(12, 2025);
+            MonthlyPeriod period = new MonthlyPeriod(12, 2025);
 
             // Act
             IEnumerable<Budget> result = await _repository.GetByPeriodAsync(period);
@@ -234,7 +234,7 @@ namespace Tests.Infrastructure
             await SeedBudgetAsync(category, 500.00m, 1, 2024);
             await SeedBudgetAsync(category, 300.00m, 2, 2024);
 
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
             Budget? result = await _repository.GetByCategoryAndPeriodAsync(category.Id, period);
@@ -252,7 +252,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             Category category = await SeedCategoryAsync("Alimentación");
-            Period period = new Period(12, 2025);
+            MonthlyPeriod period = new MonthlyPeriod(12, 2025);
 
             // Act
             Budget? result = await _repository.GetByCategoryAndPeriodAsync(category.Id, period);
@@ -306,7 +306,7 @@ namespace Tests.Infrastructure
             Category category = await SeedCategoryAsync("Alimentación");
             await SeedBudgetAsync(category, 500.00m, 1, 2024);
 
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
             bool exists = await _repository.ExistsForCategoryAndPeriodAsync(category.Id, period);
@@ -320,7 +320,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             Category category = await SeedCategoryAsync("Alimentación");
-            Period period = new Period(12, 2025);
+            MonthlyPeriod period = new MonthlyPeriod(12, 2025);
 
             // Act
             bool exists = await _repository.ExistsForCategoryAndPeriodAsync(category.Id, period);
@@ -333,7 +333,7 @@ namespace Tests.Infrastructure
         public async Task ExistsForCategoryAndPeriodAsync_WithInvalidCategoryId_ReturnsFalse()
         {
             // Arrange
-            Period period = new Period(1, 2024);
+            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
             bool exists = await _repository.ExistsForCategoryAndPeriodAsync(0, period);

@@ -65,7 +65,7 @@ namespace Infrastructure.Repositories
                 .ThenBy(b => b.Period.Month);
         }
 
-        public async Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, Period period)
+        public async Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period)
         {
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
@@ -81,7 +81,7 @@ namespace Infrastructure.Repositories
             return budget;
         }
 
-        public async Task<IEnumerable<Budget>> GetByPeriodAsync(Period period)
+        public async Task<IEnumerable<Budget>> GetByPeriodAsync(MonthlyPeriod period)
         {
             ArgumentNullException.ThrowIfNull(period);
 
@@ -108,7 +108,7 @@ namespace Infrastructure.Repositories
             return exists;
         }
 
-        public async Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, Period period)
+        public async Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period)
         {
             if (categoryId <= 0) return false;
 

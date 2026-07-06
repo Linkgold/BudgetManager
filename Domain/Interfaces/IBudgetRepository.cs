@@ -11,13 +11,13 @@ namespace Domain.Interfaces
         // ==================== CONSULTAS ====================
         Task<Budget?> GetByIdAsync(int id);
         Task<IEnumerable<Budget>> GetAllAsync();
-        Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, Period period);
-        Task<IEnumerable<Budget>> GetByPeriodAsync(Period period);
+        Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period);
+        Task<IEnumerable<Budget>> GetByPeriodAsync(MonthlyPeriod period);
         Task<IEnumerable<Budget>> GetByCategoryIdAsync(int categoryId);
 
         // ==================== VERIFICACIONES ====================
         Task<bool> ExistsAsync(int id);
-        Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, Period period);
+        Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period);
 
         // ==================== COMANDOS ====================
         Task AddAsync(Budget budget);

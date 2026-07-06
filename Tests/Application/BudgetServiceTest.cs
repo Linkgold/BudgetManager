@@ -57,7 +57,7 @@ namespace Tests.Application
         private Budget CreateBudget(int id, Category category, decimal amount, int month, int year)
         {
             Money money = new Money(amount);
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             Budget budget = new Budget(category, money, period);
             typeof(Budget).GetProperty("Id")?.SetValue(budget, id);
 
@@ -193,7 +193,7 @@ namespace Tests.Application
             List<Budget> budgets = new List<Budget> { budget1, budget2 };
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByPeriodAsync(It.IsAny<Period>()))
+                .Setup(repo => repo.GetByPeriodAsync(It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(budgets);
 
             // Act
@@ -217,7 +217,7 @@ namespace Tests.Application
             Budget budget = CreateBudget(1, category, 500.00m, month, year);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(budget);
 
             // Act
@@ -239,7 +239,7 @@ namespace Tests.Application
             int month = 1;
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync((Budget)null);
 
             // Act & Assert
@@ -259,7 +259,7 @@ namespace Tests.Application
             Budget budget = CreateBudget(1, category, 500.00m, month, year);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(budget);
 
             // Act
@@ -285,7 +285,7 @@ namespace Tests.Application
             int month = 1;
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync((Budget)null);
 
             // Act & Assert
@@ -314,7 +314,7 @@ namespace Tests.Application
                 .ReturnsAsync(category);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(false);
 
             // Act
@@ -361,7 +361,7 @@ namespace Tests.Application
                 .ReturnsAsync(category);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(true);
 
             // Act & Assert
@@ -496,7 +496,7 @@ namespace Tests.Application
             int year = 2024;
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(true);
 
             // Act
@@ -515,7 +515,7 @@ namespace Tests.Application
             int month = 1;
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<Period>()))
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(false);
 
             // Act

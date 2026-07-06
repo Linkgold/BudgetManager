@@ -79,7 +79,7 @@ namespace Application.Services
 
         public async Task<List<FixedExpenseResponseDTO>> GetActiveForPeriodAsync(int month, int year)
         {
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveForPeriodAsync(period);
 
             return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
@@ -91,7 +91,7 @@ namespace Application.Services
 
             if (!await _categoryRepository.ExistsAsync(categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             List<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveForPeriodByCategoryAsync(categoryId, period);
 
             return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
@@ -114,7 +114,7 @@ namespace Application.Services
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
             Money amount = new Money(request.Amount);
-            Period chargePeriod = new Period(request.Month, request.Year);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(request.Month, request.Year);
 
             // Crear entidad de dominio
             FixedExpense fixedExpense = new FixedExpense(category, info, amount, chargePeriod);
@@ -142,7 +142,7 @@ namespace Application.Services
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
             Money amount = new Money(request.Amount);
-            Period chargePeriod = new Period(request.Month, request.Year);
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(request.Month, request.Year);
 
             // Actualizar entidad de dominio
             fixedExpense.Update(info, amount, chargePeriod);
@@ -205,7 +205,7 @@ namespace Application.Services
 
             if (!await _categoryRepository.ExistsAsync(categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
-            Period period = new Period(month, year);
+            MonthlyPeriod period = new MonthlyPeriod(month, year);
             return await _fixedExpenseRepository.GetTotalByCategoryAndPeriodAsync(categoryId, period);
         }
     }
