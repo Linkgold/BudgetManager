@@ -17,6 +17,12 @@ namespace Domain.Entities
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
+        // 🔥 Foreign key a User
+        public int UserId { get; private set; }
+
+        // 🔥 Navigation property
+        public User User { get; private set; }
+
         // Foreign key
         public int CategoryId { get; private set; }
 
@@ -29,13 +35,16 @@ namespace Domain.Entities
 
         private Transaction() { }
 
-        public Transaction(Category category, EntityInfo info, Money amount, TransactionTypeEnum type, DailyPeriod date)
+        public Transaction(User user, Category category, EntityInfo info, Money amount, TransactionTypeEnum type, DailyPeriod date)
         {
+            ArgumentNullException.ThrowIfNull(user);
             ArgumentNullException.ThrowIfNull(category);
             ArgumentNullException.ThrowIfNull(info);
             ArgumentNullException.ThrowIfNull(amount);
             ArgumentNullException.ThrowIfNull(date);
 
+            User = user;
+            UserId = user.Id;
             Category = category;
             CategoryId = category.Id;
             Info = info;

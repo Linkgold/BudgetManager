@@ -24,101 +24,114 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<Budget?> GetByIdAsync(int id)
+        public async Task<Budget?> GetByIdAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));
 
             Budget? budget = await _dbSet
                 .AsNoTracking()
-                .Include(b => b.Category)
-                .FirstOrDefaultAsync(b => b.Id == id);
+                .Include(budget => budget.Category)
+                .FirstOrDefaultAsync(budget => budget.Id == id && budget.UserId == userId);
 
             return budget;
         }
 
-        public async Task<IEnumerable<Budget>> GetAllAsync()
+        public async Task<IEnumerable<Budget>> GetAllAsync(int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
             IEnumerable<Budget> budgets = await _dbSet
                 .AsNoTracking()
-                .Include(b => b.Category)
+                .Include(budget => budget.Category)
+                .Where(budget => budget.UserId == userId)
                 .ToListAsync();
 
             return budgets
-                .OrderBy(b => b.Period.Year)
-                .ThenBy(b => b.Period.Month)
-                .ThenBy(b => b.Category.Info.Name);
+                .OrderBy(budget => budget.Period.Year)
+                .ThenBy(budget => budget.Period.Month)
+                .ThenBy(budget => budget.Category.Info.Name);
         }
 
-        public async Task<IEnumerable<Budget>> GetByCategoryIdAsync(int categoryId)
+        public async Task<IEnumerable<Budget>> GetByCategoryIdAsync(int categoryId, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             IEnumerable<Budget> budgets = await _dbSet
                 .AsNoTracking()
-                .Include(b => b.Category)
-                .Where(b => b.CategoryId == categoryId)
-                
+                .Include(budget => budget.Category)
+                .Where(budget => budget.CategoryId == categoryId && budget.UserId == userId)
+
                 .ToListAsync();
 
             return budgets
-                .OrderBy(b => b.Period.Year)
-                .ThenBy(b => b.Period.Month);
+                .OrderBy(budget => budget.Period.Year)
+                .ThenBy(budget => budget.Period.Month);
         }
 
-        public async Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period)
+        public async Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             ArgumentNullException.ThrowIfNull(period);
 
             Budget? budget = await _dbSet
                 .AsNoTracking()
-                .Include(b => b.Category)
-                .FirstOrDefaultAsync(b => b.CategoryId == categoryId &&
-                                          b.Period.Year == period.Year &&
-                                          b.Period.Month == period.Month);
+                .Include(budget => budget.Category)
+                .Where(budget => budget.UserId == userId)
+                .FirstOrDefaultAsync(budget => budget.CategoryId == categoryId &&
+                                               budget.Period.Year == period.Year &&
+                                               budget.Period.Month == period.Month);
 
             return budget;
         }
 
-        public async Task<IEnumerable<Budget>> GetByPeriodAsync(MonthlyPeriod period)
+        public async Task<IEnumerable<Budget>> GetByPeriodAsync(MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentNullException.ThrowIfNull(period);
 
             IEnumerable<Budget> budgets = await _dbSet
                 .AsNoTracking()
-                .Include(b => b.Category)
-                .Where(b => b.Period.Year == period.Year &&
-                            b.Period.Month == period.Month)
+                .Include(budget => budget.Category)
+                .Where(budget => budget.UserId == userId &&
+                                 budget.Period.Year == period.Year &&
+                                 budget.Period.Month == period.Month)
                 .ToListAsync();
 
-            return budgets.OrderBy(b => b.Category.Info.Name);
+            return budgets.OrderBy(budget => budget.Category.Info.Name);
         }
 
         // ==================== VERIFICACIONES ====================
 
-        public async Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) return false;
 
             bool exists = await _dbSet
                 .AsNoTracking()
-                .AnyAsync(b => b.Id == id);
+                .Where(budget => budget.UserId == userId)
+                .AnyAsync(budget => budget.Id == id);
 
             return exists;
         }
 
-        public async Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period)
+        public async Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) return false;
 
             ArgumentNullException.ThrowIfNull(period);
 
             bool exists = await _dbSet
                 .AsNoTracking()
-                .AnyAsync(b => b.CategoryId == categoryId &&
-                               b.Period.Year == period.Year &&
-                               b.Period.Month == period.Month);
+                .Where(budget => budget.UserId == userId)
+                .AnyAsync(budget => budget.CategoryId == categoryId &&
+                                    budget.Period.Year == period.Year &&
+                                    budget.Period.Month == period.Month);
 
             return exists;
         }
@@ -141,11 +154,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));
 
-            Budget? budget = await _dbSet.FindAsync(id);
+            Budget? budget = await _dbSet.FirstOrDefaultAsync(budget => budget.Id == id && budget.UserId == userId);
 
             if (budget == null) throw new KeyNotFoundException($"Budget with ID {id} not found");
 

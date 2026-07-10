@@ -24,81 +24,90 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<Transaction> GetByIdAsync(int id)
+        public async Task<Transaction?> GetByIdAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid transaction ID", nameof(id));
 
             Transaction? transaction = await _dbSet
                 .AsNoTracking()
-                .Include(t => t.Category)
-                .FirstOrDefaultAsync(t => t.Id == id);
+                .Include(transaction => transaction.Category)
+                .Where(transaction => transaction.UserId == userId)
+                .FirstOrDefaultAsync(transaction => transaction.Id == id);
 
             return transaction;
         }
 
-        public async Task<IEnumerable<Transaction>> GetAllAsync()
+        public async Task<IEnumerable<Transaction>> GetAllAsync(int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
             IEnumerable<Transaction> transactions = await _dbSet
                 .AsNoTracking()
-                .Include(t => t.Category)
-                .OrderByDescending(t => t.Date.Year)
-                .ThenByDescending(t => t.Date.Month)
-                .ThenByDescending(t => t.Date.Day)
+                .Include(transaction => transaction.Category)
+                .Where(transaction => transaction.UserId == userId)
+                .OrderByDescending(transaction => transaction.Date.Year)
+                .ThenByDescending(transaction => transaction.Date.Month)
+                .ThenByDescending(transaction => transaction.Date.Day)
                 .ToListAsync();
 
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByCategoryIdAsync(int categoryId)
+        public async Task<IEnumerable<Transaction>> GetByCategoryIdAsync(int categoryId, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             IEnumerable<Transaction> transactions = await _dbSet
                 .AsNoTracking()
-                .Include(t => t.Category)
-                .Where(t => t.CategoryId == categoryId)
-                .OrderByDescending(t => t.Date.Year)
-                .ThenByDescending(t => t.Date.Month)
-                .ThenByDescending(t => t.Date.Day)
+                .Include(transaction => transaction.Category)
+                .Where(transaction => transaction.CategoryId == categoryId && transaction.UserId == userId)
+                .OrderByDescending(transaction => transaction.Date.Year)
+                .ThenByDescending(transaction => transaction.Date.Month)
+                .ThenByDescending(transaction => transaction.Date.Day)
                 .ToListAsync();
 
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByMonthlyPeriodAsync(MonthlyPeriod period)
+        public async Task<IEnumerable<Transaction>> GetByMonthlyPeriodAsync(MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentNullException.ThrowIfNull(period);
 
             IEnumerable<Transaction> transactions = await _dbSet
                 .AsNoTracking()
-                .Include(t => t.Category)
-                .Where(t => t.Date.Year == period.Year && t.Date.Month == period.Month)
-                .OrderByDescending(t => t.Date.Day)
+                .Include(transaction => transaction.Category)
+                .Where(transaction => transaction.Date.Year == period.Year && transaction.Date.Month == period.Month && transaction.UserId == userId)
+                .OrderByDescending(transaction => transaction.Date.Day)
                 .ToListAsync();
 
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByCategoryAndMonthlyPeriodAsync(int categoryId, MonthlyPeriod period)
+        public async Task<IEnumerable<Transaction>> GetByCategoryAndMonthlyPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
             ArgumentNullException.ThrowIfNull(period);
 
             IEnumerable<Transaction> transactions = await _dbSet
                 .AsNoTracking()
-                .Include(t => t.Category)
-                .Where(t => t.CategoryId == categoryId &&
-                            t.Date.Year == period.Year &&
-                            t.Date.Month == period.Month)
-                .OrderByDescending(t => t.Date.Day)
+                .Include(transaction => transaction.Category)
+                .Where(transaction => transaction.UserId == userId &&
+                                      transaction.CategoryId == categoryId &&
+                                      transaction.Date.Year == period.Year &&
+                                      transaction.Date.Month == period.Month)
+                .OrderByDescending(transaction => transaction.Date.Day)
                 .ToListAsync();
 
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByDateRangeAsync(DailyPeriod startDate, DailyPeriod endDate)
+        public async Task<IEnumerable<Transaction>> GetByDateRangeAsync(DailyPeriod startDate, DailyPeriod endDate, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentNullException.ThrowIfNull(startDate);
             ArgumentNullException.ThrowIfNull(endDate);
 
@@ -108,25 +117,26 @@ namespace Infrastructure.Repositories
 
             IEnumerable<Transaction> transactions = await _dbSet
                 .AsNoTracking()
-                .Include(t => t.Category)
-                .Where(t => t.Date.Year > start.Year ||
-                           (t.Date.Year == start.Year && t.Date.Month > start.Month) ||
-                           (t.Date.Year == start.Year && t.Date.Month == start.Month && t.Date.Day >= start.Day))
-                .Where(t => t.Date.Year < end.Year ||
-                           (t.Date.Year == end.Year && t.Date.Month < end.Month) ||
-                           (t.Date.Year == end.Year && t.Date.Month == end.Month && t.Date.Day <= end.Day))
-                .OrderByDescending(t => t.Date.Year)
-                .ThenByDescending(t => t.Date.Month)
-                .ThenByDescending(t => t.Date.Day)
+                .Include(transaction => transaction.Category)
+                .Where(transaction => transaction.UserId == userId)
+                .Where(transaction => transaction.Date.Year > start.Year ||
+                                     (transaction.Date.Year == start.Year && transaction.Date.Month > start.Month) ||
+                                     (transaction.Date.Year == start.Year && transaction.Date.Month == start.Month && transaction.Date.Day >= start.Day))
+                .Where(transaction => transaction.Date.Year < end.Year ||
+                                     (transaction.Date.Year == end.Year && transaction.Date.Month < end.Month) ||
+                                     (transaction.Date.Year == end.Year && transaction.Date.Month == end.Month && transaction.Date.Day <= end.Day))
+                .OrderByDescending(transaction => transaction.Date.Year)
+                .ThenByDescending(transaction => transaction.Date.Month)
+                .ThenByDescending(transaction => transaction.Date.Day)
                 .ToListAsync();
 
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByCategoryAndDateRangeAsync(int categoryId, DailyPeriod startDate, DailyPeriod endDate)
+        public async Task<IEnumerable<Transaction>> GetByCategoryAndDateRangeAsync(int categoryId, DailyPeriod startDate, DailyPeriod endDate, int userId)
         {
-            if (categoryId <= 0)                throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
             ArgumentNullException.ThrowIfNull(startDate);
             ArgumentNullException.ThrowIfNull(endDate);
 
@@ -136,47 +146,50 @@ namespace Infrastructure.Repositories
 
             IEnumerable<Transaction> transactions = await _dbSet
                 .AsNoTracking()
-                .Include(t => t.Category)
-                .Where(t => t.CategoryId == categoryId)
-                .Where(t => t.Date.Year > start.Year ||
-                            (t.Date.Year == start.Year && t.Date.Month > start.Month) ||
-                            (t.Date.Year == start.Year && t.Date.Month == start.Month && t.Date.Day >= start.Day))
-                .Where(t => t.Date.Year < end.Year ||
-                            (t.Date.Year == end.Year && t.Date.Month < end.Month) ||
-                            (t.Date.Year == end.Year && t.Date.Month == end.Month && t.Date.Day <= end.Day))
-                .OrderByDescending(t => t.Date.Year)
-                .ThenByDescending(t => t.Date.Month)
-                .ThenByDescending(t => t.Date.Day)
+                .Include(transaction => transaction.Category)
+                .Where(transaction => transaction.CategoryId == categoryId && transaction.UserId == userId)
+                .Where(transaction => transaction.Date.Year > start.Year ||
+                                     (transaction.Date.Year == start.Year && transaction.Date.Month > start.Month) ||
+                                     (transaction.Date.Year == start.Year && transaction.Date.Month == start.Month && transaction.Date.Day >= start.Day))
+                .Where(transaction => transaction.Date.Year < end.Year ||
+                                     (transaction.Date.Year == end.Year && transaction.Date.Month < end.Month) ||
+                                     (transaction.Date.Year == end.Year && transaction.Date.Month == end.Month && transaction.Date.Day <= end.Day))
+                .OrderByDescending(transaction => transaction.Date.Year)
+                .ThenByDescending(transaction => transaction.Date.Month)
+                .ThenByDescending(transaction => transaction.Date.Day)
                 .ToListAsync();
 
             return transactions;
         }
 
-        public async Task<decimal> GetTotalByCategoryAndMonthlyPeriodAsync(int categoryId, MonthlyPeriod period)
+        public async Task<decimal> GetTotalByCategoryAndMonthlyPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
             ArgumentNullException.ThrowIfNull(period);
 
             decimal total = await _dbSet
                 .AsNoTracking()
-                .Where(t => t.CategoryId == categoryId &&
-                            t.Date.Year == period.Year &&
-                            t.Date.Month == period.Month)
-                .SumAsync(t => t.Amount.Value);
+                .Where(transaction => transaction.UserId == userId &&
+                                      transaction.CategoryId == categoryId &&
+                                      transaction.Date.Year == period.Year &&
+                                      transaction.Date.Month == period.Month)
+                .SumAsync(transaction => transaction.Amount.Value);
 
             return total;
         }
 
         // ==================== VERIFICACIONES ====================
 
-        public async Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) return false;
 
             bool exists = await _dbSet
                 .AsNoTracking()
-                .AnyAsync(t => t.Id == id);
+                .Where(transaction => transaction.UserId == userId)
+                .AnyAsync(transaction => transaction.Id == id);
 
             return exists;
         }
@@ -199,11 +212,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid transaction ID", nameof(id));
 
-            Transaction? transaction = await _dbSet.FindAsync(id);
+            Transaction? transaction = await _dbSet.FirstOrDefaultAsync(transaction => transaction.Id == id && transaction.UserId == userId);
 
             if (transaction == null) throw new KeyNotFoundException($"Transaction with ID {id} not found");
 

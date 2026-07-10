@@ -21,101 +21,114 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<FixedExpense> GetByIdAsync(int id)
+        public async Task<FixedExpense?> GetByIdAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
 
             FixedExpense? fixedExpense = await _dbSet
                 .AsNoTracking()
-                .Include(f => f.Category)
-                .FirstOrDefaultAsync(f => f.Id == id);
+                .Include(fixedExpense => fixedExpense.Category)
+                .Where(fixedExpense => fixedExpense.UserId == userId)
+                .FirstOrDefaultAsync(fixedExpense => fixedExpense.Id == id);
 
             return fixedExpense;
         }
 
-        public async Task<List<FixedExpense>> GetAllAsync()
+        public async Task<IEnumerable<FixedExpense>> GetAllAsync(int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
             List<FixedExpense> fixedExpenses = await _dbSet
                 .AsNoTracking()
-                .Include(f => f.Category)
-                .OrderBy(f => f.Info.Name)
+                .Include(fixedExpense => fixedExpense.Category)
+                .Where(fixedExpense => fixedExpense.UserId == userId)
+                .OrderBy(fixedExpense => fixedExpense.Info.Name)
                 .ToListAsync();
 
             return fixedExpenses;
         }
 
-        public async Task<List<FixedExpense>> GetByCategoryAsync(int categoryId)
+        public async Task<IEnumerable<FixedExpense>> GetByCategoryAsync(int categoryId, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             List<FixedExpense> fixedExpenses = await _dbSet
                 .AsNoTracking()
-                .Include(f => f.Category)
-                .Where(f => f.CategoryId == categoryId)
-                .OrderBy(f => f.Info.Name)
+                .Include(fixedExpense => fixedExpense.Category)
+                .Where(fixedExpense => fixedExpense.CategoryId == categoryId && fixedExpense.UserId == userId)
+                .OrderBy(fixedExpense => fixedExpense.Info.Name)
                 .ToListAsync();
 
             return fixedExpenses;
         }
 
-        public async Task<List<FixedExpense>> GetActiveAsync()
+        public async Task<IEnumerable<FixedExpense>> GetActiveAsync(int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
             List<FixedExpense> fixedExpenses = await _dbSet
                 .AsNoTracking()
-                .Include(f => f.Category)
-                .Where(f => f.IsActive == true)
-                .OrderBy(f => f.Info.Name)
+                .Include(fixedExpense => fixedExpense.Category)
+                .Where(fixedExpense => fixedExpense.IsActive == true && fixedExpense.UserId == userId)
+                .OrderBy(fixedExpense => fixedExpense.Info.Name)
                 .ToListAsync();
 
             return fixedExpenses;
         }
 
-        public async Task<List<FixedExpense>> GetActiveByCategoryAsync(int categoryId)
+        public async Task<IEnumerable<FixedExpense>> GetActiveByCategoryAsync(int categoryId, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             List<FixedExpense> fixedExpenses = await _dbSet
                 .AsNoTracking()
-                .Include(f => f.Category)
-                .Where(f => f.CategoryId == categoryId && f.IsActive == true)
-                .OrderBy(f => f.Info.Name)
+                .Include(fixedExpense => fixedExpense.Category)
+                .Where(fixedExpense => fixedExpense.CategoryId == categoryId && fixedExpense.IsActive == true && fixedExpense.UserId == userId)
+                .OrderBy(fixedExpense => fixedExpense.Info.Name)
                 .ToListAsync();
 
             return fixedExpenses;
         }
 
-        public async Task<List<FixedExpense>> GetActiveForPeriodAsync(MonthlyPeriod period)
+        public async Task<IEnumerable<FixedExpense>> GetActiveForPeriodAsync(MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentNullException.ThrowIfNull(period);
 
             List<FixedExpense> fixedExpenses = await _dbSet
                 .AsNoTracking()
-                .Include(f => f.Category)
-                .Where(f => f.IsActive == true &&
-                            (f.ChargePeriod.Year < period.Year ||
-                             (f.ChargePeriod.Year == period.Year &&
-                              f.ChargePeriod.Month <= period.Month)))
-                .OrderBy(f => f.Info.Name)
+                .Include(fixedExpense => fixedExpense.Category)
+                .Where(fixedExpense => fixedExpense.UserId == userId &&
+                                       fixedExpense.IsActive == true &&
+                                      (fixedExpense.ChargePeriod.Year < period.Year ||
+                                      (fixedExpense.ChargePeriod.Year == period.Year &&
+                                       fixedExpense.ChargePeriod.Month <= period.Month)))
+                .OrderBy(fixedExpense => fixedExpense.Info.Name)
                 .ToListAsync();
 
             return fixedExpenses;
         }
 
-        public async Task<List<FixedExpense>> GetActiveForPeriodByCategoryAsync(int categoryId, MonthlyPeriod period)
+        public async Task<IEnumerable<FixedExpense>> GetActiveForPeriodByCategoryAsync(int categoryId, MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             ArgumentNullException.ThrowIfNull(period);
 
             List<FixedExpense> fixedExpenses = await _dbSet
                 .AsNoTracking()
-                .Include(f => f.Category)
-                .Where(f => f.CategoryId == categoryId &&
-                            f.IsActive == true &&
-                            (f.ChargePeriod.Year < period.Year ||
-                             (f.ChargePeriod.Year == period.Year &&
-                              f.ChargePeriod.Month <= period.Month)))
-                .OrderBy(f => f.Info.Name)
+                .Include(fixedExpense => fixedExpense.Category)
+                .Where(fixedExpense => fixedExpense.UserId == userId && 
+                                       fixedExpense.CategoryId == categoryId &&
+                                       fixedExpense.IsActive == true &&
+                                      (fixedExpense.ChargePeriod.Year < period.Year ||
+                                      (fixedExpense.ChargePeriod.Year == period.Year &&
+                                       fixedExpense.ChargePeriod.Month <= period.Month)))
+                .OrderBy(fixedExpense => fixedExpense.Info.Name)
                 .ToListAsync();
 
             return fixedExpenses;
@@ -123,67 +136,75 @@ namespace Infrastructure.Repositories
 
         // ==================== MÉTODOS DE AGREGACIÓN ====================
 
-        public async Task<decimal> GetTotalByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period)
+        public async Task<decimal> GetTotalByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             ArgumentNullException.ThrowIfNull(period);
 
             decimal total = await _dbSet
                 .AsNoTracking()
-                .Where(f => f.CategoryId == categoryId &&
-                            f.IsActive == true &&
-                            (f.ChargePeriod.Year < period.Year ||
-                             (f.ChargePeriod.Year == period.Year &&
-                              f.ChargePeriod.Month <= period.Month)))
-                .SumAsync(f => f.Amount.Value);
+                .Where(fixedExpense => fixedExpense.UserId == userId &&
+                                       fixedExpense.CategoryId == categoryId &&
+                                       fixedExpense.IsActive == true &&
+                                      (fixedExpense.ChargePeriod.Year < period.Year ||
+                                      (fixedExpense.ChargePeriod.Year == period.Year &&
+                                       fixedExpense.ChargePeriod.Month <= period.Month)))
+                .SumAsync(fixedExpense => fixedExpense.Amount.Value);
 
             return total;
         }
 
-        public async Task<decimal> GetTotalActiveAsync()
+        public async Task<decimal> GetTotalActiveAsync(int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
             decimal total = await _dbSet
                 .AsNoTracking()
-                .Where(f => f.IsActive == true)
-                .SumAsync(f => f.Amount.Value);
+                .Where(fixedExpense => fixedExpense.IsActive == true && fixedExpense.UserId == userId)
+                .SumAsync(fixedExpense => fixedExpense.Amount.Value);
 
             return total;
         }
 
-        public async Task<decimal> GetTotalActiveByCategoryAsync(int categoryId)
+        public async Task<decimal> GetTotalActiveByCategoryAsync(int categoryId, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             decimal total = await _dbSet
                 .AsNoTracking()
-                .Where(f => f.CategoryId == categoryId && f.IsActive == true)
-                .SumAsync(f => f.Amount.Value);
+                .Where(fixedExpense => fixedExpense.CategoryId == categoryId && fixedExpense.IsActive == true && fixedExpense.UserId == userId)
+                .SumAsync(fixedExpense => fixedExpense.Amount.Value);
 
             return total;
         }
 
         // ==================== MÉTODOS DE NEGOCIO ====================
 
-        public async Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) return false;
 
             bool exists = await _dbSet
                 .AsNoTracking()
-                .AnyAsync(f => f.Id == id);
+                .Where(fixedExpense => fixedExpense.UserId == userId)
+                .AnyAsync(fixedExpense => fixedExpense.Id == id);
 
             return exists;
         }
 
-        public async Task<bool> IsActiveAsync(int id)
+        public async Task<bool> IsActiveAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
 
             bool isActive = await _dbSet
                 .AsNoTracking()
-                .Where(f => f.Id == id)
-                .Select(f => f.IsActive)
+                .Where(fixedExpense => fixedExpense.Id == id && fixedExpense.UserId == userId)
+                .Select(fixedExpense => fixedExpense.IsActive)
                 .FirstOrDefaultAsync();
 
             return isActive;
@@ -207,11 +228,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
 
-            FixedExpense? fixedExpense = await _dbSet.FindAsync(id);
+            FixedExpense? fixedExpense = await _dbSet.FirstOrDefaultAsync(fixedExpense => fixedExpense.Id == id && fixedExpense.UserId == userId);
 
             if (fixedExpense == null) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
 
@@ -219,11 +241,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task ActivateAsync(int id)
+        public async Task ActivateAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
 
-            FixedExpense? fixedExpense = await _dbSet.FindAsync(id);
+            FixedExpense? fixedExpense = await _dbSet.FirstOrDefaultAsync(fixedExpense => fixedExpense.Id == id && fixedExpense.UserId == userId);
 
             if (fixedExpense == null) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
 
@@ -231,11 +254,12 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeactivateAsync(int id)
+        public async Task DeactivateAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
 
-            FixedExpense? fixedExpense = await _dbSet.FindAsync(id);
+            FixedExpense? fixedExpense = await _dbSet.FirstOrDefaultAsync(fixedExpense => fixedExpense.Id == id && fixedExpense.UserId == userId);
 
             if (fixedExpense == null) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
 

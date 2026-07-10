@@ -8,8 +8,11 @@ using FluentValidation;
 using Infrastructure;
 using Infrastructure.Data;
 using Infrastructure.Data.Factories;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using System.Text;
 using System.Text.Json;
 
 namespace API
@@ -55,6 +58,9 @@ namespace API
 
             // ==================== CORS (Opcional) ====================
             ConfigureCors(services);
+
+            // ==================== JWT AUTHENTICATION ====================
+            ConfigureAuthentication(services);
         }
 
         /// <summary>
@@ -130,6 +136,9 @@ namespace API
 
             // CORS
             app.UseCors("AllowAll");
+
+            // Asegurar que UseAuthentication está ANTES de UseAuthorization
+            app.UseAuthentication();
 
             // Autorización (cuando se implemente)
             app.UseAuthorization();
@@ -262,6 +271,57 @@ namespace API
                     );
                 }
             );
+        }
+
+        private void ConfigureAuthentication(IServiceCollection services)
+        {
+            IConfigurationSection jwtSection = _configuration.GetSection("Jwt");
+            string? key = jwtSection["Key"];
+            string? issuer = jwtSection["Issuer"];
+            string? audience = jwtSection["Audience"];
+
+            if
+            (
+            string.IsNullOrEmpty(key) ||
+            string.IsNullOrEmpty(issuer) ||
+            string.IsNullOrEmpty(audience)
+            ) throw new InvalidOperationException("JWT configuration is incomplete");
+
+            SymmetricSecurityKey securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key));
+
+            services.AddAuthentication
+            (
+                options =>
+                {
+                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+                }
+            )
+            .AddJwtBearer
+            (
+                options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = issuer,
+                        ValidAudience = audience,
+                        IssuerSigningKey = securityKey,
+                        ClockSkew = TimeSpan.Zero // Elimina el margen de 5 minutos por defecto
+                    };
+                }
+            );
+
+            // ==================== AUTORIZACIÓN ====================
+
+            services.AddAuthorization();
+
+            // ==================== HTTP CONTEXT ACCESSOR ====================
+
+            services.AddHttpContextAccessor();
         }
 
         /// <summary>

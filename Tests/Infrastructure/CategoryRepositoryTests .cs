@@ -1,9 +1,12 @@
-﻿using Domain.Entities;
+﻿using Application.Interfaces;
+using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using Tests.Helpers;
 
 namespace Tests.Infrastructure
 {
@@ -34,16 +37,16 @@ namespace Tests.Infrastructure
         public async Task AddAsync_ShouldAddCategoryToDatabase()
         {
             // Arrange
-            Category category = new Category(new EntityInfo("Prueba", "Descripción de prueba"));
+            Category category = TestDataFactory.CreateCategory(1, TestDataFactory.CreateUser());
 
             // Act
             await _repository.AddAsync(category);
 
             // Assert
-            Category retrieved = await _dbContext.Categories.FindAsync(category.Id);
+            Category? retrieved = await _dbContext.Categories.FindAsync(category.Id);
             Assert.NotNull(retrieved);
-            Assert.Equal("Prueba", retrieved.Info.Name);
-            Assert.Equal("Descripción de prueba", retrieved.Info.Description);
+            Assert.Equal("Alimentación", retrieved.Info.Name);
+            Assert.Equal("Gastos de comida", retrieved.Info.Description);
             Assert.True(retrieved.IsActive);
             Assert.NotEqual(default(DateTime), retrieved.CreatedAt);
         }
@@ -54,11 +57,12 @@ namespace Tests.Infrastructure
         public async Task GetByIdAsync_WithExistingId_ReturnsCategory()
         {
             // Arrange
-            Category category = new Category(new EntityInfo("Existente", null));
+            int userId = 1;
+            Category category = TestDataFactory.CreateCategory(1, TestDataFactory.CreateUser());
             await _repository.AddAsync(category);
 
             // Act
-            Category retrieved = await _repository.GetByIdAsync(category.Id);
+            Category? retrieved = await _repository.GetByIdAsync(category.Id, userId);
 
             // Assert
             Assert.NotNull(retrieved);
@@ -70,7 +74,8 @@ namespace Tests.Infrastructure
         public async Task GetByIdAsync_WithNonExistingId_ReturnsNull()
         {
             // Act
-            Category retrieved = await _repository.GetByIdAsync(999);
+            int userId = 1;
+            Category? retrieved = await _repository.GetByIdAsync(999,userId);
 
             // Assert
             Assert.Null(retrieved);
@@ -82,18 +87,19 @@ namespace Tests.Infrastructure
         public async Task GetAllAsync_ReturnsAllCategories()
         {
             // Arrange
-            Category cat1 = new Category(new EntityInfo("Cat1", null));
-            Category cat2 = new Category(new EntityInfo("Cat2", null));
-            await _repository.AddAsync(cat1);
-            await _repository.AddAsync(cat2);
+            int userId = 1;
+            List<Category> categories = TestDataFactory.CreateCategories(2, TestDataFactory.CreateUser(userId));
+
+            await _repository.AddAsync(categories[0]);
+            await _repository.AddAsync(categories[1]);
 
             // Act
-            List<Category> result = await _repository.GetAllAsync();
+            IEnumerable<Category> result = await _repository.GetAllAsync(userId);
 
             // Assert
-            Assert.Equal(2, result.Count);
-            Assert.Contains(result, c => c.Info.Name == "Cat1");
-            Assert.Contains(result, c => c.Info.Name == "Cat2");
+            Assert.Equal(2, result.Count());
+            Assert.Contains(result, c => c.Info.Name == "Categoría 1");
+            Assert.Contains(result, c => c.Info.Name == "Categoría 2");
         }
 
         // ==================== TEST: GET BY NAME ====================
@@ -102,23 +108,24 @@ namespace Tests.Infrastructure
         public async Task GetByNameAsync_WithExistingName_ReturnsCategory()
         {
             // Arrange
-            Category category = new Category(new EntityInfo("NombreUnico", null));
+            int userId = 1;
+            Category category = TestDataFactory.CreateCategory();
             await _repository.AddAsync(category);
 
             // Act
-            Category retrieved = await _repository.GetByNameAsync("NombreUnico");
+            Category? retrieved = await _repository.GetByNameAsync("Alimentación", userId);
 
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(category.Id, retrieved.Id);
-            Assert.Equal("NombreUnico", retrieved.Info.Name);
+            Assert.Equal("Alimentación", retrieved.Info.Name);
         }
 
         [Fact]
         public async Task GetByNameAsync_WithNonExistingName_ReturnsNull()
         {
             // Act
-            Category retrieved = await _repository.GetByNameAsync("NoExiste");
+            Category? retrieved = await _repository.GetByNameAsync("NoExiste",1);
 
             // Assert
             Assert.Null(retrieved);
@@ -130,19 +137,19 @@ namespace Tests.Infrastructure
         public async Task GetActiveCategoriesAsync_ReturnsOnlyActiveCategories()
         {
             // Arrange
-            Category active = new Category(new EntityInfo("Activa", null));
-            Category inactive = new Category(new EntityInfo("Inactiva", null));
-            inactive.Deactivate(); // Desactivamos
+            int userId = 1;
+            List<Category> categories = TestDataFactory.CreateCategories(2, TestDataFactory.CreateUser(userId));
+            categories[1].Deactivate(); // Desactivamos
 
-            await _repository.AddAsync(active);
-            await _repository.AddAsync(inactive);
+            await _repository.AddAsync(categories[0]);
+            await _repository.AddAsync(categories[1]);
 
             // Act
-            List<Category> result = await _repository.GetActiveCategoriesAsync();
+            IEnumerable<Category> result = await _repository.GetActiveCategoriesAsync(userId);
 
             // Assert
             Assert.Single(result);
-            Assert.Equal("Activa", result[0].Info.Name);
+            Assert.Equal("Activa", result.First().Info.Name);
         }
 
         // ==================== TEST: UPDATE ====================
@@ -151,7 +158,8 @@ namespace Tests.Infrastructure
         public async Task UpdateAsync_ShouldUpdateCategory()
         {
             // Arrange
-            Category category = new Category(new EntityInfo("Original", "Descripción original"));
+            int userId = 1;
+            Category category = TestDataFactory.CreateCategory();
             await _repository.AddAsync(category);
 
             // Modificar la entidad
@@ -161,7 +169,7 @@ namespace Tests.Infrastructure
             await _repository.UpdateAsync(category);
 
             // Assert
-            Category updated = await _repository.GetByIdAsync(category.Id);
+            Category? updated = await _repository.GetByIdAsync(category.Id, userId);
             Assert.NotNull(updated);
             Assert.Equal("Modificado", updated.Info.Name);
             Assert.Equal("Nueva descripción", updated.Info.Description);
@@ -174,18 +182,16 @@ namespace Tests.Infrastructure
         public async Task DeleteAsync_ShouldRemoveCategory()
         {
             // Arrange
-            Category category = new Category(new EntityInfo("Eliminar", null));
+            int userId = 1;
+            Category category = TestDataFactory.CreateCategory();
             await _repository.AddAsync(category);
             int id = category.Id;
 
-            /*// Desprender la entidad del contexto para evitar conflicto de tracking
-            _dbContext.Entry(category).State = EntityState.Detached;*/
-
             // Act
-            await _repository.DeleteAsync(id);
+            await _repository.DeleteAsync(id,   userId);
 
             // Assert
-            Category deleted = await _repository.GetByIdAsync(id);
+            Category? deleted = await _repository.GetByIdAsync(id,userId);
             Assert.Null(deleted);
         }
 
@@ -193,8 +199,7 @@ namespace Tests.Infrastructure
         public async Task DeleteAsync_WithNonExistingId_ThrowsKeyNotFoundException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() =>
-                _repository.DeleteAsync(999));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() =>                _repository.DeleteAsync(999,1));
         }
 
         // ==================== TEST: EXISTS ====================
@@ -203,11 +208,12 @@ namespace Tests.Infrastructure
         public async Task ExistsAsync_WithExistingId_ReturnsTrue()
         {
             // Arrange
-            Category category = new Category(new EntityInfo("Existe", null));
+            int userId = 1;
+            Category category = TestDataFactory.CreateCategory();
             await _repository.AddAsync(category);
 
             // Act
-            bool exists = await _repository.ExistsAsync(category.Id);
+            bool exists = await _repository.ExistsAsync(category.Id, userId);
 
             // Assert
             Assert.True(exists);
@@ -217,7 +223,8 @@ namespace Tests.Infrastructure
         public async Task ExistsAsync_WithNonExistingId_ReturnsFalse()
         {
             // Act
-            bool exists = await _repository.ExistsAsync(999);
+            int userId = 1;
+            bool exists = await _repository.ExistsAsync(999, userId);
 
             // Assert
             Assert.False(exists);
@@ -229,11 +236,12 @@ namespace Tests.Infrastructure
         public async Task ExistsByNameAsync_WithExistingName_ReturnsTrue()
         {
             // Arrange
-            Category category = new Category(new EntityInfo("NombreTest", null));
+            int userId = 1;
+            Category category = TestDataFactory.CreateCategory();
             await _repository.AddAsync(category);
 
             // Act
-            bool exists = await _repository.ExistsByNameAsync("NombreTest");
+            bool exists = await _repository.ExistsByNameAsync("Alimentación",userId);
 
             // Assert
             Assert.True(exists);
@@ -243,7 +251,7 @@ namespace Tests.Infrastructure
         public async Task ExistsByNameAsync_WithNonExistingName_ReturnsFalse()
         {
             // Act
-            bool exists = await _repository.ExistsByNameAsync("NoExiste");
+            bool exists = await _repository.ExistsByNameAsync("NoExiste", 1);
 
             // Assert
             Assert.False(exists);
@@ -255,11 +263,12 @@ namespace Tests.Infrastructure
         public async Task HasExpensesAsync_ShouldReturnFalse_WhenNoExpensesExist()
         {
             // Arrange
-            Category category = new Category(new EntityInfo("SinGastos", null));
+            int userId = 1;
+            Category category = TestDataFactory.CreateCategory();
             await _repository.AddAsync(category);
 
             // Act
-            bool hasExpenses = await _repository.HasExpensesAsync(category.Id);
+            bool hasExpenses = await _repository.HasDependenciesAsync(category.Id, userId);
 
             // Assert
             Assert.False(hasExpenses);

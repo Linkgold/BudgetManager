@@ -1,6 +1,7 @@
 using Application.DTOs.Request;
 using Application.DTOs.Response;
 using Application.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace API.Controllers
@@ -11,6 +12,7 @@ namespace API.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Authorize]
     public class BudgetController : ControllerBase
     {
         private readonly IBudgetService _budgetService;
@@ -84,7 +86,7 @@ namespace API.Controllers
 
             if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
 
-            List<BudgetResponseDTO> budgets = await _budgetService.GetByPeriodAsync(month,year);
+            List<BudgetResponseDTO> budgets = await _budgetService.GetByPeriodAsync(month, year);
 
             return Ok(budgets);
         }
@@ -124,7 +126,7 @@ namespace API.Controllers
 
             if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
 
-            BudgetSummaryDTO summary = await _budgetService.GetSummaryByCategoryAndPeriodAsync(categoryId, month,year);
+            BudgetSummaryDTO summary = await _budgetService.GetSummaryByCategoryAndPeriodAsync(categoryId, month, year);
 
             return Ok(summary);
         }

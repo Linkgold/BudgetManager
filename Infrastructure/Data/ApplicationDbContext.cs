@@ -13,6 +13,7 @@ namespace Infrastructure.Data
         public DbSet<FixedExpense> FixedExpenses { get; set; }
         public DbSet<Budget> Budgets { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<User> Users { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -24,6 +25,7 @@ namespace Infrastructure.Data
             modelBuilder.ApplyConfiguration(new FixedExpenseConfiguration());
             modelBuilder.ApplyConfiguration(new BudgetConfiguration());
             modelBuilder.ApplyConfiguration(new TransactionConfiguration());
+            modelBuilder.ApplyConfiguration(new UserConfiguration());
         }
 
         /// <summary>

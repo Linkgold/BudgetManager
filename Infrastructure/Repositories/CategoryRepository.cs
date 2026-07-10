@@ -12,7 +12,7 @@ namespace Infrastructure.Repositories
 
         public CategoryRepository(ApplicationDbContext context)
         {
-            if (context == null) throw new ArgumentNullException(nameof(context));
+            ArgumentNullException.ThrowIfNull(context);
 
             _context = context;
             _dbSet = context.Set<Category>();
@@ -20,8 +20,9 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<Category> GetByIdAsync(int id, bool withTracking = false)
+        public async Task<Category?> GetByIdAsync(int id, int userId, bool withTracking = false)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid category ID", nameof(id));
 
             IQueryable<Category> query = _dbSet;
@@ -32,39 +33,44 @@ namespace Infrastructure.Repositories
                 query = query.AsNoTracking();
             }
 
-            Category? category = await query
-                .FirstOrDefaultAsync(c => c.Id == id);
+            Category? category = await query.FirstOrDefaultAsync(category => category.Id == id && category.UserId == userId);
 
             return category;
         }
 
-        public async Task<List<Category>> GetAllAsync()
+        public async Task<IEnumerable<Category>> GetAllAsync(int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
             List<Category> categories = await _dbSet
                 .AsNoTracking()
+                .Where(category => category.UserId == userId)
                 .OrderBy(category => category.Info.Name)
                 .ToListAsync();
 
             return categories;
         }
 
-        public async Task<Category> GetByNameAsync(string name)
+        public async Task<Category?> GetByNameAsync(string name, int userId)
         {
-            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Category name cannot be empty", nameof(name));
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+            ArgumentException.ThrowIfNullOrWhiteSpace(name);
 
             Category? category = await _dbSet
                 .AsNoTracking()
-                .FirstOrDefaultAsync(category =>
-                    category.Info.Name.ToLower() == name.ToLower());
+                .Where(category => category.UserId == userId)
+                .FirstOrDefaultAsync(category => category.Info.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
 
             return category;
         }
 
-        public async Task<List<Category>> GetActiveCategoriesAsync()
+        public async Task<IEnumerable<Category>> GetActiveCategoriesAsync(int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
             List<Category> categories = await _dbSet
                 .AsNoTracking()
-                .Where(category => category.IsActive == true)
+                .Where(category => category.IsActive == true && category.UserId == userId)
                 .OrderBy(category => category.Info.Name)
                 .ToListAsync();
 
@@ -75,7 +81,7 @@ namespace Infrastructure.Repositories
 
         public async Task AddAsync(Category category)
         {
-            if (category == null) throw new ArgumentNullException(nameof(category));
+            ArgumentNullException.ThrowIfNull(category);
 
             await _dbSet.AddAsync(category);
             await _context.SaveChangesAsync();
@@ -83,17 +89,18 @@ namespace Infrastructure.Repositories
 
         public async Task UpdateAsync(Category category)
         {
-            if (category == null) throw new ArgumentNullException(nameof(category));
+            ArgumentNullException.ThrowIfNull(category);
 
             _dbSet.Update(category);
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id)
+        public async Task DeleteAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid category ID", nameof(id));
 
-            Category? category = await _dbSet.FindAsync(id);
+            Category? category = await _dbSet.FirstOrDefaultAsync(category => category.Id == id && category.UserId == userId);
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found");
 
             _dbSet.Remove(category);
@@ -102,41 +109,57 @@ namespace Infrastructure.Repositories
 
         // ==================== VALIDACIONES ====================
 
-        public async Task<bool> ExistsAsync(int id)
+        public async Task<bool> ExistsAsync(int id, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) return false;
 
             bool exists = await _dbSet
                 .AsNoTracking()
-                .AnyAsync(category => category.Id == id);
+                .AnyAsync(category => category.Id == id && category.UserId == userId);
 
             return exists;
         }
 
-        public async Task<bool> ExistsByNameAsync(string name)
+        public async Task<bool> ExistsByNameAsync(string name, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (string.IsNullOrWhiteSpace(name)) return false;
 
             bool exists = await _dbSet
                 .AsNoTracking()
-                .AnyAsync(category => category.Info.Name.ToLower() == name.ToLower());
+                .Where(category => category.UserId == userId)
+                .AnyAsync(category => category.Info.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
 
             return exists;
         }
 
-        public async Task<bool> HasExpensesAsync(int categoryId)
+        public async Task<bool> HasDependenciesAsync(int categoryId, int userId)
         {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
-            // Por ahora siempre retorna false porque no tenemos la tabla Expenses aún
-            // Cuando se implemente Expenses, se consultará:
-            // bool hasExpenses = await _context.Expenses
-            //     .AsNoTracking()
-            //     .AnyAsync(expense => expense.CategoryId == categoryId);
+            // Verificar en FixedExpenses
+            bool hasFixedExpenses = await _context.FixedExpenses
+                .AsNoTracking()
+                .AnyAsync(f => f.CategoryId == categoryId && f.UserId == userId);
 
-            // return hasExpenses;
+            if (hasFixedExpenses) return true;
 
-            // Temporal: retornar false (sin gastos asociados)
+            // 🔥 Verificar en Budgets
+            bool hasBudgets = await _context.Budgets
+                .AsNoTracking()
+                .AnyAsync(b => b.CategoryId == categoryId && b.UserId == userId);
+
+            if (hasBudgets) return true;
+
+            // 🔥 Verificar en Transactions
+            bool hasTransactions = await _context.Transactions
+                .AsNoTracking()
+                .AnyAsync(t => t.CategoryId == categoryId && t.UserId == userId);
+
+            if (hasTransactions) return true;
+
             return false;
         }
     }

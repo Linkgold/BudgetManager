@@ -23,17 +23,26 @@ namespace Domain.Entities
         // Navigation property
         public Category Category { get; private set; }
 
+        // 🔥 Foreign key a User
+        public int UserId { get; private set; }
+
+        // 🔥 Navigation property
+        public User User { get; private set; }
+
         // Constructor privado para EF Core
         private FixedExpense() { }
 
         // Constructor de dominio
-        public FixedExpense(Category category, EntityInfo info, Money amount, MonthlyPeriod chargePeriod)
+        public FixedExpense(User user, Category category, EntityInfo info, Money amount, MonthlyPeriod chargePeriod)
         {
+            ArgumentNullException.ThrowIfNull(user);
             ArgumentNullException.ThrowIfNull(category);
             ArgumentNullException.ThrowIfNull(info);
             ArgumentNullException.ThrowIfNull(amount);
             ArgumentNullException.ThrowIfNull(chargePeriod);
 
+            User = user;
+            UserId = user.Id;
             Category = category;
             CategoryId = category.Id;
             Info = info;
@@ -71,7 +80,7 @@ namespace Domain.Entities
 
         public void UpdateAmount(Money newAmount)
         {
-            if (newAmount == null) throw new ArgumentNullException(nameof(newAmount));
+            ArgumentNullException.ThrowIfNull(newAmount);
 
             Amount = newAmount;
             UpdatedAt = DateTime.UtcNow;

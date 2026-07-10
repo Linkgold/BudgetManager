@@ -10,19 +10,20 @@ using Domain.ValueObjects;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Tests.Helpers;
 
 namespace Tests.Application
 {
     public class CategoryServiceTests
     {
+        private readonly Mock<IUserRepository> _userRepositoryMock;
+        private readonly Mock<ICurrentUserService> _currentUserServiceMock;
         private readonly Mock<ICategoryRepository> _mockRepository;
         private readonly IMapper _mapper;
         private readonly ICategoryService _service;
 
         public CategoryServiceTests()
         {
-            _mockRepository = new Mock<ICategoryRepository>();
-
             // Configurar AutoMapper
             MapperConfiguration mapperConfiguration = new MapperConfiguration
             (
@@ -35,7 +36,13 @@ namespace Tests.Application
 
             _mapper = mapperConfiguration.CreateMapper();
 
-            _service = new CategoryService(_mockRepository.Object, _mapper);
+            // Crear mocks
+            _userRepositoryMock = new Mock<IUserRepository>();
+            _currentUserServiceMock = new Mock<ICurrentUserService>();
+            _mockRepository = new Mock<ICategoryRepository>();
+
+            // Instanciar el servicio
+            _service = new CategoryService(_currentUserServiceMock.Object, _mockRepository.Object, _userRepositoryMock.Object, _mapper);
         }
 
         // ==================== PRUEBAS DE CONSULTAS ====================
@@ -44,11 +51,16 @@ namespace Tests.Application
         public async Task GetByIdAsync_ShouldReturnCategory_WhenCategoryExists()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 1;
-            Category expectedCategory = new Category(new EntityInfo( "Test Category", "Test Description"));
+            User user = TestDataFactory.CreateUser(userId);
+            Category expectedCategory = TestDataFactory.CreateCategory(categoryId, user);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             // Simular que el repositorio devuelve la categoría
             _mockRepository
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, userId))
                 .ReturnsAsync(expectedCategory);
 
             // Act
@@ -61,16 +73,21 @@ namespace Tests.Application
             result.Description.Should().Be(expectedCategory.Info.Description);
             result.IsActive.Should().Be(expectedCategory.IsActive);
 
-            _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId), Times.Once);
+            _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId, userId), Times.Once);
         }
 
         [Fact]
         public async Task GetByIdAsync_ShouldThrowKeyNotFoundException_WhenCategoryNotFound()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 999;
+            User user = TestDataFactory.CreateUser(userId);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, userId))
                 .ReturnsAsync((Category)null);
 
             // Act & Assert
@@ -83,15 +100,20 @@ namespace Tests.Application
         public async Task GetAllAsync_ShouldReturnAllCategories()
         {
             // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             List<Category> categories = new List<Category>
             {
-                new Category(new EntityInfo("Category 1", "Description 1")),
-                new Category(new EntityInfo("Category 2", "Description 2")),
-                new Category(new EntityInfo("Category 3", "Description 3"))
+                new Category(user, new EntityInfo("Category 1", "Description 1")),
+                new Category(user, new EntityInfo("Category 2", "Description 2")),
+                new Category(user, new EntityInfo("Category 3", "Description 3"))
             };
 
             _mockRepository
-                .Setup(repo => repo.GetAllAsync())
+                .Setup(repo => repo.GetAllAsync(userId))
                 .ReturnsAsync(categories);
 
             // Act
@@ -101,22 +123,27 @@ namespace Tests.Application
             result.Should().NotBeNull();
             result.Count.Should().Be(categories.Count);
             result.Select(dto => dto.Name).Should().Contain(new[] { "Category 1", "Category 2", "Category 3" });
-            _mockRepository.Verify(repo => repo.GetAllAsync(), Times.Once);
+            _mockRepository.Verify(repo => repo.GetAllAsync(userId), Times.Once);
         }
 
         [Fact]
         public async Task GetActiveCategoriesAsync_ShouldReturnOnlyActiveCategories()
         {
             // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             List<Category> categories = new List<Category>
             {
-                new Category(new EntityInfo("Active 1", "Desc")),
-                new Category(new EntityInfo("Active 2", "Desc"))
+                new Category(user, new EntityInfo("Active 1", "Desc")),
+                new Category(user, new EntityInfo("Active 2", "Desc"))
             };
 
             // Simular que solo devuelve las activas
             _mockRepository
-                .Setup(repo => repo.GetActiveCategoriesAsync())
+                .Setup(repo => repo.GetActiveCategoriesAsync(userId))
                 .ReturnsAsync(categories);
 
             // Act
@@ -126,17 +153,23 @@ namespace Tests.Application
             result.Should().NotBeNull();
             result.Count.Should().Be(2);
             result.All(dto => dto.IsActive).Should().BeTrue();
-            _mockRepository.Verify(repo => repo.GetActiveCategoriesAsync(), Times.Once);
+            _mockRepository.Verify(repo => repo.GetActiveCategoriesAsync(userId), Times.Once);
         }
 
         [Fact]
         public async Task GetByNameAsync_ShouldReturnCategory_WhenNameExists()
         {
             // Arrange
+            int userId = 1;
             string categoryName = "Alimentación";
-            Category expectedCategory = new Category(new EntityInfo(categoryName, "Gastos de comida"));
+
+            User user = TestDataFactory.CreateUser(userId);
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+            
+            Category expectedCategory = new Category(user, new EntityInfo(categoryName, "Gastos de comida"));
+
             _mockRepository
-                .Setup(repo => repo.GetByNameAsync(categoryName))
+                .Setup(repo => repo.GetByNameAsync(categoryName, userId))
                 .ReturnsAsync(expectedCategory);
 
             // Act
@@ -145,16 +178,20 @@ namespace Tests.Application
             // Assert
             result.Should().NotBeNull();
             result.Name.Should().Be(categoryName);
-            _mockRepository.Verify(repo => repo.GetByNameAsync(categoryName), Times.Once);
+            _mockRepository.Verify(repo => repo.GetByNameAsync(categoryName, userId), Times.Once);
         }
 
         [Fact]
         public async Task GetByNameAsync_ShouldThrowKeyNotFoundException_WhenNameNotFound()
         {
             // Arrange
+            int userId = 1;
             string categoryName = "Inexistente";
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.GetByNameAsync(categoryName))
+                .Setup(repo => repo.GetByNameAsync(categoryName, userId))
                 .ReturnsAsync((Category)null);
 
             // Act & Assert
@@ -169,17 +206,22 @@ namespace Tests.Application
         public async Task CreateAsync_ShouldCreateCategory_WhenNameIsUnique()
         {
             // Arrange
+            int userId = 1;
+
             CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "Nueva Categoría",
                 Description = "Descripción de la nueva categoría"
             };
 
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsByNameAsync(request.Name))
+                .Setup(repo => repo.ExistsByNameAsync(request.Name, userId))
                 .ReturnsAsync(false);
 
             Category createdCategory = null;
+
             _mockRepository
                 .Setup(repo => repo.AddAsync(It.IsAny<Category>()))
                 .Callback<Category>(category => createdCategory = category)
@@ -194,7 +236,7 @@ namespace Tests.Application
             result.Description.Should().Be(request.Description);
             result.IsActive.Should().BeTrue();
 
-            _mockRepository.Verify(repo => repo.ExistsByNameAsync(request.Name), Times.Once);
+            _mockRepository.Verify(repo => repo.ExistsByNameAsync(request.Name, userId), Times.Once);
             _mockRepository.Verify(repo => repo.AddAsync(It.IsAny<Category>()), Times.Once);
         }
 
@@ -202,14 +244,18 @@ namespace Tests.Application
         public async Task CreateAsync_ShouldThrowInvalidOperationException_WhenNameAlreadyExists()
         {
             // Arrange
+            int userId = 1;
+
             CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "Categoría Duplicada",
                 Description = "Descripción"
             };
 
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsByNameAsync(request.Name))
+                .Setup(repo => repo.ExistsByNameAsync(request.Name, userId))
                 .ReturnsAsync(true);
 
             // Act & Assert
@@ -217,7 +263,7 @@ namespace Tests.Application
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage($"*{request.Name}*");
 
-            _mockRepository.Verify(repo => repo.ExistsByNameAsync(request.Name), Times.Once);
+            _mockRepository.Verify(repo => repo.ExistsByNameAsync(request.Name, userId), Times.Once);
             _mockRepository.Verify(repo => repo.AddAsync(It.IsAny<Category>()), Times.Never);
         }
 
@@ -225,8 +271,13 @@ namespace Tests.Application
         public async Task UpdateAsync_ShouldUpdateCategory_WhenIdExistsAndNameIsUnique()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 1;
-            Category existingCategory = new Category(new EntityInfo("Nombre Antiguo", "Descripción Antigua"));
+
+            User user = TestDataFactory.CreateUser(userId);
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            Category existingCategory = new Category(user, new EntityInfo("Nombre Antiguo", "Descripción Antigua"));
             UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
             {
                 Name = "Nuevo Nombre",
@@ -234,11 +285,11 @@ namespace Tests.Application
             };
 
             _mockRepository
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, userId))
                 .ReturnsAsync(existingCategory);
 
             _mockRepository
-                .Setup(repo => repo.GetByNameAsync(request.Name))
+                .Setup(repo => repo.GetByNameAsync(request.Name, userId))
                 .ReturnsAsync((Category)null);
 
             // Act
@@ -249,8 +300,8 @@ namespace Tests.Application
             result.Name.Should().Be(request.Name);
             result.Description.Should().Be(request.Description);
 
-            _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.GetByNameAsync(request.Name), Times.Once);
+            _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.GetByNameAsync(request.Name, userId), Times.Once);
             _mockRepository.Verify(repo => repo.UpdateAsync(existingCategory), Times.Once);
         }
 
@@ -258,6 +309,7 @@ namespace Tests.Application
         public async Task UpdateAsync_ShouldThrowKeyNotFoundException_WhenCategoryNotFound()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 999;
             UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
             {
@@ -265,8 +317,10 @@ namespace Tests.Application
                 Description = "Nueva Descripción"
             };
 
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, userId))
                 .ReturnsAsync((Category)null);
 
             // Act & Assert
@@ -274,7 +328,7 @@ namespace Tests.Application
             await act.Should().ThrowAsync<KeyNotFoundException>()
                 .WithMessage($"*{categoryId}*");
 
-            _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId), Times.Once);
+            _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId, userId), Times.Once);
             _mockRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Category>()), Times.Never);
         }
 
@@ -282,9 +336,14 @@ namespace Tests.Application
         public async Task UpdateAsync_ShouldThrowInvalidOperationException_WhenNameAlreadyExistsInOtherCategory()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 1;
-            Category existingCategory = new Category(new EntityInfo("Nombre Antiguo", "Descripción Antigua"));
-            Category otherCategory = new Category(new EntityInfo("Nuevo Nombre", "Otra Descripción"));
+
+            User user = TestDataFactory.CreateUser(userId);
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            Category existingCategory = new Category(user, new EntityInfo("Nombre Antiguo", "Descripción Antigua"));
+            Category otherCategory = new Category(user, new EntityInfo("Nuevo Nombre", "Otra Descripción"));
             otherCategory.GetType().GetProperty("Id").SetValue(otherCategory, 2); // Simular ID diferente
 
             UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
@@ -294,11 +353,11 @@ namespace Tests.Application
             };
 
             _mockRepository
-                .Setup(repo => repo.GetByIdAsync(categoryId))
+                .Setup(repo => repo.GetByIdAsync(categoryId, userId))
                 .ReturnsAsync(existingCategory);
 
             _mockRepository
-                .Setup(repo => repo.GetByNameAsync(request.Name))
+                .Setup(repo => repo.GetByNameAsync(request.Name, userId))
                 .ReturnsAsync(otherCategory);
 
             // Act & Assert
@@ -306,8 +365,8 @@ namespace Tests.Application
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage($"*{request.Name}*");
 
-            _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.GetByNameAsync(request.Name), Times.Once);
+            _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.GetByNameAsync(request.Name, userId), Times.Once);
             _mockRepository.Verify(repo => repo.UpdateAsync(It.IsAny<Category>()), Times.Never);
         }
 
@@ -315,33 +374,39 @@ namespace Tests.Application
         public async Task DeleteAsync_ShouldDeleteCategory_WhenIdExistsAndNoExpenses()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 1;
 
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsAsync(categoryId))
+                .Setup(repo => repo.ExistsAsync(categoryId, userId))
                 .ReturnsAsync(true);
 
             _mockRepository
-                .Setup(repo => repo.HasExpensesAsync(categoryId))
+                .Setup(repo => repo.HasDependenciesAsync(categoryId, userId))
                 .ReturnsAsync(false);
 
             // Act
             await _service.DeleteAsync(categoryId);
 
             // Assert
-            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.HasExpensesAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.DeleteAsync(categoryId), Times.Once);
+            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.HasDependenciesAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.DeleteAsync(categoryId, userId), Times.Once);
         }
 
         [Fact]
         public async Task DeleteAsync_ShouldThrowKeyNotFoundException_WhenCategoryNotFound()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 999;
 
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsAsync(categoryId))
+                .Setup(repo => repo.ExistsAsync(categoryId, userId))
                 .ReturnsAsync(false);
 
             // Act & Assert
@@ -349,22 +414,25 @@ namespace Tests.Application
             await act.Should().ThrowAsync<KeyNotFoundException>()
                 .WithMessage($"*{categoryId}*");
 
-            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.DeleteAsync(It.IsAny<int>()), Times.Never);
+            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.DeleteAsync(It.IsAny<int>(), userId), Times.Never);
         }
 
         [Fact]
         public async Task DeleteAsync_ShouldThrowInvalidOperationException_WhenCategoryHasExpenses()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 1;
 
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsAsync(categoryId))
+                .Setup(repo => repo.ExistsAsync(categoryId, userId))
                 .ReturnsAsync(true);
 
             _mockRepository
-                .Setup(repo => repo.HasExpensesAsync(categoryId))
+                .Setup(repo => repo.HasDependenciesAsync(categoryId, userId))
                 .ReturnsAsync(true);
 
             // Act & Assert
@@ -372,9 +440,9 @@ namespace Tests.Application
             await act.Should().ThrowAsync<InvalidOperationException>()
                 .WithMessage($"*{categoryId}*");
 
-            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.HasExpensesAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.DeleteAsync(It.IsAny<int>()), Times.Never);
+            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.HasDependenciesAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.DeleteAsync(It.IsAny<int>(), userId), Times.Never);
         }
 
         // ==================== PRUEBAS DE VALIDACIONES ====================
@@ -383,9 +451,13 @@ namespace Tests.Application
         public async Task ExistsAsync_ShouldReturnTrue_WhenCategoryExists()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 1;
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsAsync(categoryId))
+                .Setup(repo => repo.ExistsAsync(categoryId, userId))
                 .ReturnsAsync(true);
 
             // Act
@@ -393,16 +465,20 @@ namespace Tests.Application
 
             // Assert
             result.Should().BeTrue();
-            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId), Times.Once);
+            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId, userId), Times.Once);
         }
 
         [Fact]
         public async Task ExistsAsync_ShouldReturnFalse_WhenCategoryDoesNotExist()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 999;
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsAsync(categoryId))
+                .Setup(repo => repo.ExistsAsync(categoryId,userId))
                 .ReturnsAsync(false);
 
             // Act
@@ -410,19 +486,23 @@ namespace Tests.Application
 
             // Assert
             result.Should().BeFalse();
-            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId), Times.Once);
+            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId, userId), Times.Once);
         }
 
         [Fact]
         public async Task CanDeleteAsync_ShouldReturnTrue_WhenCategoryExistsAndNoExpenses()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 1;
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsAsync(categoryId))
+                .Setup(repo => repo.ExistsAsync(categoryId, userId))
                 .ReturnsAsync(true);
             _mockRepository
-                .Setup(repo => repo.HasExpensesAsync(categoryId))
+                .Setup(repo => repo.HasDependenciesAsync(categoryId, userId))
                 .ReturnsAsync(false);
 
             // Act
@@ -430,17 +510,21 @@ namespace Tests.Application
 
             // Assert
             result.Should().BeTrue();
-            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.HasExpensesAsync(categoryId), Times.Once);
+            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.HasDependenciesAsync(categoryId, userId), Times.Once);
         }
 
         [Fact]
         public async Task CanDeleteAsync_ShouldReturnFalse_WhenCategoryNotExists()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 999;
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsAsync(categoryId))
+                .Setup(repo => repo.ExistsAsync(categoryId, userId))
                 .ReturnsAsync(false);
 
             // Act
@@ -448,20 +532,24 @@ namespace Tests.Application
 
             // Assert
             result.Should().BeFalse();
-            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.HasExpensesAsync(It.IsAny<int>()), Times.Never);
+            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.HasDependenciesAsync(It.IsAny<int>(), userId), Times.Never);
         }
 
         [Fact]
         public async Task CanDeleteAsync_ShouldReturnFalse_WhenCategoryHasExpenses()
         {
             // Arrange
+            int userId = 1;
             int categoryId = 1;
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
             _mockRepository
-                .Setup(repo => repo.ExistsAsync(categoryId))
+                .Setup(repo => repo.ExistsAsync(categoryId, userId))
                 .ReturnsAsync(true);
             _mockRepository
-                .Setup(repo => repo.HasExpensesAsync(categoryId))
+                .Setup(repo => repo.HasDependenciesAsync(categoryId, userId))
                 .ReturnsAsync(true);
 
             // Act
@@ -469,8 +557,8 @@ namespace Tests.Application
 
             // Assert
             result.Should().BeFalse();
-            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId), Times.Once);
-            _mockRepository.Verify(repo => repo.HasExpensesAsync(categoryId), Times.Once);
+            _mockRepository.Verify(repo => repo.ExistsAsync(categoryId, userId), Times.Once);
+            _mockRepository.Verify(repo => repo.HasDependenciesAsync(categoryId, userId), Times.Once);
         }
     }
 }

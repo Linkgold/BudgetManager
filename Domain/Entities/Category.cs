@@ -10,20 +10,21 @@ namespace Domain.Entities
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
-        // ========================================================
-        // NAVIGATION PROPERTIES (comentadas hasta tener todas las entidades)
-        // ========================================================
-        // public virtual ICollection<Expense> Expenses { get; private set; }
-        // public virtual ICollection<FixedExpense> FixedExpenses { get; private set; }
-        // public virtual ICollection<Budget> Budgets { get; private set; }
-        // ========================================================
+        // 🔥 Foreign key a User
+        public int UserId { get; private set; }
+
+        // 🔥 Navigation property
+        public User User { get; private set; }
 
         private Category() { } // For EF Core
 
-        public Category(EntityInfo info)
+        public Category(User user, EntityInfo info)
         {
-            if (info == null) throw new ArgumentNullException(nameof(info));
+            ArgumentNullException.ThrowIfNull(user);
+            ArgumentNullException.ThrowIfNull(info);
 
+            User = user;
+            UserId = user.Id;
             Info = info;
             IsActive = true;
             CreatedAt = DateTime.UtcNow;
@@ -36,7 +37,7 @@ namespace Domain.Entities
 
         public void Update(EntityInfo newInfo)
         {
-            if (newInfo == null) throw new ArgumentNullException(nameof(newInfo));
+            ArgumentNullException.ThrowIfNull(newInfo);
 
             Info = newInfo;
             UpdatedAt = DateTime.UtcNow;
@@ -52,13 +53,6 @@ namespace Domain.Entities
         {
             IsActive = false;
             UpdatedAt = DateTime.UtcNow;
-        }
-
-        public bool CanBeDeleted()
-        {
-            // Por ahora siempre true, luego se validará con repositorios
-            return true;
-            //return !_budgets.Any() && !_fixedExpenses.Any();
         }
 
         public override string ToString() => $"Category: {Info.Name} (ID: {Id})";

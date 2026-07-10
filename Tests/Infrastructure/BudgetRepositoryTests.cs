@@ -4,6 +4,7 @@ using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Tests.Helpers;
 
 namespace Tests.Infrastructure
 {
@@ -30,49 +31,14 @@ namespace Tests.Infrastructure
             _categoryRepository = new CategoryRepository(_dbContext);
         }
 
-        // ==================== HELPERS ====================
-
-        private Category CreateCategory(string name)
-        {
-            EntityInfo info = new EntityInfo(name, null);
-            Category category = new Category(info);
-
-            return category;
-        }
-
-        private Budget CreateBudget(Category category, decimal amount, int month, int year)
-        {
-            Money money = new Money(amount);
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            Budget budget = new Budget(category, money, period);
-
-            return budget;
-        }
-
-        private async Task<Category> SeedCategoryAsync(string name)
-        {
-            Category category = CreateCategory(name);
-            await _categoryRepository.AddAsync(category);
-
-            return category;
-        }
-
-        private async Task<Budget> SeedBudgetAsync(Category category, decimal amount, int month, int year)
-        {
-            Budget budget = CreateBudget(category, amount, month, year);
-            await _repository.AddAsync(budget);
-
-            return budget;
-        }
-
         // ==================== TEST: ADD ====================
 
         [Fact]
         public async Task AddAsync_ShouldAddBudgetToDatabase()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            Budget budget = CreateBudget(category, 500.00m, 1, 2024);
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            Budget budget = TestDataFactory.CreateBudget();
 
             // Act
             await _repository.AddAsync(budget);
@@ -96,11 +62,12 @@ namespace Tests.Infrastructure
         public async Task GetByIdAsync_WithExistingId_ReturnsBudget()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            Budget budget = await SeedBudgetAsync(category, 500.00m, 1, 2024);
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository);
 
             // Act
-            Budget retrieved = await _repository.GetByIdAsync(budget.Id);
+            Budget? retrieved = await _repository.GetByIdAsync(budget.Id, userId);
 
             // Assert
             Assert.NotNull(retrieved);
@@ -116,7 +83,8 @@ namespace Tests.Infrastructure
         public async Task GetByIdAsync_WithNonExistingId_ReturnsNull()
         {
             // Act
-            Budget retrieved = await _repository.GetByIdAsync(999);
+            int userId = 1;
+            Budget? retrieved = await _repository.GetByIdAsync(999, userId);
 
             // Assert
             Assert.Null(retrieved);
@@ -126,7 +94,7 @@ namespace Tests.Infrastructure
         public async Task GetByIdAsync_WithInvalidId_ThrowsArgumentException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _repository.GetByIdAsync(0));
+            await Assert.ThrowsAsync<ArgumentException>(() => _repository.GetByIdAsync(0, 1));
         }
 
         // ==================== TEST: GET ALL ====================
@@ -135,12 +103,13 @@ namespace Tests.Infrastructure
         public async Task GetAllAsync_ReturnsAllBudgets()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            await SeedBudgetAsync(category, 500.00m, 1, 2024);
-            await SeedBudgetAsync(category, 300.00m, 1, 2024);
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            await TestDataFactory.SeedBudgetAsync(_repository);
+            await TestDataFactory.SeedBudgetAsync(_repository, category, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category, 300.00m, 1, 2024));
 
             // Act
-            IEnumerable<Budget> result = await _repository.GetAllAsync();
+            IEnumerable<Budget> result = await _repository.GetAllAsync(userId);
 
             // Assert
             Assert.NotNull(result);
@@ -153,15 +122,16 @@ namespace Tests.Infrastructure
         public async Task GetByCategoryIdAsync_WithExistingCategory_ReturnsBudgets()
         {
             // Arrange
-            Category category1 = await SeedCategoryAsync("Alimentación");
-            Category category2 = await SeedCategoryAsync("Transporte");
+            int userId = 1;
+            Category category1 = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            Category category2 = await TestDataFactory.SeedCategoryAsync(_categoryRepository, TestDataFactory.CreateCategory(1, TestDataFactory.CreateUser(), "Transporte"));
 
-            await SeedBudgetAsync(category1, 500.00m, 1, 2024);
-            await SeedBudgetAsync(category1, 300.00m, 1, 2024);
-            await SeedBudgetAsync(category2, 200.00m, 1, 2024);
+            await TestDataFactory.SeedBudgetAsync(_repository);
+            await TestDataFactory.SeedBudgetAsync(_repository, category1, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category1, 300.00m, 1, 2024));
+            await TestDataFactory.SeedBudgetAsync(_repository, category2, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category2, 200.00m, 1, 2024));
 
             // Act
-            IEnumerable<Budget> result = await _repository.GetByCategoryIdAsync(category1.Id);
+            IEnumerable<Budget> result = await _repository.GetByCategoryIdAsync(category1.Id, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -173,7 +143,7 @@ namespace Tests.Infrastructure
         public async Task GetByCategoryIdAsync_WithNonExistingCategory_ReturnsEmptyList()
         {
             // Act
-            IEnumerable<Budget> result = await _repository.GetByCategoryIdAsync(999);
+            IEnumerable<Budget> result = await _repository.GetByCategoryIdAsync(999, 1);
 
             // Assert
             Assert.NotNull(result);
@@ -186,15 +156,16 @@ namespace Tests.Infrastructure
         public async Task GetByPeriodAsync_WithExistingPeriod_ReturnsBudgets()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            await SeedBudgetAsync(category, 500.00m, 1, 2024);
-            await SeedBudgetAsync(category, 300.00m, 1, 2024);
-            await SeedBudgetAsync(category, 200.00m, 2, 2024);
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            await TestDataFactory.SeedBudgetAsync(_repository);
+            await TestDataFactory.SeedBudgetAsync(_repository, category, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category, 300.00m, 1, 2024));
+            await TestDataFactory.SeedBudgetAsync(_repository, category, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category, 200.00m, 1, 2024));
 
             MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
-            IEnumerable<Budget> result = await _repository.GetByPeriodAsync(period);
+            IEnumerable<Budget> result = await _repository.GetByPeriodAsync(period, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -207,10 +178,11 @@ namespace Tests.Infrastructure
         public async Task GetByPeriodAsync_WithNonExistingPeriod_ReturnsEmptyList()
         {
             // Arrange
+            int userId = 1;
             MonthlyPeriod period = new MonthlyPeriod(12, 2025);
 
             // Act
-            IEnumerable<Budget> result = await _repository.GetByPeriodAsync(period);
+            IEnumerable<Budget> result = await _repository.GetByPeriodAsync(period, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -221,7 +193,7 @@ namespace Tests.Infrastructure
         public async Task GetByPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByPeriodAsync(null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByPeriodAsync(null, 1));
         }
 
         // ==================== TEST: GET BY CATEGORY AND PERIOD ====================
@@ -230,14 +202,15 @@ namespace Tests.Infrastructure
         public async Task GetByCategoryAndPeriodAsync_WithExistingBudget_ReturnsBudget()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            await SeedBudgetAsync(category, 500.00m, 1, 2024);
-            await SeedBudgetAsync(category, 300.00m, 2, 2024);
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            await TestDataFactory.SeedBudgetAsync(_repository);
+            await TestDataFactory.SeedBudgetAsync(_repository, category, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category, 300.00m, 1, 2024));
 
             MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
-            Budget? result = await _repository.GetByCategoryAndPeriodAsync(category.Id, period);
+            Budget? result = await _repository.GetByCategoryAndPeriodAsync(category.Id, period, userId);
 
             // Assert
             Assert.NotNull(result);
@@ -251,11 +224,12 @@ namespace Tests.Infrastructure
         public async Task GetByCategoryAndPeriodAsync_WithNonExistingBudget_ReturnsNull()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
             MonthlyPeriod period = new MonthlyPeriod(12, 2025);
 
             // Act
-            Budget? result = await _repository.GetByCategoryAndPeriodAsync(category.Id, period);
+            Budget? result = await _repository.GetByCategoryAndPeriodAsync(category.Id, period, userId);
 
             // Assert
             Assert.Null(result);
@@ -267,11 +241,12 @@ namespace Tests.Infrastructure
         public async Task ExistsAsync_WithExistingId_ReturnsTrue()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            Budget budget = await SeedBudgetAsync(category, 500.00m, 1, 2024);
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository);
 
             // Act
-            bool exists = await _repository.ExistsAsync(budget.Id);
+            bool exists = await _repository.ExistsAsync(budget.Id, userId);
 
             // Assert
             Assert.True(exists);
@@ -281,7 +256,8 @@ namespace Tests.Infrastructure
         public async Task ExistsAsync_WithNonExistingId_ReturnsFalse()
         {
             // Act
-            bool exists = await _repository.ExistsAsync(999);
+            int userId = 1;
+            bool exists = await _repository.ExistsAsync(999, userId);
 
             // Assert
             Assert.False(exists);
@@ -291,7 +267,8 @@ namespace Tests.Infrastructure
         public async Task ExistsAsync_WithInvalidId_ReturnsFalse()
         {
             // Act
-            bool exists = await _repository.ExistsAsync(0);
+            int userId = 1;
+            bool exists = await _repository.ExistsAsync(0, userId);
 
             // Assert
             Assert.False(exists);
@@ -303,13 +280,14 @@ namespace Tests.Infrastructure
         public async Task ExistsForCategoryAndPeriodAsync_WithExistingBudget_ReturnsTrue()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            await SeedBudgetAsync(category, 500.00m, 1, 2024);
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            await TestDataFactory.SeedBudgetAsync(_repository);
 
             MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
-            bool exists = await _repository.ExistsForCategoryAndPeriodAsync(category.Id, period);
+            bool exists = await _repository.ExistsForCategoryAndPeriodAsync(category.Id, period, userId);
 
             // Assert
             Assert.True(exists);
@@ -319,11 +297,12 @@ namespace Tests.Infrastructure
         public async Task ExistsForCategoryAndPeriodAsync_WithNonExistingBudget_ReturnsFalse()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
             MonthlyPeriod period = new MonthlyPeriod(12, 2025);
 
             // Act
-            bool exists = await _repository.ExistsForCategoryAndPeriodAsync(category.Id, period);
+            bool exists = await _repository.ExistsForCategoryAndPeriodAsync(category.Id, period, userId);
 
             // Assert
             Assert.False(exists);
@@ -333,10 +312,11 @@ namespace Tests.Infrastructure
         public async Task ExistsForCategoryAndPeriodAsync_WithInvalidCategoryId_ReturnsFalse()
         {
             // Arrange
+            int userId = 1;
             MonthlyPeriod period = new MonthlyPeriod(1, 2024);
 
             // Act
-            bool exists = await _repository.ExistsForCategoryAndPeriodAsync(0, period);
+            bool exists = await _repository.ExistsForCategoryAndPeriodAsync(0, period, userId);
 
             // Assert
             Assert.False(exists);
@@ -346,10 +326,11 @@ namespace Tests.Infrastructure
         public async Task ExistsForCategoryAndPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.ExistsForCategoryAndPeriodAsync(category.Id, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.ExistsForCategoryAndPeriodAsync(category.Id, null, userId));
         }
 
         // ==================== TEST: UPDATE ====================
@@ -358,8 +339,9 @@ namespace Tests.Infrastructure
         public async Task UpdateAsync_ShouldUpdateBudget()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            Budget budget = await SeedBudgetAsync(category, 500.00m, 1, 2024);
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository);
 
             // Modificar la entidad
             Money newAmount = new Money(600.00m);
@@ -369,7 +351,7 @@ namespace Tests.Infrastructure
             await _repository.UpdateAsync(budget);
 
             // Assert
-            Budget updated = await _repository.GetByIdAsync(budget.Id);
+            Budget? updated = await _repository.GetByIdAsync(budget.Id, userId);
             Assert.NotNull(updated);
             Assert.Equal(600.00m, updated.MonthlyAmount.Value);
             Assert.NotNull(updated.UpdatedAt);
@@ -381,15 +363,16 @@ namespace Tests.Infrastructure
         public async Task DeleteAsync_ShouldRemoveBudget()
         {
             // Arrange
-            Category category = await SeedCategoryAsync("Alimentación");
-            Budget budget = await SeedBudgetAsync(category, 500.00m, 1, 2024);
+            int userId = 1;
+            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository);
             int id = budget.Id;
 
             // Act
-            await _repository.DeleteAsync(id);
+            await _repository.DeleteAsync(id, userId);
 
             // Assert
-            Budget deleted = await _repository.GetByIdAsync(id);
+            Budget? deleted = await _repository.GetByIdAsync(id, userId);
             Assert.Null(deleted);
         }
 
@@ -397,14 +380,14 @@ namespace Tests.Infrastructure
         public async Task DeleteAsync_WithNonExistingId_ThrowsKeyNotFoundException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.DeleteAsync(999));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.DeleteAsync(999, 1));
         }
 
         [Fact]
         public async Task DeleteAsync_WithInvalidId_ThrowsArgumentException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _repository.DeleteAsync(0));
+            await Assert.ThrowsAsync<ArgumentException>(() => _repository.DeleteAsync(0, 1));
         }
 
         // ==================== DISPOSE ====================

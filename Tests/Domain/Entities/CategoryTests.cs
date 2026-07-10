@@ -1,35 +1,22 @@
 ﻿using Domain.Entities;
 using Domain.ValueObjects;
-using FluentAssertions;
+using Tests.Helpers;
 
 namespace Tests.Domain.Entities
 {
     public class CategoryTests
     {
-        // ==================== HELPER ====================
-
-        private EntityInfo CreateEntityInfo(string name = "Alimentación", string description = "Gastos de comida")
-        {
-            return new EntityInfo(name, description);
-        }
-
-        private static Category CreateForTest(int id, EntityInfo info)
-        {
-            Category category = new Category(info);
-            typeof(Category).GetProperty("Id")?.SetValue(category, id);
-            return category;
-        }
-
         // ==================== CONSTRUCTOR ====================
 
         [Fact]
         public void Constructor_WithValidValues_ShouldCreateCategory()
         {
             // Arrange
-            EntityInfo info = CreateEntityInfo();
+            User user = TestDataFactory.CreateUser();
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
 
             // Act
-            Category category = new Category(info);
+            Category category = new Category(user, info);
 
             // Assert
             Assert.NotNull(category);
@@ -41,10 +28,25 @@ namespace Tests.Domain.Entities
         }
 
         [Fact]
+        public void Constructor_WithNullUser_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+
+            // Act & Assert
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(null, info));
+
+            Assert.Equal("user", exception.ParamName);
+        }
+
+        [Fact]
         public void Constructor_WithNullInfo_ShouldThrowArgumentNullException()
         {
+            // Arrange
+            User user = TestDataFactory.CreateUser();
+
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(                () => new Category(null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(user, null));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -55,8 +57,9 @@ namespace Tests.Domain.Entities
         public void Update_WithValidValues_ShouldUpdateCategory()
         {
             // Arrange
-            EntityInfo info = CreateEntityInfo();
-            Category category = new Category(info);
+            User user = TestDataFactory.CreateUser();
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Category category = new Category(user, info);
 
             // Act
             EntityInfo newInfo = new EntityInfo("Comida", "Gastos de supermercado");
@@ -72,12 +75,12 @@ namespace Tests.Domain.Entities
         public void Update_WithNullInfo_ShouldThrowArgumentNullException()
         {
             // Arrange
-            EntityInfo info = CreateEntityInfo();
-            Category category = new Category(info);
+            User user = TestDataFactory.CreateUser();
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Category category = new Category(user, info);
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
-                () => category.Update(null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => category.Update(null));
 
             Assert.Equal("newInfo", exception.ParamName);
         }
@@ -88,8 +91,9 @@ namespace Tests.Domain.Entities
         public void Activate_ShouldActivateCategory()
         {
             // Arrange
-            EntityInfo info = CreateEntityInfo();
-            Category category = new Category(info);
+            User user = TestDataFactory.CreateUser();
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Category category = new Category(user, info);
             category.Deactivate();
 
             // Act
@@ -104,8 +108,9 @@ namespace Tests.Domain.Entities
         public void Deactivate_ShouldDeactivateCategory()
         {
             // Arrange
-            EntityInfo info = CreateEntityInfo();
-            Category category = new Category(info);
+            User user = TestDataFactory.CreateUser();
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Category category = new Category(user, info);
 
             // Act
             category.Deactivate();
@@ -115,30 +120,15 @@ namespace Tests.Domain.Entities
             Assert.NotNull(category.UpdatedAt);
         }
 
-        // ==================== CAN BE DELETED ====================
-
-        [Fact]
-        public void CanBeDeleted_WhenNoExpensesAndNoBudgets_ShouldReturnTrue()
-        {
-            // Arrange
-            EntityInfo info = CreateEntityInfo();
-            Category category = new Category(info);
-
-            // Act
-            bool result = category.CanBeDeleted();
-
-            // Assert
-            Assert.True(result);
-        }
-
         // ==================== TO STRING ====================
 
         [Fact]
         public void ToString_ShouldReturnFormattedString()
         {
             // Arrange
-            EntityInfo info = CreateEntityInfo();
-            Category category = new Category(info);
+            User user = TestDataFactory.CreateUser();
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Category category = new Category(user, info);
 
             // Act
             string result = category.ToString();
@@ -154,9 +144,10 @@ namespace Tests.Domain.Entities
         public void TwoCategoriesWithDifferentIds_ShouldBeDifferent()
         {
             // Arrange
+            User user = TestDataFactory.CreateUser();
             EntityInfo info = new EntityInfo("Alimentación", "Gastos de comida");
-            Category category1 = CreateForTest(1, info);
-            Category category2 = CreateForTest(2, info);
+            Category category1 = TestDataFactory.CreateCategory(1, user, info);
+            Category category2 = TestDataFactory.CreateCategory(2, user,info);
 
             // Act & Assert
             Assert.NotEqual(category1.Id, category2.Id);
@@ -167,9 +158,10 @@ namespace Tests.Domain.Entities
         public void TwoCategoriesWithSameId_ShouldHaveSameId()
         {
             // Arrange
+            User user = TestDataFactory.CreateUser();
             EntityInfo info = new EntityInfo("Alimentación", "Gastos de comida");
-            Category category1 = CreateForTest(1, info);
-            Category category2 = CreateForTest(1, info);
+            Category category1 = TestDataFactory.CreateCategory(1, user, info);
+            Category category2 = TestDataFactory.CreateCategory(1, user, info);
 
             // Act & Assert
             Assert.Equal(category1.Id, category2.Id);
@@ -180,9 +172,10 @@ namespace Tests.Domain.Entities
         public void Category_WithSameId_ShouldBeEqualById()
         {
             // Arrange
+            User user = TestDataFactory.CreateUser();
             EntityInfo info = new EntityInfo("Alimentación", "Gastos de comida");
-            Category category1 = CreateForTest(1, info);
-            Category category2 = CreateForTest(1, info);
+            Category category1 = TestDataFactory.CreateCategory(1, user, info);
+            Category category2 = TestDataFactory.CreateCategory(1, user, info);
 
             // Act
             bool idsAreEqual = category1.Id == category2.Id;

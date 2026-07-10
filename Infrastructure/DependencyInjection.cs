@@ -41,6 +41,7 @@ namespace Infrastructure
             services.AddScoped<IFixedExpenseRepository, FixedExpenseRepository>();
             services.AddScoped<IBudgetRepository, BudgetRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<IUserRepository, UserRepository>();
 
             return services;
         }

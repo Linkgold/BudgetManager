@@ -1,30 +1,26 @@
 ﻿using Domain.Entities;
 using Domain.Enums;
 using Domain.ValueObjects;
+using Tests.Helpers;
 
 namespace Tests.Domain.Entities
 {
     public class TransactionTests
     {
-        private Category CreateCategory()
-        {
-            EntityInfo info = new EntityInfo("Alimentación", "Gastos de comida");
-            return new Category(info);
-        }
-
         // ==================== CONSTRUCTOR ====================
 
         [Fact]
         public void Constructor_WithValidValues_ShouldCreateTransaction()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", "Carrefour 15/06/2024");
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
 
             // Act
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Assert
             Assert.NotNull(transaction);
@@ -41,15 +37,31 @@ namespace Tests.Domain.Entities
         }
 
         [Fact]
-        public void Constructor_WithNullCategory_ShouldThrowArgumentNullException()
+        public void Constructor_WithNullUser_ShouldThrowArgumentNullException()
         {
             // Arrange
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(null, info, amount, TransactionTypeEnum.Expense, date));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(null, category, info, amount, TransactionTypeEnum.Expense, date));
+
+            Assert.Equal("info", exception.ParamName);
+        }
+
+        [Fact]
+        public void Constructor_WithNullCategory_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            User user = TestDataFactory.CreateUser();
+            EntityInfo info = new EntityInfo("Compra supermercado", null);
+            Money amount = new Money(45.75m, "EUR");
+            DailyPeriod date = new DailyPeriod(15, 6, 2024);
+
+            // Act & Assert
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(user, null, info, amount, TransactionTypeEnum.Expense, date));
 
             Assert.Equal("category", exception.ParamName);
         }
@@ -58,12 +70,13 @@ namespace Tests.Domain.Entities
         public void Constructor_WithNullInfo_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(category, null, amount, TransactionTypeEnum.Expense, date));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(user, category, null, amount, TransactionTypeEnum.Expense, date));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -72,12 +85,13 @@ namespace Tests.Domain.Entities
         public void Constructor_WithNullAmount_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(category, info, null, TransactionTypeEnum.Expense, date));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(user, category, info, null, TransactionTypeEnum.Expense, date));
 
             Assert.Equal("amount", exception.ParamName);
         }
@@ -86,12 +100,13 @@ namespace Tests.Domain.Entities
         public void Constructor_WithNullDate_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(category, info, amount, TransactionTypeEnum.Expense, null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, null));
 
             Assert.Equal("date", exception.ParamName);
         }
@@ -102,11 +117,12 @@ namespace Tests.Domain.Entities
         public void Update_WithValidValues_ShouldUpdateTransaction()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", "Carrefour 15/06/2024");
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act
             EntityInfo newInfo = new EntityInfo("Compra supermercado actualizada", "Carrefour 20/06/2024");
@@ -129,11 +145,12 @@ namespace Tests.Domain.Entities
         public void Update_WithNullInfo_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(null, new Money(50.00m, "EUR"), TransactionTypeEnum.Income, new DailyPeriod(20, 6, 2024)));
@@ -145,11 +162,12 @@ namespace Tests.Domain.Entities
         public void Update_WithNullAmount_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(new EntityInfo("Nuevo nombre", null), null, TransactionTypeEnum.Income, new DailyPeriod(20, 6, 2024)));
@@ -161,11 +179,12 @@ namespace Tests.Domain.Entities
         public void Update_WithNullDate_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(new EntityInfo("Nuevo nombre", null), new Money(50.00m, "EUR"), TransactionTypeEnum.Income, null));
@@ -179,11 +198,12 @@ namespace Tests.Domain.Entities
         public void UpdateAmount_WithValidValue_ShouldUpdateAmount()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act
             Money newAmount = new Money(50.00m, "EUR");
@@ -198,11 +218,12 @@ namespace Tests.Domain.Entities
         public void UpdateAmount_WithNullAmount_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.UpdateAmount(null));
@@ -216,11 +237,12 @@ namespace Tests.Domain.Entities
         public void UpdateInfo_WithValidValue_ShouldUpdateInfo()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act
             EntityInfo newInfo = new EntityInfo("Nuevo nombre", "Nueva descripción");
@@ -236,11 +258,12 @@ namespace Tests.Domain.Entities
         public void UpdateInfo_WithNullInfo_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.UpdateInfo(null));
@@ -254,11 +277,12 @@ namespace Tests.Domain.Entities
         public void UpdateDate_WithValidValue_ShouldUpdateDate()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act
             DailyPeriod newDate = new DailyPeriod(20, 6, 2024);
@@ -275,11 +299,12 @@ namespace Tests.Domain.Entities
         public void UpdateDate_WithNullDate_ShouldThrowArgumentNullException()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.UpdateDate(null));
@@ -293,11 +318,12 @@ namespace Tests.Domain.Entities
         public void IsIncome_ForIncomeTransaction_ShouldReturnTrue()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Salario", null);
             Money amount = new Money(1500.00m, "EUR");
             DailyPeriod date = new DailyPeriod(1, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Income, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Income, date);
 
             // Act & Assert
             Assert.True(transaction.IsIncome);
@@ -308,11 +334,12 @@ namespace Tests.Domain.Entities
         public void IsExpense_ForExpenseTransaction_ShouldReturnTrue()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act & Assert
             Assert.True(transaction.IsExpense);
@@ -325,11 +352,12 @@ namespace Tests.Domain.Entities
         public void GetMonthlyPeriod_ShouldReturnCorrectMonthlyPeriod()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act
             MonthlyPeriod result = transaction.GetMonthlyPeriod();
@@ -345,11 +373,12 @@ namespace Tests.Domain.Entities
         public void ToString_ShouldReturnFormattedString()
         {
             // Arrange
-            Category category = CreateCategory();
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory();
             EntityInfo info = new EntityInfo("Compra supermercado", null);
             Money amount = new Money(45.75m, "EUR");
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
-            Transaction transaction = new Transaction(category, info, amount, TransactionTypeEnum.Expense, date);
+            Transaction transaction = new Transaction(user, category, info, amount, TransactionTypeEnum.Expense, date);
 
             // Act
             string result = transaction.ToString();
