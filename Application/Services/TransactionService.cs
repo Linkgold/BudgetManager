@@ -160,7 +160,7 @@ namespace Application.Services
             if (id <= 0) throw new ArgumentException("Invalid transaction ID", nameof(id));
 
             // Obtener la transacción existente
-            Transaction transaction = await _transactionRepository.GetByIdAsync(id, UserId);
+            Transaction? transaction = await _transactionRepository.GetByIdAsync(id, UserId);
 
             if (transaction == null) throw new KeyNotFoundException($"Transaction with ID {id} not found");
 

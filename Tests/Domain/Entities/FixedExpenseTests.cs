@@ -14,12 +14,12 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Assert
             Assert.NotNull(fixedExpense);
@@ -27,10 +27,10 @@ namespace Tests.Domain.Entities
             Assert.Equal("Netflix", fixedExpense.Info.Name);
             Assert.Equal("Suscripción mensual", fixedExpense.Info.Description);
             Assert.Equal(15.99m, fixedExpense.Amount.Value);
-            Assert.Equal(1, fixedExpense.ChargePeriod.Month);
-            Assert.Equal(2024, fixedExpense.ChargePeriod.Year);
+            Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, fixedExpense.ChargePeriod.Month);
+            Assert.Equal(TestDataFactory.DEFAULT_YEAR, fixedExpense.ChargePeriod.Year);
             Assert.True(fixedExpense.IsActive);
-            Assert.NotEqual(default(DateTime), fixedExpense.CreatedAt);
+            Assert.NotEqual(default, fixedExpense.CreatedAt);
             Assert.Null(fixedExpense.UpdatedAt);
         }
 
@@ -39,14 +39,14 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Money amount = TestDataFactory.CreateMoney();
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new FixedExpense(null, category, info, amount, chargePeriod));
 
-            Assert.Equal("category", exception.ParamName);
+            Assert.Equal("user", exception.ParamName);
         }
 
         [Fact]
@@ -54,9 +54,9 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Money amount = TestDataFactory.CreateMoney();
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new FixedExpense(user, null, info, amount, chargePeriod));
@@ -70,8 +70,8 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
+            Money amount = TestDataFactory.CreateMoney();
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new FixedExpense(user, category, null, amount, chargePeriod));
@@ -85,8 +85,8 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new FixedExpense(user, category, info, null, chargePeriod));
@@ -100,8 +100,8 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Money amount = TestDataFactory.CreateMoney();
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new FixedExpense(user, category, info, amount, null));
@@ -117,10 +117,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act
             fixedExpense.Deactivate();
@@ -137,10 +137,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act
             fixedExpense.Deactivate();
@@ -158,15 +158,15 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act
-            EntityInfo newInfo = new EntityInfo("Netflix Premium", "Suscripción mensual Premium");
-            Money newAmount = new Money(17.99m, "EUR");
-            MonthlyPeriod newChargePeriod = new MonthlyPeriod(2, 2024);
+            EntityInfo newInfo = TestDataFactory.CreateEntityInfo("Netflix Premium", "Suscripción mensual Premium");
+            Money newAmount = TestDataFactory.CreateMoney(17.99m);
+            MonthlyPeriod newChargePeriod = TestDataFactory.CreateMonthlyPeriod(2, 2024);
             fixedExpense.Update(newInfo, newAmount, newChargePeriod);
 
             // Assert
@@ -174,7 +174,7 @@ namespace Tests.Domain.Entities
             Assert.Equal("Suscripción mensual Premium", fixedExpense.Info.Description);
             Assert.Equal(17.99m, fixedExpense.Amount.Value);
             Assert.Equal(2, fixedExpense.ChargePeriod.Month);
-            Assert.Equal(2024, fixedExpense.ChargePeriod.Year);
+            Assert.Equal(TestDataFactory.DEFAULT_YEAR, fixedExpense.ChargePeriod.Year);
             Assert.NotNull(fixedExpense.UpdatedAt);
         }
 
@@ -184,10 +184,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(null, new Money(17.99m, "EUR"), new MonthlyPeriod(2, 2024)));
@@ -201,10 +201,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(new EntityInfo("Netflix Premium", "Suscripción mensual Premium"), null, new MonthlyPeriod(2, 2024)));
@@ -218,10 +218,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(new EntityInfo("Netflix Premium", "Suscripción mensual Premium"), new Money(17.99m, "EUR"), null));
@@ -237,13 +237,13 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act
-            Money newAmount = new Money(17.99m, "EUR");
+            Money newAmount = TestDataFactory.CreateMoney(17.99m, "EUR");
             fixedExpense.UpdateAmount(newAmount);
 
             // Assert
@@ -257,10 +257,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.UpdateAmount(null));
@@ -276,15 +276,13 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
-
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act
-            bool result = fixedExpense.IsActiveForPeriod(period);
+            bool result = fixedExpense.IsActiveForPeriod(chargePeriod);
 
             // Assert
             Assert.True(result);
@@ -296,10 +294,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             MonthlyPeriod period = new MonthlyPeriod(2, 2024);
 
@@ -316,13 +314,12 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(2, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod(2);
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
             // Act
             bool result = fixedExpense.IsActiveForPeriod(period);
 
@@ -336,16 +333,14 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
             fixedExpense.Deactivate();
 
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-
             // Act
-            bool result = fixedExpense.IsActiveForPeriod(period);
+            bool result = fixedExpense.IsActiveForPeriod(chargePeriod);
 
             // Assert
             Assert.False(result);
@@ -357,10 +352,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.IsActiveForPeriod(null));
@@ -376,10 +371,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            EntityInfo info = new EntityInfo("Netflix", "Suscripción mensual");
-            Money amount = new Money(15.99m, "EUR");
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(1, 2024);
-            FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
+            EntityInfo info = TestDataFactory.CreateEntityInfo("Netflix", "Suscripción mensual");
+            Money amount = TestDataFactory.CreateMoney(15.99m);
+            MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(user, category, info, amount, chargePeriod);
 
             // Act
             string result = fixedExpense.ToString();

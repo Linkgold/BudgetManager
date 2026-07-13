@@ -11,19 +11,15 @@ namespace Tests.Domain.Entities
         [Fact]
         public void Constructor_WithValidValues_ShouldCreateCategory()
         {
-            // Arrange
-            User user = TestDataFactory.CreateUser();
-            EntityInfo info = TestDataFactory.CreateEntityInfo();
-
             // Act
-            Category category = new Category(user, info);
+            Category category = TestDataFactory.CreateCategory();
 
             // Assert
             Assert.NotNull(category);
-            Assert.Equal("Alimentación", category.Info.Name);
-            Assert.Equal("Gastos de comida", category.Info.Description);
+            Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, category.Info.Name);
+            Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_DESCRIPTION, category.Info.Description);
             Assert.True(category.IsActive);
-            Assert.NotEqual(default(DateTime), category.CreatedAt);
+            Assert.NotEqual(default, category.CreatedAt);
             Assert.Null(category.UpdatedAt);
         }
 
@@ -57,17 +53,15 @@ namespace Tests.Domain.Entities
         public void Update_WithValidValues_ShouldUpdateCategory()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            EntityInfo info = TestDataFactory.CreateEntityInfo();
-            Category category = new Category(user, info);
+            Category category = TestDataFactory.CreateCategory();
 
             // Act
-            EntityInfo newInfo = new EntityInfo("Comida", "Gastos de supermercado");
+            EntityInfo newInfo =TestDataFactory.CreateEntityInfo();
             category.Update(newInfo);
 
             // Assert
-            Assert.Equal("Comida", category.Info.Name);
-            Assert.Equal("Gastos de supermercado", category.Info.Description);
+            Assert.Equal(TestDataFactory.DEFAULT_ENTITY_INFO_NAME, category.Info.Name);
+            Assert.Equal(TestDataFactory.DEFAULT_ENTITY_INFO_DESCRIPTION, category.Info.Description);
             Assert.NotNull(category.UpdatedAt);
         }
 
@@ -75,9 +69,7 @@ namespace Tests.Domain.Entities
         public void Update_WithNullInfo_ShouldThrowArgumentNullException()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            EntityInfo info = TestDataFactory.CreateEntityInfo();
-            Category category = new Category(user, info);
+            Category category = TestDataFactory.CreateCategory();
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => category.Update(null));
@@ -91,9 +83,7 @@ namespace Tests.Domain.Entities
         public void Activate_ShouldActivateCategory()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            EntityInfo info = TestDataFactory.CreateEntityInfo();
-            Category category = new Category(user, info);
+            Category category = TestDataFactory.CreateCategory();
             category.Deactivate();
 
             // Act
@@ -108,9 +98,7 @@ namespace Tests.Domain.Entities
         public void Deactivate_ShouldDeactivateCategory()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            EntityInfo info = TestDataFactory.CreateEntityInfo();
-            Category category = new Category(user, info);
+            Category category = TestDataFactory.CreateCategory();
 
             // Act
             category.Deactivate();
@@ -126,9 +114,7 @@ namespace Tests.Domain.Entities
         public void ToString_ShouldReturnFormattedString()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            EntityInfo info = TestDataFactory.CreateEntityInfo();
-            Category category = new Category(user, info);
+            Category category = TestDataFactory.CreateCategory();
 
             // Act
             string result = category.ToString();
@@ -145,7 +131,7 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            EntityInfo info = new EntityInfo("Alimentación", "Gastos de comida");
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
             Category category1 = TestDataFactory.CreateCategory(1, user, info);
             Category category2 = TestDataFactory.CreateCategory(2, user,info);
 
@@ -159,7 +145,7 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            EntityInfo info = new EntityInfo("Alimentación", "Gastos de comida");
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
             Category category1 = TestDataFactory.CreateCategory(1, user, info);
             Category category2 = TestDataFactory.CreateCategory(1, user, info);
 
@@ -173,7 +159,7 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            EntityInfo info = new EntityInfo("Alimentación", "Gastos de comida");
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
             Category category1 = TestDataFactory.CreateCategory(1, user, info);
             Category category2 = TestDataFactory.CreateCategory(1, user, info);
 

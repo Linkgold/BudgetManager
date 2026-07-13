@@ -13,19 +13,19 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act
-            Budget budget = new Budget(user, category, amount, period);
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Assert
             Assert.NotNull(budget);
             Assert.Equal(category.Id, budget.CategoryId);
             Assert.Equal(500.00m, budget.MonthlyAmount.Value);
-            Assert.Equal(1, budget.Period.Month);
-            Assert.Equal(2024, budget.Period.Year);
-            Assert.NotEqual(default(DateTime), budget.CreatedAt);
+            Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, budget.Period.Month);
+            Assert.Equal(TestDataFactory.DEFAULT_YEAR, budget.Period.Year);
+            Assert.NotEqual(default, budget.CreatedAt);
             Assert.Null(budget.UpdatedAt);
         }
 
@@ -34,11 +34,11 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Budget(null, category, amount, period));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudget(null, category, amount, period));
 
             Assert.Equal("user", exception.ParamName);
         }
@@ -48,11 +48,11 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Budget(user, null, amount, period));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudget(user, null, amount, period));
 
             Assert.Equal("category", exception.ParamName);
         }
@@ -63,10 +63,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Budget(user, category, null, period));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudget(user, category, null, period));
 
             Assert.Equal("monthlyAmount", exception.ParamName);
         }
@@ -77,10 +77,10 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
+            Money amount = TestDataFactory.CreateMoney(500.00m);
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Budget(user, category, amount, null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudget(user, category, amount, null));
 
             Assert.Equal("period", exception.ParamName);
         }
@@ -91,12 +91,12 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
-            Money newAmount = new Money(600.00m, "EUR");
+            Money newAmount = TestDataFactory.CreateMoney(600.00m);
             budget.UpdateAmount(newAmount);
 
             // Assert
@@ -110,9 +110,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => budget.UpdateAmount(null));
@@ -126,9 +126,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             BudgetStatusEnum status = budget.GetStatus(0);
@@ -143,9 +143,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             BudgetStatusEnum status = budget.GetStatus(350.00m); // 70%
@@ -160,9 +160,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             BudgetStatusEnum status = budget.GetStatus(450.00m); // 90%
@@ -177,9 +177,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             BudgetStatusEnum status = budget.GetStatus(550.00m); // 110%
@@ -194,9 +194,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(0, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(0);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             BudgetStatusEnum status = budget.GetStatus(100.00m);
@@ -211,9 +211,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act & Assert
             ArgumentException exception = Assert.Throws<ArgumentException>(() => budget.GetStatus(-100.00m));
@@ -227,9 +227,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             decimal percentage = budget.GetPercentageUsed(350.00m);
@@ -244,9 +244,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category =     TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             decimal percentage = budget.GetPercentageUsed(600.00m);
@@ -261,9 +261,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(0, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(0);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             decimal percentage = budget.GetPercentageUsed(100.00m);
@@ -278,16 +278,16 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             Money remaining = budget.GetRemaining(350.00m);
 
             // Assert
             Assert.Equal(150.00m, remaining.Value);
-            Assert.Equal("EUR", remaining.Currency);
+            Assert.Equal(TestDataFactory.DEFAULT_CURRENCY, remaining.Currency);
         }
 
         [Fact]
@@ -296,9 +296,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             Money remaining = budget.GetRemaining(600.00m);
@@ -313,9 +313,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             bool isOver = budget.IsOverBudget(550.00m);
@@ -330,9 +330,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             bool isOver = budget.IsOverBudget(350.00m);
@@ -347,9 +347,9 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             bool isOver = budget.IsOverBudget(500.00m);
@@ -364,15 +364,15 @@ namespace Tests.Domain.Entities
             // Arrange
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory();
-            Money amount = new Money(500.00m, "EUR");
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
-            Budget budget = new Budget(user, category, amount, period);
+            Money amount = TestDataFactory.CreateMoney(500.00m);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
+            Budget budget = TestDataFactory.CreateBudget(user, category, amount, period);
 
             // Act
             string result = budget.ToString();
 
             // Assert
-            Assert.Contains("Alimentación", result);
+            Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_NAME, result);
             Assert.Contains("500,00 EUR", result);
             Assert.Contains("01-2024", result);
         }

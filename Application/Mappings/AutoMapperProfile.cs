@@ -96,10 +96,13 @@ namespace Application.Mappings
             // Domain → Response
             CreateMap<Transaction, TransactionResponseDTO>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Info.Name : string.Empty))
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Info.Name))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Info.Description))
                 .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.Value))
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Amount.Currency))
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToDateTime()))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
+                
 
             // Request → Domain
             CreateMap<CreateTransactionRequestDTO, Transaction>()

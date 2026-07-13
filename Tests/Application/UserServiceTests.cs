@@ -9,6 +9,7 @@ using Domain.Interfaces;
 using Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
+using Tests.Helpers;
 using Crypt = BCrypt.Net.BCrypt;
 
 namespace Tests.Application
@@ -42,25 +43,6 @@ namespace Tests.Application
             _userService = new UserService(_userRepositoryMock.Object, _mapper, _currentUserServiceMock.Object);
         }
 
-        // ==================== HELPERS ====================
-
-        private User CreateUser(int id, string userName = "Juan Pérez", string email = "juan@email.com")
-        {
-            UserInfo info = new UserInfo(userName, email);
-            User user = new User(info, "hashed_password");
-            typeof(User).GetProperty("Id")?.SetValue(user, id);
-            return user;
-        }
-
-        private User CreateUserWithPassword(string password = "Password123!")
-        {
-            string passwordHash = Crypt.HashPassword(password);
-            UserInfo info = new UserInfo("Juan Pérez", "juan@email.com");
-            User user = new User(info, passwordHash);
-            typeof(User).GetProperty("Id")?.SetValue(user, 1);
-            return user;
-        }
-
         // ==================== TEST: CREATE ====================
 
         [Fact]
@@ -69,10 +51,10 @@ namespace Tests.Application
             // Arrange
             CreateUserRequestDTO request = new CreateUserRequestDTO
             {
-                UserName = "Juan Pérez",
-                Email = "juan@email.com",
-                Password = "Password123!",
-                ConfirmPassword = "Password123!"
+                UserName = TestDataFactory.DEFAULT_USER_NAME,
+                Email = TestDataFactory.DEFAULT_USER_EMAIL,
+                Password = TestDataFactory.DEFAULT_PASSWORD,
+                ConfirmPassword = TestDataFactory.DEFAULT_PASSWORD
             };
 
             _userRepositoryMock
@@ -84,8 +66,8 @@ namespace Tests.Application
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("Juan Pérez", result.UserName);
-            Assert.Equal("juan@email.com", result.Email);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_NAME, result.UserName);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, result.Email);
 
             _userRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Once);
         }
@@ -96,10 +78,10 @@ namespace Tests.Application
             // Arrange
             CreateUserRequestDTO request = new CreateUserRequestDTO
             {
-                UserName = "Juan Pérez",
-                Email = "juan@email.com",
-                Password = "Password123!",
-                ConfirmPassword = "Password123!"
+                UserName = TestDataFactory.DEFAULT_USER_NAME,
+                Email = TestDataFactory.DEFAULT_USER_EMAIL,
+                Password = TestDataFactory.DEFAULT_PASSWORD,
+                ConfirmPassword = TestDataFactory.DEFAULT_PASSWORD
             };
 
             _userRepositoryMock
@@ -119,7 +101,7 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = CreateUser(userId);
+            User user = TestDataFactory.CreateUser(userId);
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
@@ -131,8 +113,8 @@ namespace Tests.Application
             // Assert
             Assert.NotNull(result);
             Assert.Equal(userId, result.Id);
-            Assert.Equal("Juan Pérez", result.UserName);
-            Assert.Equal("juan@email.com", result.Email);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_NAME, result.UserName);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, result.Email);
         }
 
         [Fact]
@@ -143,7 +125,7 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync((User)null);
+                .ReturnsAsync((User?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _userService.GetByIdAsync(userId));
@@ -155,19 +137,18 @@ namespace Tests.Application
         public async Task GetByEmailAsync_WithExistingEmail_ReturnsUser()
         {
             // Arrange
-            string email = "juan@email.com";
-            User user = CreateUser(1, "Juan Pérez", email);
+            User user = TestDataFactory.CreateUser();
 
             _userRepositoryMock
-                .Setup(repo => repo.GetByEmailAsync(email))
+                .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
                 .ReturnsAsync(user);
 
             // Act
-            UserResponseDTO result = await _userService.GetByEmailAsync(email);
+            UserResponseDTO result = await _userService.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(email, result.Email);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, result.Email);
         }
 
         [Fact]
@@ -178,7 +159,7 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByEmailAsync(email))
-                .ReturnsAsync((User)null);
+                .ReturnsAsync((User?)null);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _userService.GetByEmailAsync(email));
@@ -191,7 +172,7 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = CreateUser(userId);
+            User user = TestDataFactory.CreateUser();
 
             _currentUserServiceMock
                 .Setup(service => service.UserId)
@@ -228,13 +209,16 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = CreateUser(userId);
+            string updatedUserName = "María García";
+            string updatedEmail = "maria@email.com";
 
-            UpdateUserRequestDTO request = new UpdateUserRequestDTO
-            {
-                UserName = "María García",
-                Email = "maria@email.com"
-            };
+            User user = TestDataFactory.CreateUser();
+
+            UpdateUserRequestDTO request = new UpdateUserRequestDTO { UserName = updatedUserName, Email = updatedEmail };
+
+            _currentUserServiceMock
+                .Setup(service => service.UserId)
+                .Returns(userId);
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
@@ -242,15 +226,15 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByEmailAsync(request.Email))
-                .ReturnsAsync((User)null);
+                .ReturnsAsync((User?)null);
 
             // Act
             UserResponseDTO result = await _userService.UpdateAsync(request);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal("María García", result.UserName);
-            Assert.Equal("maria@email.com", result.Email);
+            Assert.Equal(updatedUserName, result.UserName);
+            Assert.Equal(updatedEmail, result.Email);
 
             _userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
         }
@@ -260,14 +244,18 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = CreateUser(userId);
-            User otherUser = CreateUser(2, "Otro Usuario", "maria@email.com");
+            User user = TestDataFactory.CreateUser();
+            User otherUser = TestDataFactory.CreateUser(2, "Otro Usuario", "maria@email.com");
 
             UpdateUserRequestDTO request = new UpdateUserRequestDTO
             {
-                UserName = "Juan Pérez",
+                UserName = TestDataFactory.DEFAULT_USER_NAME,
                 Email = "maria@email.com"
             };
+
+            _currentUserServiceMock
+                .Setup(service => service.UserId)
+                .Returns(userId);
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
@@ -288,6 +276,10 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
+
+            _currentUserServiceMock
+                .Setup(service => service.UserId)
+                .Returns(userId);
 
             _userRepositoryMock
                 .Setup(repo => repo.ExistsAsync(userId))
@@ -320,16 +312,14 @@ namespace Tests.Application
         public async Task LoginAsync_WithValidCredentials_ReturnsToken()
         {
             // Arrange
-            string email = "juan@email.com";
-            string password = "Password123!";
-            User user = CreateUserWithPassword(password);
+            User user = TestDataFactory.CreateUserWithPassword();
 
             _userRepositoryMock
-                .Setup(repo => repo.GetByEmailAsync(email))
+                .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
                 .ReturnsAsync(user);
 
             // Act
-            string token = await _userService.LoginAsync(email, password);
+            string token = await _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, TestDataFactory.DEFAULT_PASSWORD);
 
             // Assert
             Assert.NotNull(token);
@@ -344,41 +334,39 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByEmailAsync(email))
-                .ReturnsAsync((User)null);
+                .ReturnsAsync((User?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(email, "Password123!"));
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(email, TestDataFactory.DEFAULT_PASSWORD));
         }
 
         [Fact]
         public async Task LoginAsync_WithInvalidPassword_ThrowsUnauthorizedAccessException()
         {
             // Arrange
-            string email = "juan@email.com";
-            User user = CreateUserWithPassword("Password123!");
+            User user = TestDataFactory.CreateUserWithPassword();
 
             _userRepositoryMock
-                .Setup(repo => repo.GetByEmailAsync(email))
+                .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
                 .ReturnsAsync(user);
 
             // Act & Assert
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(email, "WrongPassword"));
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, "WrongPassword"));
         }
 
         [Fact]
         public async Task LoginAsync_WithInactiveUser_ThrowsUnauthorizedAccessException()
         {
             // Arrange
-            string email = "juan@email.com";
-            User user = CreateUserWithPassword("Password123!");
+            User user = TestDataFactory.CreateUserWithPassword();
             user.Deactivate();
 
             _userRepositoryMock
-                .Setup(repo => repo.GetByEmailAsync(email))
+                .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
                 .ReturnsAsync(user);
 
             // Act & Assert
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(email, "Password123!"));
+            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, "Password123!"));
         }
 
         // ==================== TEST: CHANGE PASSWORD ====================
@@ -388,16 +376,19 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            string currentPassword = "Password123!";
             string newPassword = "NewPassword456!";
-            User user = CreateUserWithPassword(currentPassword);
+            User user = TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD);
+
+            _currentUserServiceMock
+                .Setup(service => service.UserId)
+                .Returns(userId);
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
                 .ReturnsAsync(user);
 
             // Act
-            await _userService.ChangePasswordAsync(currentPassword, newPassword);
+            await _userService.ChangePasswordAsync(TestDataFactory.DEFAULT_PASSWORD, newPassword);
 
             // Assert
             _userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
@@ -408,7 +399,11 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = CreateUserWithPassword("Password123!");
+            User user = TestDataFactory.CreateUserWithPassword();
+
+            _currentUserServiceMock
+                .Setup(service => service.UserId)
+                .Returns(userId);
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))

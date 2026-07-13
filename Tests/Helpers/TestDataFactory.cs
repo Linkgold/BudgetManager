@@ -5,7 +5,6 @@ using Domain.Enums;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Moq;
-using System.Runtime.CompilerServices;
 
 namespace Tests.Helpers
 {
@@ -14,12 +13,36 @@ namespace Tests.Helpers
     /// </summary>
     public static class TestDataFactory
     {
+        // ==================== CONSTANTES DE PRUEBA ====================
+
+        public const string DEFAULT_USER_NAME = "Toribio Gaviria";
+        public const string DEFAULT_USER_EMAIL = "torigavi@email.com";
+        public const string DEFAULT_PASSWORD = "Password123!";
+        public const string DEFAULT_CATEGORY_NAME = "Alimentación";
+        public const string DEFAULT_CATEGORY_DESCRIPTION = "Gastos de comida";
+        public const string DEFAULT_CATEGORIES_NAME = "Categoría ";
+        public const string DEFAULT_CATEGORIES_DESCRIPTION = "Descripción ";
+        public const string DEFAULT_FIXED_EXPENSE_NAME = "Netflix";
+        public const string DEFAULT_FIXED_EXPENSE_DESCRIPTION = "Suscripción mensual";
+        public const decimal DEFAULT_FIXED_EXPENSE_AMOUNT = 15.90m;
+        public const decimal DEFAULT_BUDGET_AMOUNT = 500.00m;
+        public const int DEFAULT_MONTHLY_MONTH = 1;
+        public const int DEFAULT_YEAR = 2024;
+        public const int DEFAULT_DAILY_DAY = 15;
+        public const string DEFAULT_TRANSACTION_NAME = "Compra supermercado";
+        public const string DEFAULT_TRANSACTION_DESCRIPTION = "Carrefour 15/06/2024";
+        public const decimal DEFAULT_TRANSACTION_AMOUNT = 45.75m;
+        public const int DEFAULT_DAILY_MONTH = 6;
+        public const string DEFAULT_ENTITY_INFO_NAME = "Comida";
+        public const string DEFAULT_ENTITY_INFO_DESCRIPTION = "Gastos de supermercado";
+        public const string DEFAULT_CURRENCY = "EUR";
+
         // ==================== USUARIOS ====================
 
         /// <summary>
         /// Crea un usuario de prueba con ID
         /// </summary>
-        public static User CreateUser(int id = 1, string userName = "Juan Pérez", string email = "juan@email.com")
+        public static User CreateUser(int id = 1, string userName = DEFAULT_USER_NAME, string email = DEFAULT_USER_EMAIL)
         {
             UserInfo userInfo = new UserInfo(userName, email);
             User user = new User(userInfo, "hashed_password");
@@ -28,13 +51,15 @@ namespace Tests.Helpers
             return user;
         }
 
+        public static User CreateUser(UserInfo userInfo, string passwordHash) => new(userInfo, passwordHash);
+
         /// <summary>
         /// Crea un usuario con contraseña hasheada (para pruebas de login)
         /// </summary>
-        public static User CreateUserWithPassword(string password = "Password123!", int id = 1, string email = "juan@email.com")
+        public static User CreateUserWithPassword(string password = DEFAULT_PASSWORD, int id = 1, string email = DEFAULT_USER_EMAIL)
         {
             string passwordHash = BCrypt.Net.BCrypt.HashPassword(password);
-            UserInfo userInfo = new UserInfo("Juan Pérez", email);
+            UserInfo userInfo = new UserInfo(DEFAULT_USER_NAME, email);
             User user = new User(userInfo, passwordHash);
             typeof(User).GetProperty("Id")?.SetValue(user, id);
 
@@ -46,7 +71,7 @@ namespace Tests.Helpers
         /// <summary>
         /// Crea una categoría de prueba con usuario
         /// </summary>
-        public static Category CreateCategory(int id = 1, User user = null, string name = "Alimentación", string description = "Gastos de comida")
+        public static Category CreateCategory(int id = 1, User user = null, string name = DEFAULT_CATEGORY_NAME, string description = DEFAULT_CATEGORY_DESCRIPTION)
         {
             user ??= CreateUser(1);
             EntityInfo info = new EntityInfo(name, description);
@@ -65,7 +90,7 @@ namespace Tests.Helpers
             List<Category> categories = new List<Category>();
             for (int i = 1; i <= count; i++)
             {
-                categories.Add(CreateCategory(i, user, $"Categoría {i}", $"Descripción {i}"));
+                categories.Add(CreateCategory(i, user, $"{DEFAULT_CATEGORIES_NAME} {i}", $"{DEFAULT_CATEGORIES_DESCRIPTION} {i}"));
             }
             return categories;
         }
@@ -80,11 +105,11 @@ namespace Tests.Helpers
             int id = 1,
             User user = null,
             Category category = null,
-            string name = "Netflix",
-            string description = "Suscripción mensual",
-            decimal amount = 15.99m,
-            int month = 1,
-            int year = 2024
+            string name = DEFAULT_FIXED_EXPENSE_NAME,
+            string description = DEFAULT_FIXED_EXPENSE_DESCRIPTION,
+            decimal amount = DEFAULT_FIXED_EXPENSE_AMOUNT,
+            int month = DEFAULT_MONTHLY_MONTH,
+            int year = DEFAULT_YEAR
         )
         {
             user ??= CreateUser(1);
@@ -97,6 +122,8 @@ namespace Tests.Helpers
             return fixedExpense;
         }
 
+        public static FixedExpense CreateFixedExpense(User user, Category category, EntityInfo info, Money money, MonthlyPeriod monthlyPeriod) => new(user, category, info, money, monthlyPeriod);
+
         // ==================== PRESUPUESTOS ====================
 
         /// <summary>
@@ -107,9 +134,9 @@ namespace Tests.Helpers
             int id = 1,
             User user = null,
             Category category = null,
-            decimal monthlyAmount = 500.00m,
-            int month = 1,
-            int year = 2024
+            decimal monthlyAmount = DEFAULT_BUDGET_AMOUNT,
+            int month = DEFAULT_MONTHLY_MONTH,
+            int year = DEFAULT_YEAR
         )
         {
             user ??= CreateUser(1);
@@ -121,6 +148,8 @@ namespace Tests.Helpers
             return budget;
         }
 
+        public static Budget CreateBudget(User user, Category category, Money money, MonthlyPeriod monthlyPeriod) => new(user, category, money, monthlyPeriod);
+
         // ==================== TRANSACCIONES ====================
 
         /// <summary>
@@ -131,13 +160,13 @@ namespace Tests.Helpers
             int id = 1,
             User user = null,
             Category category = null,
-            string name = "Compra supermercado",
-            string description = "Carrefour 15/06/2024",
+            string name = DEFAULT_TRANSACTION_NAME,
+            string description = DEFAULT_TRANSACTION_DESCRIPTION,
             decimal amount = 45.75m,
             TransactionTypeEnum type = TransactionTypeEnum.Expense,
-            int day = 15,
-            int month = 6,
-            int year = 2024
+            int day = DEFAULT_DAILY_DAY,
+            int month = DEFAULT_DAILY_MONTH,
+            int year = DEFAULT_YEAR
         )
         {
             user ??= CreateUser(1);
@@ -150,128 +179,34 @@ namespace Tests.Helpers
             return transaction;
         }
 
+        public static Transaction CreateTransaction(User user, Category category, EntityInfo info, Money money, TransactionTypeEnum type, DailyPeriod date) => new(user, category, info, money, type, date);
+
         // ==================== VALUE OBJECTS ====================
 
         /// <summary>
         /// Crea un EntityInfo de prueba
         /// </summary>
-        public static EntityInfo CreateEntityInfo(string name = "Test", string description = "Test Description") => new EntityInfo(name, description);
+        public static EntityInfo CreateEntityInfo(string name = DEFAULT_ENTITY_INFO_NAME, string description = DEFAULT_ENTITY_INFO_DESCRIPTION) => new EntityInfo(name, description);
 
         /// <summary>
         /// Crea un UserInfo de prueba
         /// </summary>
-        public static UserInfo CreateUserInfo(string userName = "Juan Pérez", string email = "juan@email.com") => new UserInfo(userName, email);
+        public static UserInfo CreateUserInfo(string userName = DEFAULT_USER_NAME, string email = DEFAULT_USER_EMAIL) => new UserInfo(userName, email);
 
         /// <summary>
         /// Crea un DailyPeriod de prueba
         /// </summary>
-        public static DailyPeriod CreateDailyPeriod(int day = 15, int month = 6, int year = 2024) => new DailyPeriod(day, month, year);
+        public static DailyPeriod CreateDailyPeriod(int day = DEFAULT_DAILY_DAY, int month = DEFAULT_DAILY_MONTH, int year = DEFAULT_YEAR) => new DailyPeriod(day, month, year);
 
         /// <summary>
         /// Crea un MonthlyPeriod de prueba
         /// </summary>
-        public static MonthlyPeriod CreateMonthlyPeriod(int month = 1, int year = 2024) => new MonthlyPeriod(month, year);
+        public static MonthlyPeriod CreateMonthlyPeriod(int month = DEFAULT_MONTHLY_MONTH, int year = DEFAULT_YEAR) => new MonthlyPeriod(month, year);
 
         /// <summary>
         /// Crea un Money de prueba
         /// </summary>
-        public static Money CreateMoney(decimal value = 100.00m, string currency = "EUR") => new Money(value, currency);
-
-        // ==================== DTOs DE PRUEBA (para Application) ====================
-
-        /// <summary>
-        /// Crea un CreateCategoryRequestDTO de prueba
-        /// </summary>
-        public static CreateCategoryRequestDTO CreateCategoryRequest(string name = "Alimentación", string description = "Gastos de comida") => new CreateCategoryRequestDTO { Name = name, Description = description };
-
-        /// <summary>
-        /// Crea un CreateFixedExpenseRequestDTO de prueba
-        /// </summary>
-        public static CreateFixedExpenseRequestDTO CreateFixedExpenseRequest
-        (
-            int categoryId = 1,
-            string name = "Netflix",
-            string description = "Suscripción mensual",
-            decimal amount = 15.99m,
-            int month = 1,
-            int year = 2024
-        )
-        {
-            return new CreateFixedExpenseRequestDTO
-            {
-                CategoryId = categoryId,
-                Name = name,
-                Description = description,
-                Amount = amount,
-                Month = month,
-                Year = year
-            };
-        }
-
-        /// <summary>
-        /// Crea un CreateBudgetRequestDTO de prueba
-        /// </summary>
-        public static CreateBudgetRequestDTO CreateBudgetRequest
-        (
-            int categoryId = 1,
-            decimal amount = 500.00m,
-            int month = 1,
-            int year = 2024
-        )
-        {
-            return new CreateBudgetRequestDTO
-            {
-                CategoryId = categoryId,
-                Amount = amount,
-                Month = month,
-                Year = year
-            };
-        }
-
-        /// <summary>
-        /// Crea un CreateTransactionRequestDTO de prueba
-        /// </summary>
-        public static CreateTransactionRequestDTO CreateTransactionRequest
-        (
-            int categoryId = 1,
-            string name = "Compra supermercado",
-            string description = "Carrefour 15/06/2024",
-            decimal amount = 45.75m,
-            TransactionTypeEnum type = TransactionTypeEnum.Expense,
-            DateTime? date = null
-        )
-        {
-            date ??= new DateTime(2024, 6, 15);
-            return new CreateTransactionRequestDTO
-            {
-                CategoryId = categoryId,
-                Name = name,
-                Description = description,
-                Amount = amount,
-                Type = type,
-                Date = date.Value
-            };
-        }
-
-        /// <summary>
-        /// Crea un CreateUserRequestDTO de prueba
-        /// </summary>
-        public static CreateUserRequestDTO CreateUserRequest
-        (
-            string userName = "Juan Pérez",
-            string email = "juan@email.com",
-            string password = "Password123!",
-            string confirmPassword = "Password123!"
-        )
-        {
-            return new CreateUserRequestDTO
-            {
-                UserName = userName,
-                Email = email,
-                Password = password,
-                ConfirmPassword = confirmPassword
-            };
-        }
+        public static Money CreateMoney(decimal value = 100.00m, string currency = DEFAULT_CURRENCY) => new Money(value, currency);
 
         // Seeds
 

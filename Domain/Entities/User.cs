@@ -68,5 +68,7 @@ namespace Domain.Entities
             IsActive = false;
             UpdatedAt = DateTime.UtcNow;
         }
+
+        public override string ToString() => $"{Info.UserName} <{Info.Email}>";
     }
 }
