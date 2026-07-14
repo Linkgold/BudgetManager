@@ -78,11 +78,11 @@ namespace Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateAmount(Money newAmount)
+        public void UpdateAmount(Money amount)
         {
-            ArgumentNullException.ThrowIfNull(newAmount);
+            ArgumentNullException.ThrowIfNull(amount);
 
-            Amount = newAmount;
+            Amount = amount;
             UpdatedAt = DateTime.UtcNow;
         }
 

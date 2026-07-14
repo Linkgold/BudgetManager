@@ -40,20 +40,20 @@ namespace Domain.Entities
             Transactions = new List<Transaction>();
         }
 
-        public void Update(UserInfo newInfo)
+        public void Update(UserInfo info)
         {
-            ArgumentNullException.ThrowIfNull(newInfo);
+            ArgumentNullException.ThrowIfNull(info);
 
-            Info = newInfo;
+            Info = info;
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdatePassword(string newPasswordHash)
+        public void UpdatePassword(string passwordHash)
         {
-            ArgumentNullException.ThrowIfNull(newPasswordHash);
-            if (string.IsNullOrWhiteSpace(newPasswordHash)) throw new ArgumentException("Password hash cannot be empty", nameof(newPasswordHash));
+            ArgumentNullException.ThrowIfNull(passwordHash);
+            if (string.IsNullOrWhiteSpace(passwordHash)) throw new ArgumentException("Password hash cannot be empty", nameof(passwordHash));
 
-            PasswordHash = newPasswordHash;
+            PasswordHash = passwordHash;
             UpdatedAt = DateTime.UtcNow;
         }
 

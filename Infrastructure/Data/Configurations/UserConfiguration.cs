@@ -53,15 +53,28 @@ namespace Infrastructure.Data.Configurations
 
             // ==================== ÍNDICES ====================
 
-            // Índice único para email
-            builder.HasIndex(user => user.Info.Email)
-                .IsUnique()
-                .HasDatabaseName("IX_Users_Email");
+            builder.OwnsOne(user => user.Info, info =>
+            {
+                info.Property(i => i.Email)
+                    .HasColumnName("Email")
+                    .IsRequired()
+                    .HasMaxLength(100);
 
-            // Índice único para nombre de usuario
-            builder.HasIndex(user => user.Info.UserName)
-                .IsUnique()
-                .HasDatabaseName("IX_Users_UserName");
+                info.Property(i => i.UserName)
+                    .HasColumnName("UserName")
+                    .IsRequired()
+                    .HasMaxLength(50);
+
+                // Índice simple para Email (dentro del OwnsOne)
+                info.HasIndex(i => i.Email)
+                    .IsUnique()
+                    .HasDatabaseName("IX_Users_Email");
+
+                // Índice simple para UserName (dentro del OwnsOne)
+                info.HasIndex(i => i.UserName)
+                    .IsUnique()
+                    .HasDatabaseName("IX_Users_UserName");
+            });
 
             // Índice para IsActive (búsquedas de usuarios activos)
             builder.HasIndex(user => user.IsActive)

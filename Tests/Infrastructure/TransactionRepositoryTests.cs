@@ -13,7 +13,6 @@ namespace Tests.Infrastructure
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly ITransactionRepository _repository;
-        private readonly ICategoryRepository _categoryRepository;
 
         public TransactionRepositoryTests()
         {
@@ -25,7 +24,6 @@ namespace Tests.Infrastructure
 
             _dbContext = new ApplicationDbContext(options);
             _repository = new TransactionRepository(_dbContext);
-            _categoryRepository = new CategoryRepository(_dbContext);
         }
 
         // ==================== TEST: ADD ====================
@@ -34,7 +32,7 @@ namespace Tests.Infrastructure
         public async Task AddAsync_ShouldAddTransactionToDatabase()
         {
             // Arrange
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            Category category = TestDataFactory.CreateCategory();
             Transaction transaction = TestDataFactory.CreateTransaction();
 
             // Act
@@ -44,12 +42,12 @@ namespace Tests.Infrastructure
             Transaction? retrieved = await _dbContext.Transactions.Include(t => t.Category).FirstOrDefaultAsync(t => t.Id == transaction.Id);
 
             Assert.NotNull(retrieved);
-            Assert.Equal("Compra supermercado", retrieved.Info.Name);
-            Assert.Equal(45.75m, retrieved.Amount.Value);
+            Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_NAME, retrieved.Info.Name);
+            Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, retrieved.Amount.Value);
             Assert.Equal(TransactionTypeEnum.Expense, retrieved.Type);
-            Assert.Equal(15, retrieved.Date.Day);
-            Assert.Equal(6, retrieved.Date.Month);
-            Assert.Equal(2024, retrieved.Date.Year);
+            Assert.Equal(TestDataFactory.DEFAULT_DAILY_DAY, retrieved.Date.Day);
+            Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, retrieved.Date.Month);
+            Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.Date.Year);
             Assert.Equal(category.Id, retrieved.CategoryId);
             Assert.NotEqual(default, retrieved.CreatedAt);
         }
@@ -61,8 +59,8 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository);
+            Category category = TestDataFactory.CreateCategory();
+            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, TestDataFactory.CreateUser(), category);
 
             // Act
             Transaction? retrieved = await _repository.GetByIdAsync(transaction.Id, userId);
@@ -70,11 +68,11 @@ namespace Tests.Infrastructure
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(transaction.Id, retrieved.Id);
-            Assert.Equal(45.75m, retrieved.Amount.Value);
+            Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, retrieved.Amount.Value);
             Assert.Equal(TransactionTypeEnum.Expense, retrieved.Type);
-            Assert.Equal(15, retrieved.Date.Day);
-            Assert.Equal(6, retrieved.Date.Month);
-            Assert.Equal(2024, retrieved.Date.Year);
+            Assert.Equal(TestDataFactory.DEFAULT_DAILY_DAY, retrieved.Date.Day);
+            Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, retrieved.Date.Month);
+            Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.Date.Year);
             Assert.Equal(category.Id, retrieved.CategoryId);
             Assert.NotNull(retrieved.Category);
         }
@@ -104,9 +102,10 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            await TestDataFactory.SeedTransactionAsync(_repository);
-            await TestDataFactory.SeedTransactionAsync(_repository, category, TestDataFactory.CreateTransaction(2, TestDataFactory.CreateUser(), category, "Compra 2", "", 30.00m));
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(user: user);
+            await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category);
+            await TestDataFactory.SeedTransactionAsync(_repository, 2, user, category);
 
             // Act
             IEnumerable<Transaction> result = await _repository.GetAllAsync(userId);
@@ -123,12 +122,13 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category1 = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Category category2 = await TestDataFactory.SeedCategoryAsync(_categoryRepository, TestDataFactory.CreateCategory(2, TestDataFactory.CreateUser(), "Transporte"));
+            User user = TestDataFactory.CreateUser();
+            Category category1 = TestDataFactory.CreateCategory(1, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user, "Transporte");
 
-            await TestDataFactory.SeedTransactionAsync(_repository);
-            await TestDataFactory.SeedTransactionAsync(_repository, category1, TestDataFactory.CreateTransaction(2, TestDataFactory.CreateUser(), category1, "Compra 2", "", 30.00m));
-            await TestDataFactory.SeedTransactionAsync(_repository, category2, TestDataFactory.CreateTransaction(3, TestDataFactory.CreateUser(), category2, "Gasolina", "", 50.00m));
+            await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category1);
+            await TestDataFactory.SeedTransactionAsync(_repository, 2, user, category1);
+            await TestDataFactory.SeedTransactionAsync(_repository, 3, user, category2);
 
             // Act
             IEnumerable<Transaction> result = await _repository.GetByCategoryIdAsync(category1.Id, userId);
@@ -158,12 +158,13 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            await TestDataFactory.SeedTransactionAsync(_repository);
-            await TestDataFactory.SeedTransactionAsync(_repository, category, TestDataFactory.CreateTransaction(2, TestDataFactory.CreateUser(), category, "Compra 2", "", 30.00m));
-            await TestDataFactory.SeedTransactionAsync(_repository, category, TestDataFactory.CreateTransaction(3, TestDataFactory.CreateUser(), category, "Compra 3", "", 20.00m, TransactionTypeEnum.Expense, 10, 7, 2024));
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(user: user);
+            await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category);
+            await TestDataFactory.SeedTransactionAsync(_repository, 2, user, category);
+            await TestDataFactory.SeedTransactionAsync(_repository, 3, user, category, month: 7);
 
-            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(TestDataFactory.DEFAULT_DAILY_MONTH);
 
             // Act
             IEnumerable<Transaction> result = await _repository.GetByMonthlyPeriodAsync(period, userId);
@@ -180,7 +181,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            MonthlyPeriod period = new MonthlyPeriod(12, 2025);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(12, 2025);
 
             // Act
             IEnumerable<Transaction> result = await _repository.GetByMonthlyPeriodAsync(period, userId);
@@ -204,14 +205,15 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category1 = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Category category2 = await TestDataFactory.SeedCategoryAsync(_categoryRepository, TestDataFactory.CreateCategory(2, TestDataFactory.CreateUser(), "Transporte"));
+            User user = TestDataFactory.CreateUser();
+            Category category1 = TestDataFactory.CreateCategory(1, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user, "Transporte");
 
-            await TestDataFactory.SeedTransactionAsync(_repository);
-            await TestDataFactory.SeedTransactionAsync(_repository, category1, TestDataFactory.CreateTransaction(2, TestDataFactory.CreateUser(), category1, "Compra 2", "", 30.00m));
-            await TestDataFactory.SeedTransactionAsync(_repository, category2, TestDataFactory.CreateTransaction(3, TestDataFactory.CreateUser(), category2, "Gasolina", "", 50.00m));
+            await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category1);
+            await TestDataFactory.SeedTransactionAsync(_repository, 2, user, category1);
+            await TestDataFactory.SeedTransactionAsync(_repository, 3, user, category2);
 
-            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(TestDataFactory.DEFAULT_DAILY_MONTH);
 
             // Act
             IEnumerable<Transaction> result = await _repository.GetByCategoryAndMonthlyPeriodAsync(category1.Id, period, userId);
@@ -220,8 +222,8 @@ namespace Tests.Infrastructure
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
             Assert.All(result, t => Assert.Equal(category1.Id, t.CategoryId));
-            Assert.All(result, t => Assert.Equal(6, t.Date.Month));
-            Assert.All(result, t => Assert.Equal(2024, t.Date.Year));
+            Assert.All(result, t => Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, t.Date.Month));
+            Assert.All(result, t => Assert.Equal(TestDataFactory.DEFAULT_YEAR, t.Date.Year));
         }
 
         [Fact]
@@ -229,7 +231,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(TestDataFactory.DEFAULT_DAILY_MONTH);
 
             // Act
             IEnumerable<Transaction> result = await _repository.GetByCategoryAndMonthlyPeriodAsync(999, period, userId);
@@ -246,13 +248,14 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            await TestDataFactory.SeedTransactionAsync(_repository);
-            await TestDataFactory.SeedTransactionAsync(_repository, category, TestDataFactory.CreateTransaction(2, TestDataFactory.CreateUser(), category, "Compra 2", "", 30.00m));
-            await TestDataFactory.SeedTransactionAsync(_repository, category, TestDataFactory.CreateTransaction(3, TestDataFactory.CreateUser(), category, "Compra 3", "", 20.00m, TransactionTypeEnum.Expense, 10, 7, 2024));
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(user: user);
+            await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category);
+            await TestDataFactory.SeedTransactionAsync(_repository, 2, user, category);
+            await TestDataFactory.SeedTransactionAsync(_repository, 3, user, category, month: 10);
 
-            DailyPeriod startDate = new DailyPeriod(1, 6, 2024);
-            DailyPeriod endDate = new DailyPeriod(30, 6, 2024);
+            DailyPeriod startDate = TestDataFactory.CreateDailyPeriod(1);
+            DailyPeriod endDate = TestDataFactory.CreateDailyPeriod(30);
 
             // Act
             IEnumerable<Transaction> result = await _repository.GetByDateRangeAsync(startDate, endDate, userId);
@@ -260,8 +263,8 @@ namespace Tests.Infrastructure
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
-            Assert.All(result, t => Assert.Equal(6, t.Date.Month));
-            Assert.All(result, t => Assert.Equal(2024, t.Date.Year));
+            Assert.All(result, t => Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, t.Date.Month));
+            Assert.All(result, t => Assert.Equal(TestDataFactory.DEFAULT_YEAR, t.Date.Year));
         }
 
         [Fact]
@@ -269,8 +272,8 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            DailyPeriod startDate = new DailyPeriod(1, 6, 2024);
-            DailyPeriod endDate = new DailyPeriod(30, 6, 2024);
+            DailyPeriod startDate = TestDataFactory.CreateDailyPeriod(1);
+            DailyPeriod endDate = TestDataFactory.CreateDailyPeriod(30);
 
             // Act
             IEnumerable<Transaction> result = await _repository.GetByDateRangeAsync(startDate, endDate, userId);
@@ -285,7 +288,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            DailyPeriod endDate = new DailyPeriod(30, 6, 2024);
+            DailyPeriod endDate = TestDataFactory.CreateDailyPeriod(30);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(null, endDate, userId));
@@ -296,7 +299,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            DailyPeriod startDate = new DailyPeriod(1, 6, 2024);
+            DailyPeriod startDate = TestDataFactory.CreateDailyPeriod(1);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(startDate, null, userId));
@@ -309,18 +312,20 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            await TestDataFactory.SeedTransactionAsync(_repository);
-            await TestDataFactory.SeedTransactionAsync(_repository, category, TestDataFactory.CreateTransaction(2, TestDataFactory.CreateUser(), category, "Compra 2", "", 30.00m));
-            await TestDataFactory.SeedTransactionAsync(_repository, category, TestDataFactory.CreateTransaction(3, TestDataFactory.CreateUser(), category, "Compra 3", "", 20.00m, TransactionTypeEnum.Expense, 10, 7, 2024));
+            decimal otherAmount = 30.00m;
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(user: user);
+            await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category);
+            await TestDataFactory.SeedTransactionAsync(_repository, 2, user, category, amount: otherAmount);
+            await TestDataFactory.SeedTransactionAsync(_repository, 3, user, category, amount: 20.00m, month: 7);
 
-            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(6);
 
             // Act
             decimal total = await _repository.GetTotalByCategoryAndMonthlyPeriodAsync(category.Id, period, userId);
 
             // Assert
-            Assert.Equal(75.75m, total);
+            Assert.Equal(otherAmount + TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, total);
         }
 
         [Fact]
@@ -328,11 +333,11 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
+            int categoryId = 1;
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(6);
 
             // Act
-            decimal total = await _repository.GetTotalByCategoryAndMonthlyPeriodAsync(category.Id, period, userId);
+            decimal total = await _repository.GetTotalByCategoryAndMonthlyPeriodAsync(categoryId, period, userId);
 
             // Assert
             Assert.Equal(0, total);
@@ -345,8 +350,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository);
+            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
 
             // Act
             bool exists = await _repository.ExistsAsync(transaction.Id, userId);
@@ -360,7 +364,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            bool exists = await _repository.ExistsAsync(999,userId);
+            bool exists = await _repository.ExistsAsync(999, userId);
 
             // Assert
             Assert.False(exists);
@@ -384,14 +388,21 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository);
+            EntityInfo updatedEntityInfo = TestDataFactory.CreateEntityInfo("Compra actualizada", "Nueva descripción");
+            Money updatedAmount = TestDataFactory.CreateMoney(50.00m);
+            TransactionTypeEnum updatedTransaction = TransactionTypeEnum.Income;
+            DailyPeriod updatedDate = TestDataFactory.CreateDailyPeriod(20);
+
+            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
 
             // Modificar la entidad
-            EntityInfo newInfo = new EntityInfo("Compra actualizada", "Nueva descripción");
-            Money newAmount = new Money(50.00m);
-            DailyPeriod newDate = new DailyPeriod(20, 6, 2024);
-            transaction.Update(newInfo, newAmount, TransactionTypeEnum.Income, newDate);
+            transaction.Update
+            (
+                updatedEntityInfo,
+                updatedAmount,
+                updatedTransaction,
+                updatedDate
+            );
 
             // Act
             await _repository.UpdateAsync(transaction);
@@ -399,13 +410,13 @@ namespace Tests.Infrastructure
             // Assert
             Transaction? updated = await _repository.GetByIdAsync(transaction.Id, userId);
             Assert.NotNull(updated);
-            Assert.Equal("Compra actualizada", updated.Info.Name);
-            Assert.Equal("Nueva descripción", updated.Info.Description);
-            Assert.Equal(50.00m, updated.Amount.Value);
-            Assert.Equal(TransactionTypeEnum.Income, updated.Type);
-            Assert.Equal(20, updated.Date.Day);
-            Assert.Equal(6, updated.Date.Month);
-            Assert.Equal(2024, updated.Date.Year);
+            Assert.Equal(updatedEntityInfo.Name, updated.Info.Name);
+            Assert.Equal(updatedEntityInfo.Description, updated.Info.Description);
+            Assert.Equal(updatedAmount.Value, updated.Amount.Value);
+            Assert.Equal(updatedTransaction, updated.Type);
+            Assert.Equal(updatedDate.Day, updated.Date.Day);
+            Assert.Equal(updatedDate.Month, updated.Date.Month);
+            Assert.Equal(updatedDate.Year, updated.Date.Year);
             Assert.NotNull(updated.UpdatedAt);
         }
 
@@ -416,8 +427,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository);
+            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
             int id = transaction.Id;
 
             // Act

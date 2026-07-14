@@ -67,27 +67,27 @@ namespace Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateAmount(Money newAmount)
+        public void UpdateAmount(Money amount)
         {
-            ArgumentNullException.ThrowIfNull(newAmount);
+            ArgumentNullException.ThrowIfNull(amount);
 
-            Amount = newAmount;
+            Amount = amount;
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateInfo(EntityInfo newInfo)
+        public void UpdateInfo(EntityInfo info)
         {
-            ArgumentNullException.ThrowIfNull(newInfo);
+            ArgumentNullException.ThrowIfNull(info);
 
-            Info = newInfo;
+            Info = info;
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateDate(DailyPeriod newDate)
+        public void UpdateDate(DailyPeriod date)
         {
-            ArgumentNullException.ThrowIfNull(newDate);
+            ArgumentNullException.ThrowIfNull(date);
 
-            Date = newDate;
+            Date = date;
             UpdatedAt = DateTime.UtcNow;
         }
 

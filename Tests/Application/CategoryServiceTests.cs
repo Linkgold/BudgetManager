@@ -117,7 +117,7 @@ namespace Tests.Application
             // Assert
             result.Should().NotBeNull();
             result.Count.Should().Be(categories.Count);
-            result.Select(dto => dto.Name).Should().Contain(new[] { $"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 1", $"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 2", $"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 3" });
+            result.Select(dto => dto.Name).Should().Contain([$"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 1", $"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 2", $"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 3"]);
             _mockRepository.Verify(repo => repo.GetAllAsync(userId), Times.Once);
         }
 
@@ -142,7 +142,7 @@ namespace Tests.Application
 
             // Assert
             result.Should().NotBeNull();
-            result.Count.Should().Be(2);
+            result.Count.Should().Be(categories.Count);
             result.All(dto => dto.IsActive).Should().BeTrue();
             _mockRepository.Verify(repo => repo.GetActiveCategoriesAsync(userId), Times.Once);
         }
@@ -153,14 +153,11 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
 
-            User user = TestDataFactory.CreateUser(userId);
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            Category expectedCategory = new Category(user, TestDataFactory.CreateEntityInfo());
 
             _mockRepository
                 .Setup(repo => repo.GetByNameAsync(TestDataFactory.DEFAULT_ENTITY_INFO_NAME, userId))
-                .ReturnsAsync(expectedCategory);
+                .ReturnsAsync(TestDataFactory.CreateCategory(name: TestDataFactory.DEFAULT_ENTITY_INFO_NAME));
 
             // Act
             CategoryResponseDTO result = await _service.GetByNameAsync(TestDataFactory.DEFAULT_ENTITY_INFO_NAME);
@@ -268,10 +265,9 @@ namespace Tests.Application
             int userId = 1;
             int categoryId = 1;
 
-            User user = TestDataFactory.CreateUser(userId);
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
-            Category existingCategory = new Category(user, new EntityInfo("Nombre Antiguo", "Descripción Antigua"));
+            Category existingCategory = TestDataFactory.CreateCategory(1, TestDataFactory.CreateUser(), TestDataFactory.CreateEntityInfo("Nombre Antiguo", "Descripción Antigua"));
 
             UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
             {
@@ -285,7 +281,7 @@ namespace Tests.Application
 
             _mockRepository
                 .Setup(repo => repo.GetByNameAsync(request.Name, userId))
-                .ReturnsAsync((Category)null);
+                .ReturnsAsync((Category?)null);
 
             // Act
             CategoryResponseDTO result = await _service.UpdateAsync(categoryId, request);
@@ -307,12 +303,6 @@ namespace Tests.Application
             int userId = 1;
             int categoryId = 999;
 
-            UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
-            {
-                Name = "Nuevo Nombre",
-                Description = "Nueva Descripción"
-            };
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _mockRepository
@@ -320,7 +310,16 @@ namespace Tests.Application
                 .ReturnsAsync((Category?)null);
 
             // Act & Assert
-            Func<Task> act = async () => await _service.UpdateAsync(categoryId, request);
+            Func<Task> act = async () => await _service.UpdateAsync
+            (
+                categoryId,
+                new UpdateCategoryRequestDTO
+                {
+                    Name = "Nuevo Nombre",
+                    Description = "Nueva Descripción"
+                }
+            );
+
             await act.Should().ThrowAsync<KeyNotFoundException>().WithMessage($"*{categoryId}*");
 
             _mockRepository.Verify(repo => repo.GetByIdAsync(categoryId, userId), Times.Once);
@@ -337,9 +336,6 @@ namespace Tests.Application
             User user = TestDataFactory.CreateUser(userId);
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
-            Category existingCategory = TestDataFactory.CreateCategory(1, user, "Nombre Antiguo", "Descripción Antigua");
-            Category otherCategory = TestDataFactory.CreateCategory(2, user, "Nuevo Nombre", "Otra Descripción");
-
             UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
             {
                 Name = "Nuevo Nombre",
@@ -348,11 +344,11 @@ namespace Tests.Application
 
             _mockRepository
                 .Setup(repo => repo.GetByIdAsync(categoryId, userId))
-                .ReturnsAsync(existingCategory);
+                .ReturnsAsync(TestDataFactory.CreateCategory(1, user, "Nombre Antiguo", "Descripción Antigua"));
 
             _mockRepository
                 .Setup(repo => repo.GetByNameAsync(request.Name, userId))
-                .ReturnsAsync(otherCategory);
+                .ReturnsAsync(TestDataFactory.CreateCategory(2, user, "Nuevo Nombre", "Otra Descripción"));
 
             // Act & Assert
             Func<Task> act = async () => await _service.UpdateAsync(categoryId, request);

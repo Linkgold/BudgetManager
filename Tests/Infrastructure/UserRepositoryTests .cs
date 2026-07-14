@@ -27,29 +27,22 @@ namespace Tests.Infrastructure
 
         // ==================== HELPERS ====================
 
-        private async Task<User> SeedUserAsync(User user)
-        {
-            await _repository.AddAsync(user);
-            return user;
-        }
+        
 
         // ==================== TEST: ADD ====================
 
         [Fact]
         public async Task AddAsync_ShouldAddUserToDatabase()
         {
-            // Arrange<
-            User user = TestDataFactory.CreateUser();
-
-            // Act
-            await _repository.AddAsync(user);
+            // Arrange
+            User user = await TestDataFactory.SeedUserAsync(_repository, 1);
 
             // Assert
             User? retrieved = await _dbContext.Users.FirstOrDefaultAsync(u => u.Id == user.Id);
 
             Assert.NotNull(retrieved);
-            Assert.Equal("Juan Pérez", retrieved.Info.UserName);
-            Assert.Equal("juan@email.com", retrieved.Info.Email);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_NAME, retrieved.Info.UserName);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, retrieved.Info.Email);
             Assert.NotEqual(default, retrieved.CreatedAt);
         }
 
@@ -59,8 +52,7 @@ namespace Tests.Infrastructure
         public async Task GetByIdAsync_WithExistingId_ReturnsUser()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            await SeedUserAsync(user);
+            User user = await TestDataFactory.SeedUserAsync(_repository, 1);
 
             // Act
             User? retrieved = await _repository.GetByIdAsync(user.Id);
@@ -68,8 +60,8 @@ namespace Tests.Infrastructure
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(user.Id, retrieved.Id);
-            Assert.Equal("Juan Pérez", retrieved.Info.UserName);
-            Assert.Equal("juan@email.com", retrieved.Info.Email);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_NAME, retrieved.Info.UserName);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, retrieved.Info.Email);
         }
 
         [Fact]
@@ -88,16 +80,15 @@ namespace Tests.Infrastructure
         public async Task GetByEmailAsync_WithExistingEmail_ReturnsUser()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            await SeedUserAsync(user);
+            User user = await TestDataFactory.SeedUserAsync(_repository, 1);
 
             // Act
-            User? retrieved = await _repository.GetByEmailAsync("juan@email.com");
+            User? retrieved = await _repository.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL);
 
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(user.Id, retrieved.Id);
-            Assert.Equal("juan@email.com", retrieved.Info.Email);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, retrieved.Info.Email);
         }
 
         [Fact]
@@ -116,8 +107,7 @@ namespace Tests.Infrastructure
         public async Task ExistsAsync_WithExistingId_ReturnsTrue()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            await SeedUserAsync(user);
+            User user = await TestDataFactory.SeedUserAsync(_repository, 1);
 
             // Act
             bool exists = await _repository.ExistsAsync(user.Id);
@@ -142,11 +132,10 @@ namespace Tests.Infrastructure
         public async Task ExistsByEmailAsync_WithExistingEmail_ReturnsTrue()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            await SeedUserAsync(user);
+            User user = await TestDataFactory.SeedUserAsync(_repository, 1);
 
             // Act
-            bool exists = await _repository.ExistsByEmailAsync("juan@email.com");
+            bool exists = await _repository.ExistsByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL);
 
             // Assert
             Assert.True(exists);
@@ -168,12 +157,12 @@ namespace Tests.Infrastructure
         public async Task UpdateAsync_ShouldUpdateUser()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            await SeedUserAsync(user);
+            UserInfo updatedUserInfo = TestDataFactory.CreateUserInfo("María García", "maria@email.com");
+
+            User user = await TestDataFactory.SeedUserAsync(_repository, 1);
 
             // Modificar el usuario
-            UserInfo newUserInfo = new UserInfo("María García", "maria@email.com");
-            user.Update(newUserInfo);
+            user.Update(updatedUserInfo);
 
             // Act
             await _repository.UpdateAsync(user);
@@ -181,8 +170,8 @@ namespace Tests.Infrastructure
             // Assert
             User? updated = await _repository.GetByIdAsync(user.Id);
             Assert.NotNull(updated);
-            Assert.Equal("María García", updated.Info.UserName);
-            Assert.Equal("maria@email.com", updated.Info.Email);
+            Assert.Equal(updatedUserInfo.UserName, updated.Info.UserName);
+            Assert.Equal(updatedUserInfo.Email, updated.Info.Email);
             Assert.NotNull(updated.UpdatedAt);
         }
 
@@ -192,8 +181,7 @@ namespace Tests.Infrastructure
         public async Task DeleteAsync_ShouldRemoveUser()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-            await SeedUserAsync(user);
+            User user = await TestDataFactory.SeedUserAsync(_repository, 1);
             int id = user.Id;
 
             // Act

@@ -121,17 +121,19 @@ namespace Tests.Application
 
             User user = TestDataFactory.CreateUser(userId);
             Category category = TestDataFactory.CreateCategory(categoryId, user, "Suscripciones");
-            
-            FixedExpense fixedExpense1 = TestDataFactory.CreateFixedExpense(1, user, category);
-            FixedExpense fixedExpense2 = TestDataFactory.CreateFixedExpense(2, user, category, customFixedExpenseName);
-
-            List<FixedExpense> fixedExpenses = new List<FixedExpense> { fixedExpense1, fixedExpense2 };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
                 .Setup(repo => repo.GetAllAsync(userId))
-                .ReturnsAsync(fixedExpenses);
+                .ReturnsAsync
+                (
+                    new List<FixedExpense>
+                    {
+                        TestDataFactory.CreateFixedExpense(1, user, category),
+                        TestDataFactory.CreateFixedExpense(2, user, category, customFixedExpenseName)
+                    }
+                );
 
             // Act
             List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetAllAsync();
@@ -156,11 +158,6 @@ namespace Tests.Application
             User user = TestDataFactory.CreateUser(userId);
             Category category = TestDataFactory.CreateCategory(categoryId, user, "Suscripciones");
 
-            FixedExpense fixedExpense1 = TestDataFactory.CreateFixedExpense(1, user, category);
-            FixedExpense fixedExpense2 = TestDataFactory.CreateFixedExpense(2, user, category, customFixedExpenseName);
-
-            List<FixedExpense> fixedExpenses = new List<FixedExpense> { fixedExpense1, fixedExpense2 };
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
@@ -169,7 +166,14 @@ namespace Tests.Application
 
             _fixedExpenseRepositoryMock
                 .Setup(repo => repo.GetByCategoryAsync(categoryId, userId))
-                .ReturnsAsync(fixedExpenses);
+                .ReturnsAsync
+                (
+                    new List<FixedExpense>
+                    {
+                        TestDataFactory.CreateFixedExpense(1, user, category),
+                        TestDataFactory.CreateFixedExpense(2, user, category, customFixedExpenseName)
+                    }
+                );
 
             // Act
             List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetByCategoryIdAsync(categoryId);
@@ -219,13 +223,11 @@ namespace Tests.Application
 
             inactiveExpense.Deactivate(); // Desactivar uno
 
-            List<FixedExpense> activeExpenses = new List<FixedExpense> { activeExpense };
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
                 .Setup(repo => repo.GetActiveAsync(userId))
-                .ReturnsAsync(activeExpenses);
+                .ReturnsAsync(new List<FixedExpense> { activeExpense });
 
             // Act
             List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetActiveAsync();
@@ -246,16 +248,6 @@ namespace Tests.Application
             int categoryId = 1;
             string customCatogoryName = "Suscripciones";
 
-            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO 
-            { 
-                CategoryId = categoryId, 
-                Name = TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME, 
-                Description = TestDataFactory.DEFAULT_FIXED_EXPENSE_DESCRIPTION, 
-                Amount = TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, 
-                Month = TestDataFactory.DEFAULT_MONTHLY_MONTH, 
-                Year = TestDataFactory.DEFAULT_YEAR 
-            };
-
             User user = TestDataFactory.CreateUser(userId);
             Category category = TestDataFactory.CreateCategory(categoryId, user, customCatogoryName);
 
@@ -270,7 +262,18 @@ namespace Tests.Application
                 .ReturnsAsync(user);
 
             // Act
-            FixedExpenseResponseDTO result = await _fixedExpenseService.CreateAsync(request);
+            FixedExpenseResponseDTO result = await _fixedExpenseService.CreateAsync
+            (
+                new CreateFixedExpenseRequestDTO
+                {
+                    CategoryId = categoryId,
+                    Name = TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME,
+                    Description = TestDataFactory.DEFAULT_FIXED_EXPENSE_DESCRIPTION,
+                    Amount = TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT,
+                    Month = TestDataFactory.DEFAULT_MONTHLY_MONTH,
+                    Year = TestDataFactory.DEFAULT_YEAR
+                }
+            );
 
             // Assert
             Assert.NotNull(result);
@@ -290,7 +293,6 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 999;
-            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO { CategoryId = categoryId };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
@@ -299,7 +301,7 @@ namespace Tests.Application
                 .ReturnsAsync((Category?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.CreateAsync(request));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.CreateAsync(new CreateFixedExpenseRequestDTO { CategoryId = categoryId }));
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<FixedExpense>()), Times.Never);
         }
@@ -310,7 +312,6 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 1;
-            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Amount = -15.99m };
 
             User user = TestDataFactory.CreateUser(userId);
             Category category = TestDataFactory.CreateCategory(categoryId, user, "Suscripciones");
@@ -322,7 +323,7 @@ namespace Tests.Application
                 .ReturnsAsync(category);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _fixedExpenseService.CreateAsync(request));
+            await Assert.ThrowsAsync<ArgumentException>(() => _fixedExpenseService.CreateAsync(new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Amount = -15.99m }));
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<FixedExpense>()), Times.Never);
         }
@@ -342,8 +343,6 @@ namespace Tests.Application
             int updatedMonth = 2;
             int updatedYear = 2025;
 
-            UpdateFixedExpenseRequestDTO request = new UpdateFixedExpenseRequestDTO { Name = updatedName, Description = updatedDescription, Amount = updatedAmount, Month = updatedMonth, Year = updatedYear };
-
             User user = TestDataFactory.CreateUser(userId);
             Category category = TestDataFactory.CreateCategory(categoryId, user, "Suscripciones");
             FixedExpense existingFixedExpense = TestDataFactory.CreateFixedExpense(fixedExpenseId, user, category);
@@ -355,7 +354,18 @@ namespace Tests.Application
                 .ReturnsAsync(existingFixedExpense);
 
             // Act
-            FixedExpenseResponseDTO result = await _fixedExpenseService.UpdateAsync(fixedExpenseId, request);
+            FixedExpenseResponseDTO result = await _fixedExpenseService.UpdateAsync
+            (
+                fixedExpenseId,
+                new UpdateFixedExpenseRequestDTO
+                {
+                    Name = updatedName,
+                    Description = updatedDescription,
+                    Amount = updatedAmount,
+                    Month = updatedMonth,
+                    Year = updatedYear
+                }
+            );
 
             // Assert
             Assert.NotNull(result);
@@ -375,7 +385,6 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int fixedExpenseId = 999;
-            UpdateFixedExpenseRequestDTO request = new UpdateFixedExpenseRequestDTO { };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
@@ -384,7 +393,7 @@ namespace Tests.Application
                 .ReturnsAsync((FixedExpense?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.UpdateAsync(fixedExpenseId, request));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.UpdateAsync(fixedExpenseId, new UpdateFixedExpenseRequestDTO()));
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<FixedExpense>()), Times.Never);
         }
@@ -449,7 +458,7 @@ namespace Tests.Application
             await _fixedExpenseService.ActivateAsync(fixedExpenseId);
 
             // Assert
-            _fixedExpenseRepositoryMock.Verify(repo => repo.ActivateAsync(fixedExpenseId,userId), Times.Once);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.ActivateAsync(fixedExpenseId, userId), Times.Once);
         }
 
         [Fact]
@@ -462,7 +471,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId,userId))
+                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
                 .ReturnsAsync(false);
 
             // Act & Assert

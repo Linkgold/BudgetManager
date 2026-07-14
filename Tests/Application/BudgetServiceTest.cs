@@ -55,8 +55,8 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int budgetId = 1;
-            Category category = TestDataFactory.CreateCategory(1);
-            Budget budget = TestDataFactory.CreateBudget(budgetId);
+            Category category = TestDataFactory.CreateCategory();
+            Budget budget = TestDataFactory.CreateBudget();
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
@@ -97,7 +97,7 @@ namespace Tests.Application
         public async Task GetByIdAsync_WithInvalidId_ThrowsArgumentException()
         {
             // Act & Assert
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, 1);
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock);
 
             await Assert.ThrowsAsync<ArgumentException>(() => _budgetService.GetByIdAsync(0));
         }
@@ -138,7 +138,7 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 1;
-            Category category = TestDataFactory.CreateCategory(categoryId);
+            Category category = TestDataFactory.CreateCategory();
             Budget budget1 = TestDataFactory.CreateBudget(1);
             Budget budget2 = TestDataFactory.CreateBudget(2);
             List<Budget> budgets = new List<Budget> { budget1, budget2 };
@@ -212,7 +212,7 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 1;
-            Category category = TestDataFactory.CreateCategory(categoryId);
+            Category category = TestDataFactory.CreateCategory();
             Budget budget = TestDataFactory.CreateBudget(1);
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
@@ -256,8 +256,9 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 1;
-            Category category = TestDataFactory.CreateCategory(categoryId);
-            Budget budget = TestDataFactory.CreateBudget(1);
+            int budgetId = 1;
+            Category category = TestDataFactory.CreateCategory();
+            Budget budget = TestDataFactory.CreateBudget(budgetId);
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
@@ -270,7 +271,7 @@ namespace Tests.Application
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(1, result.BudgetId);
+            Assert.Equal(budgetId, result.BudgetId);
             Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, result.BudgetAmount);
             Assert.Equal(0, result.TotalSpent);
             Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, result.Remaining);
@@ -305,22 +306,11 @@ namespace Tests.Application
             int userId = 1;
             int categoryId = 1;
 
-            CreateBudgetRequestDTO request = new CreateBudgetRequestDTO
-            {
-                CategoryId = categoryId,
-                Amount = TestDataFactory.DEFAULT_BUDGET_AMOUNT,
-                Month = TestDataFactory.DEFAULT_MONTHLY_MONTH,
-                Year = TestDataFactory.DEFAULT_YEAR
-            };
-
-            Category category = TestDataFactory.CreateCategory(categoryId);
-            User user = TestDataFactory.CreateUser(userId);
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(categoryId, userId, It.IsAny<bool>()))
-                .ReturnsAsync(category);
+                .ReturnsAsync(TestDataFactory.CreateCategory(categoryId));
 
             _budgetRepositoryMock
                 .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
@@ -328,10 +318,19 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUser(userId));
 
             // Act
-            BudgetResponseDTO result = await _budgetService.CreateAsync(request);
+            BudgetResponseDTO result = await _budgetService.CreateAsync
+            (
+                new CreateBudgetRequestDTO
+                {
+                    CategoryId = categoryId,
+                    Amount = TestDataFactory.DEFAULT_BUDGET_AMOUNT,
+                    Month = TestDataFactory.DEFAULT_MONTHLY_MONTH,
+                    Year = TestDataFactory.DEFAULT_YEAR
+                }
+            );
 
             // Assert
             Assert.NotNull(result);
@@ -350,8 +349,6 @@ namespace Tests.Application
             int userId = 1;
             int categoryId = 999;
 
-            CreateBudgetRequestDTO request = new CreateBudgetRequestDTO { CategoryId = categoryId, Amount = 500.00m, Month = 1, Year = 2024 };
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
@@ -359,7 +356,10 @@ namespace Tests.Application
                 .ReturnsAsync((Category?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.CreateAsync(request));
+            await Assert.ThrowsAsync<KeyNotFoundException>
+            (
+                () => _budgetService.CreateAsync(new CreateBudgetRequestDTO { CategoryId = categoryId, Amount = TestDataFactory.DEFAULT_BUDGET_AMOUNT, Month = TestDataFactory.DEFAULT_MONTHLY_MONTH, Year = TestDataFactory.DEFAULT_YEAR })
+            );
 
             _budgetRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Budget>()), Times.Never);
         }
@@ -370,8 +370,6 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 1;
-
-            CreateBudgetRequestDTO request = new CreateBudgetRequestDTO { CategoryId = categoryId, Amount = 500.00m, Month = 1, Year = 2024 };
 
             Category category = TestDataFactory.CreateCategory(categoryId);
 
@@ -386,7 +384,10 @@ namespace Tests.Application
                 .ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ConflictException>(() => _budgetService.CreateAsync(request));
+            await Assert.ThrowsAsync<ConflictException>
+            (
+                () => _budgetService.CreateAsync(new CreateBudgetRequestDTO { CategoryId = categoryId, Amount = TestDataFactory.DEFAULT_BUDGET_AMOUNT, Month = TestDataFactory.DEFAULT_MONTHLY_MONTH, Year = TestDataFactory.DEFAULT_YEAR })
+            );
 
             _budgetRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Budget>()), Times.Never);
         }
@@ -401,8 +402,6 @@ namespace Tests.Application
             int budgetId = 1;
             decimal updatedAmount = 600.00m;
 
-            UpdateBudgetRequestDTO request = new UpdateBudgetRequestDTO { Amount = updatedAmount };
-
             Budget budget = TestDataFactory.CreateBudget(budgetId);
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
@@ -412,7 +411,7 @@ namespace Tests.Application
                 .ReturnsAsync(budget);
 
             // Act
-            BudgetResponseDTO result = await _budgetService.UpdateAsync(budgetId, request);
+            BudgetResponseDTO result = await _budgetService.UpdateAsync(budgetId, new UpdateBudgetRequestDTO { Amount = updatedAmount });
 
             // Assert
             Assert.NotNull(result);
@@ -430,8 +429,6 @@ namespace Tests.Application
             int budgetId = 999;
             decimal updatedAmount = 600.00m;
 
-            UpdateBudgetRequestDTO request = new UpdateBudgetRequestDTO { Amount = updatedAmount };
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
@@ -439,7 +436,7 @@ namespace Tests.Application
                 .ReturnsAsync((Budget?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.UpdateAsync(budgetId, request));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.UpdateAsync(budgetId, new UpdateBudgetRequestDTO { Amount = updatedAmount }));
 
             _budgetRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Budget>()), Times.Never);
         }

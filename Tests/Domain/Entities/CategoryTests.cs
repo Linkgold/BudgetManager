@@ -56,8 +56,7 @@ namespace Tests.Domain.Entities
             Category category = TestDataFactory.CreateCategory();
 
             // Act
-            EntityInfo newInfo =TestDataFactory.CreateEntityInfo();
-            category.Update(newInfo);
+            category.Update(TestDataFactory.CreateEntityInfo());
 
             // Assert
             Assert.Equal(TestDataFactory.DEFAULT_ENTITY_INFO_NAME, category.Info.Name);
@@ -74,7 +73,7 @@ namespace Tests.Domain.Entities
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => category.Update(null));
 
-            Assert.Equal("newInfo", exception.ParamName);
+            Assert.Equal("info", exception.ParamName);
         }
 
         // ==================== ACTIVAR / DESACTIVAR ====================
@@ -120,8 +119,8 @@ namespace Tests.Domain.Entities
             string result = category.ToString();
 
             // Assert
-            Assert.Contains("Alimentación", result);
-            Assert.Contains("ID", result);
+            Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_NAME, result);
+            Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_DESCRIPTION, result);
         }
 
         // ==================== EQUALITY (opcional) ====================
@@ -133,7 +132,7 @@ namespace Tests.Domain.Entities
             User user = TestDataFactory.CreateUser();
             EntityInfo info = TestDataFactory.CreateEntityInfo();
             Category category1 = TestDataFactory.CreateCategory(1, user, info);
-            Category category2 = TestDataFactory.CreateCategory(2, user,info);
+            Category category2 = TestDataFactory.CreateCategory(2, user, info);
 
             // Act & Assert
             Assert.NotEqual(category1.Id, category2.Id);

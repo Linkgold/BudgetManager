@@ -35,11 +35,11 @@ namespace Domain.Entities
             // Budgets = new List<Budget>();
         }
 
-        public void Update(EntityInfo newInfo)
+        public void Update(EntityInfo info)
         {
-            ArgumentNullException.ThrowIfNull(newInfo);
+            ArgumentNullException.ThrowIfNull(info);
 
-            Info = newInfo;
+            Info = info;
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -55,6 +55,6 @@ namespace Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public override string ToString() => $"Category: {Info.Name} (ID: {Id})";
+        public override string ToString() => $"Category: {Info.Name} (Description: {Info.Description})";
     }
 }

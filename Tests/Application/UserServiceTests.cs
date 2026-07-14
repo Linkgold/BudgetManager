@@ -6,11 +6,9 @@ using Application.Services;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
-using Domain.ValueObjects;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Tests.Helpers;
-using Crypt = BCrypt.Net.BCrypt;
 
 namespace Tests.Application
 {
@@ -101,11 +99,10 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = TestDataFactory.CreateUser(userId);
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUser());
 
             // Act
             UserResponseDTO result = await _userService.GetByIdAsync(userId);
@@ -137,11 +134,9 @@ namespace Tests.Application
         public async Task GetByEmailAsync_WithExistingEmail_ReturnsUser()
         {
             // Arrange
-            User user = TestDataFactory.CreateUser();
-
             _userRepositoryMock
                 .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUser());
 
             // Act
             UserResponseDTO result = await _userService.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL);
@@ -172,7 +167,6 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = TestDataFactory.CreateUser();
 
             _currentUserServiceMock
                 .Setup(service => service.UserId)
@@ -180,7 +174,7 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUser());
 
             // Act
             UserResponseDTO result = await _userService.GetCurrentUserAsync();
@@ -212,8 +206,6 @@ namespace Tests.Application
             string updatedUserName = "María García";
             string updatedEmail = "maria@email.com";
 
-            User user = TestDataFactory.CreateUser();
-
             UpdateUserRequestDTO request = new UpdateUserRequestDTO { UserName = updatedUserName, Email = updatedEmail };
 
             _currentUserServiceMock
@@ -222,7 +214,7 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUser());
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByEmailAsync(request.Email))
@@ -244,8 +236,6 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            User otherUser = TestDataFactory.CreateUser(2, "Otro Usuario", "maria@email.com");
 
             UpdateUserRequestDTO request = new UpdateUserRequestDTO
             {
@@ -259,11 +249,11 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUser());
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByEmailAsync(request.Email))
-                .ReturnsAsync(otherUser);
+                .ReturnsAsync(TestDataFactory.CreateUser(2, "Otro Usuario", "maria@email.com"));
 
             // Act & Assert
             await Assert.ThrowsAsync<InvalidOperationException>(() => _userService.UpdateAsync(request));
@@ -312,11 +302,9 @@ namespace Tests.Application
         public async Task LoginAsync_WithValidCredentials_ReturnsToken()
         {
             // Arrange
-            User user = TestDataFactory.CreateUserWithPassword();
-
             _userRepositoryMock
                 .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUserWithPassword());
 
             // Act
             string token = await _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, TestDataFactory.DEFAULT_PASSWORD);
@@ -344,11 +332,9 @@ namespace Tests.Application
         public async Task LoginAsync_WithInvalidPassword_ThrowsUnauthorizedAccessException()
         {
             // Arrange
-            User user = TestDataFactory.CreateUserWithPassword();
-
             _userRepositoryMock
                 .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUserWithPassword());
 
             // Act & Assert
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, "WrongPassword"));
@@ -377,7 +363,6 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             string newPassword = "NewPassword456!";
-            User user = TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD);
 
             _currentUserServiceMock
                 .Setup(service => service.UserId)
@@ -385,7 +370,7 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD));
 
             // Act
             await _userService.ChangePasswordAsync(TestDataFactory.DEFAULT_PASSWORD, newPassword);
@@ -399,7 +384,6 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            User user = TestDataFactory.CreateUserWithPassword();
 
             _currentUserServiceMock
                 .Setup(service => service.UserId)
@@ -407,7 +391,7 @@ namespace Tests.Application
 
             _userRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+                .ReturnsAsync(TestDataFactory.CreateUserWithPassword());
 
             // Act & Assert
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.ChangePasswordAsync("WrongPassword", "NewPassword456!"));

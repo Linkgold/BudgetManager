@@ -15,7 +15,6 @@ namespace Tests.Infrastructure
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IBudgetRepository _repository;
-        private readonly ICategoryRepository _categoryRepository;
 
         public BudgetRepositoryTests()
         {
@@ -28,7 +27,6 @@ namespace Tests.Infrastructure
 
             _dbContext = new ApplicationDbContext(options);
             _repository = new BudgetRepository(_dbContext);
-            _categoryRepository = new CategoryRepository(_dbContext);
         }
 
         // ==================== TEST: ADD ====================
@@ -37,7 +35,7 @@ namespace Tests.Infrastructure
         public async Task AddAsync_ShouldAddBudgetToDatabase()
         {
             // Arrange
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+
             Budget budget = TestDataFactory.CreateBudget();
 
             // Act
@@ -49,10 +47,9 @@ namespace Tests.Infrastructure
                 .FirstOrDefaultAsync(b => b.Id == budget.Id);
 
             Assert.NotNull(retrieved);
-            Assert.Equal(500.00m, retrieved.MonthlyAmount.Value);
-            Assert.Equal(2024, retrieved.Period.Year);
-            Assert.Equal(1, retrieved.Period.Month);
-            Assert.Equal(category.Id, retrieved.CategoryId);
+            Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, retrieved.MonthlyAmount.Value);
+            Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.Period.Year);
+            Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, retrieved.Period.Month);
             Assert.NotEqual(default, retrieved.CreatedAt);
         }
 
@@ -63,8 +60,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository);
+            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
 
             // Act
             Budget? retrieved = await _repository.GetByIdAsync(budget.Id, userId);
@@ -72,10 +68,9 @@ namespace Tests.Infrastructure
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(budget.Id, retrieved.Id);
-            Assert.Equal(500.00m, retrieved.MonthlyAmount.Value);
-            Assert.Equal(2024, retrieved.Period.Year);
-            Assert.Equal(1, retrieved.Period.Month);
-            Assert.Equal(category.Id, retrieved.CategoryId);
+            Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, retrieved.MonthlyAmount.Value);
+            Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.Period.Year);
+            Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, retrieved.Period.Month);
             Assert.NotNull(retrieved.Category);
         }
 
@@ -104,9 +99,12 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            await TestDataFactory.SeedBudgetAsync(_repository);
-            await TestDataFactory.SeedBudgetAsync(_repository, category, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category, 300.00m, 1, 2024));
+            User user = TestDataFactory.CreateUser();
+            Category category1 = TestDataFactory.CreateCategory(1, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user);
+
+            await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category1);
+            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category2);
 
             // Act
             IEnumerable<Budget> result = await _repository.GetAllAsync(userId);
@@ -123,12 +121,13 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category1 = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Category category2 = await TestDataFactory.SeedCategoryAsync(_categoryRepository, TestDataFactory.CreateCategory(1, TestDataFactory.CreateUser(), "Transporte"));
+            User user = TestDataFactory.CreateUser();
+            Category category1 = TestDataFactory.CreateCategory(1, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user);
 
-            await TestDataFactory.SeedBudgetAsync(_repository);
-            await TestDataFactory.SeedBudgetAsync(_repository, category1, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category1, 300.00m, 1, 2024));
-            await TestDataFactory.SeedBudgetAsync(_repository, category2, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category2, 200.00m, 1, 2024));
+            await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category1);
+            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category1);
+            await TestDataFactory.SeedBudgetAsync(_repository, 3, user, category2);
 
             // Act
             IEnumerable<Budget> result = await _repository.GetByCategoryIdAsync(category1.Id, userId);
@@ -157,12 +156,14 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            await TestDataFactory.SeedBudgetAsync(_repository);
-            await TestDataFactory.SeedBudgetAsync(_repository, category, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category, 300.00m, 1, 2024));
-            await TestDataFactory.SeedBudgetAsync(_repository, category, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category, 200.00m, 1, 2024));
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(1, user);
 
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category);
+            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category);
+            await TestDataFactory.SeedBudgetAsync(_repository, 3, user, category, month: 2);
+
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act
             IEnumerable<Budget> result = await _repository.GetByPeriodAsync(period, userId);
@@ -170,8 +171,8 @@ namespace Tests.Infrastructure
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count());
-            Assert.All(result, b => Assert.Equal(1, b.Period.Month));
-            Assert.All(result, b => Assert.Equal(2024, b.Period.Year));
+            Assert.All(result, b => Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, b.Period.Month));
+            Assert.All(result, b => Assert.Equal(TestDataFactory.DEFAULT_YEAR, b.Period.Year));
         }
 
         [Fact]
@@ -179,7 +180,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            MonthlyPeriod period = new MonthlyPeriod(12, 2025);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(12, 2025);
 
             // Act
             IEnumerable<Budget> result = await _repository.GetByPeriodAsync(period, userId);
@@ -203,20 +204,23 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            await TestDataFactory.SeedBudgetAsync(_repository);
-            await TestDataFactory.SeedBudgetAsync(_repository, category, TestDataFactory.CreateBudget(1, TestDataFactory.CreateUser(), category, 300.00m, 1, 2024));
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(1, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user);
 
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category);
+            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category2);
+
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act
             Budget? result = await _repository.GetByCategoryAndPeriodAsync(category.Id, period, userId);
 
             // Assert
             Assert.NotNull(result);
-            Assert.Equal(500.00m, result.MonthlyAmount.Value);
-            Assert.Equal(2024, result.Period.Year);
-            Assert.Equal(1, result.Period.Month);
+            Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, result.MonthlyAmount.Value);
+            Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, result.Period.Month);
+            Assert.Equal(TestDataFactory.DEFAULT_YEAR, result.Period.Year);
             Assert.Equal(category.Id, result.CategoryId);
         }
 
@@ -225,8 +229,8 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            MonthlyPeriod period = new MonthlyPeriod(12, 2025);
+            Category category = TestDataFactory.CreateCategory();
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(12, 2025);
 
             // Act
             Budget? result = await _repository.GetByCategoryAndPeriodAsync(category.Id, period, userId);
@@ -242,8 +246,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository);
+            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
 
             // Act
             bool exists = await _repository.ExistsAsync(budget.Id, userId);
@@ -281,10 +284,12 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            await TestDataFactory.SeedBudgetAsync(_repository);
 
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(1, user);
+            await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category);
+
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act
             bool exists = await _repository.ExistsForCategoryAndPeriodAsync(category.Id, period, userId);
@@ -298,8 +303,8 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            MonthlyPeriod period = new MonthlyPeriod(12, 2025);
+            Category category = TestDataFactory.CreateCategory();
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(12, 2025);
 
             // Act
             bool exists = await _repository.ExistsForCategoryAndPeriodAsync(category.Id, period, userId);
@@ -313,7 +318,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            MonthlyPeriod period = new MonthlyPeriod(1, 2024);
+            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act
             bool exists = await _repository.ExistsForCategoryAndPeriodAsync(0, period, userId);
@@ -327,7 +332,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
+            Category category = TestDataFactory.CreateCategory();
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.ExistsForCategoryAndPeriodAsync(category.Id, null, userId));
@@ -340,12 +345,11 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository);
+            decimal updatedAmount = 600.00m;
+            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
 
             // Modificar la entidad
-            Money newAmount = new Money(600.00m);
-            budget.UpdateAmount(newAmount);
+            budget.UpdateAmount(TestDataFactory.CreateMoney(updatedAmount));
 
             // Act
             await _repository.UpdateAsync(budget);
@@ -353,7 +357,7 @@ namespace Tests.Infrastructure
             // Assert
             Budget? updated = await _repository.GetByIdAsync(budget.Id, userId);
             Assert.NotNull(updated);
-            Assert.Equal(600.00m, updated.MonthlyAmount.Value);
+            Assert.Equal(updatedAmount, updated.MonthlyAmount.Value);
             Assert.NotNull(updated.UpdatedAt);
         }
 
@@ -364,8 +368,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = await TestDataFactory.SeedCategoryAsync(_categoryRepository);
-            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository);
+            Budget budget = await TestDataFactory.SeedBudgetAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
             int id = budget.Id;
 
             // Act

@@ -1,11 +1,9 @@
-﻿using Application.Interfaces;
-using Domain.Entities;
+﻿using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Tests.Helpers;
 
 namespace Tests.Infrastructure
@@ -36,19 +34,16 @@ namespace Tests.Infrastructure
         [Fact]
         public async Task AddAsync_ShouldAddCategoryToDatabase()
         {
-            // Arrange
-            Category category = TestDataFactory.CreateCategory(1, TestDataFactory.CreateUser());
-
-            // Act
-            await _repository.AddAsync(category);
+            // Arrange & Act
+            Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Assert
             Category? retrieved = await _dbContext.Categories.FindAsync(category.Id);
             Assert.NotNull(retrieved);
-            Assert.Equal("Alimentación", retrieved.Info.Name);
-            Assert.Equal("Gastos de comida", retrieved.Info.Description);
+            Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, retrieved.Info.Name);
+            Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_DESCRIPTION, retrieved.Info.Description);
             Assert.True(retrieved.IsActive);
-            Assert.NotEqual(default(DateTime), retrieved.CreatedAt);
+            Assert.NotEqual(default, retrieved.CreatedAt);
         }
 
         // ==================== TEST: GET BY ID ====================
@@ -58,8 +53,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = TestDataFactory.CreateCategory(1, TestDataFactory.CreateUser());
-            await _repository.AddAsync(category);
+            Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Act
             Category? retrieved = await _repository.GetByIdAsync(category.Id, userId);
@@ -67,7 +61,7 @@ namespace Tests.Infrastructure
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(category.Id, retrieved.Id);
-            Assert.Equal("Existente", retrieved.Info.Name);
+            Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, retrieved.Info.Name);
         }
 
         [Fact]
@@ -75,7 +69,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            Category? retrieved = await _repository.GetByIdAsync(999,userId);
+            Category? retrieved = await _repository.GetByIdAsync(999, userId);
 
             // Assert
             Assert.Null(retrieved);
@@ -88,18 +82,17 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            List<Category> categories = TestDataFactory.CreateCategories(2, TestDataFactory.CreateUser(userId));
-
-            await _repository.AddAsync(categories[0]);
-            await _repository.AddAsync(categories[1]);
+            User user = TestDataFactory.CreateUser(userId);
+            Category category1= await TestDataFactory.SeedCategoryAsync(_repository, 1, user);
+            Category category2 = await TestDataFactory.SeedCategoryAsync(_repository, 2, user);
 
             // Act
             IEnumerable<Category> result = await _repository.GetAllAsync(userId);
 
             // Assert
             Assert.Equal(2, result.Count());
-            Assert.Contains(result, c => c.Info.Name == "Categoría 1");
-            Assert.Contains(result, c => c.Info.Name == "Categoría 2");
+            Assert.Contains(result, c => c.Id == category1.Id);
+            Assert.Contains(result, c => c.Id == category2.Id);
         }
 
         // ==================== TEST: GET BY NAME ====================
@@ -109,23 +102,22 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            await _repository.AddAsync(category);
+            Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Act
-            Category? retrieved = await _repository.GetByNameAsync("Alimentación", userId);
+            Category? retrieved = await _repository.GetByNameAsync(TestDataFactory.DEFAULT_CATEGORY_NAME, userId);
 
             // Assert
             Assert.NotNull(retrieved);
             Assert.Equal(category.Id, retrieved.Id);
-            Assert.Equal("Alimentación", retrieved.Info.Name);
+            Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, retrieved.Info.Name);
         }
 
         [Fact]
         public async Task GetByNameAsync_WithNonExistingName_ReturnsNull()
         {
             // Act
-            Category? retrieved = await _repository.GetByNameAsync("NoExiste",1);
+            Category? retrieved = await _repository.GetByNameAsync("NoExiste", 1);
 
             // Assert
             Assert.Null(retrieved);
@@ -138,18 +130,19 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            List<Category> categories = TestDataFactory.CreateCategories(2, TestDataFactory.CreateUser(userId));
-            categories[1].Deactivate(); // Desactivamos
+            User user = TestDataFactory.CreateUser(userId);
+            Category categoryActive = await TestDataFactory.SeedCategoryAsync(_repository, 1, user);
+            Category categoryInactive = await TestDataFactory.SeedCategoryAsync(_repository, 2, user);
+            categoryInactive.Deactivate(); // Desactivamos
 
-            await _repository.AddAsync(categories[0]);
-            await _repository.AddAsync(categories[1]);
+            await _repository.UpdateAsync(categoryInactive);
 
             // Act
             IEnumerable<Category> result = await _repository.GetActiveCategoriesAsync(userId);
 
             // Assert
             Assert.Single(result);
-            Assert.Equal("Activa", result.First().Info.Name);
+            Assert.True(result.First().IsActive);
         }
 
         // ==================== TEST: UPDATE ====================
@@ -159,11 +152,12 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            await _repository.AddAsync(category);
+            string updatedName = "Modificado";
+            string updatedDescription = "Nueva descripción";
+            Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Modificar la entidad
-            category.Update(new EntityInfo("Modificado", "Nueva descripción"));
+            category.Update(TestDataFactory.CreateEntityInfo(updatedName, updatedDescription));
 
             // Act
             await _repository.UpdateAsync(category);
@@ -171,8 +165,8 @@ namespace Tests.Infrastructure
             // Assert
             Category? updated = await _repository.GetByIdAsync(category.Id, userId);
             Assert.NotNull(updated);
-            Assert.Equal("Modificado", updated.Info.Name);
-            Assert.Equal("Nueva descripción", updated.Info.Description);
+            Assert.Equal(updatedName, updated.Info.Name);
+            Assert.Equal(updatedDescription, updated.Info.Description);
             Assert.NotNull(updated.UpdatedAt);
         }
 
@@ -183,15 +177,13 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            await _repository.AddAsync(category);
-            int id = category.Id;
+            Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Act
-            await _repository.DeleteAsync(id,   userId);
+            await _repository.DeleteAsync(category.Id, userId);
 
             // Assert
-            Category? deleted = await _repository.GetByIdAsync(id,userId);
+            Category? deleted = await _repository.GetByIdAsync(category.Id, userId);
             Assert.Null(deleted);
         }
 
@@ -199,7 +191,7 @@ namespace Tests.Infrastructure
         public async Task DeleteAsync_WithNonExistingId_ThrowsKeyNotFoundException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() =>                _repository.DeleteAsync(999,1));
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.DeleteAsync(999, 1));
         }
 
         // ==================== TEST: EXISTS ====================
@@ -209,8 +201,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            await _repository.AddAsync(category);
+            Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Act
             bool exists = await _repository.ExistsAsync(category.Id, userId);
@@ -237,11 +228,10 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            await _repository.AddAsync(category);
+            Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Act
-            bool exists = await _repository.ExistsByNameAsync("Alimentación",userId);
+            bool exists = await _repository.ExistsByNameAsync(TestDataFactory.DEFAULT_CATEGORY_NAME, userId);
 
             // Assert
             Assert.True(exists);
@@ -264,8 +254,7 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            await _repository.AddAsync(category);
+            Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Act
             bool hasExpenses = await _repository.HasDependenciesAsync(category.Id, userId);

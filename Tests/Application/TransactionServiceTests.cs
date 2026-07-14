@@ -56,15 +56,11 @@ namespace Tests.Application
             int userId = 1;
             int transactionId = 1;
 
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory();
-            Transaction transaction = TestDataFactory.CreateTransaction();
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(transactionId, userId))
-                .ReturnsAsync(transaction);
+                .ReturnsAsync(TestDataFactory.CreateTransaction());
 
             // Act
             TransactionResponseDTO result = await _transactionService.GetByIdAsync(transactionId);
@@ -100,9 +96,7 @@ namespace Tests.Application
         [Fact]
         public async Task GetByIdAsync_WithInvalidId_ThrowsArgumentException()
         {
-            int userId = 1;
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock);
 
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _transactionService.GetByIdAsync(0));
@@ -116,17 +110,19 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             decimal customAmount = 30.00m;
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory();
-            Transaction transaction1 = TestDataFactory.CreateTransaction();
-            Transaction transaction2 = TestDataFactory.CreateTransaction(2, user, category, "Compra 2", "", customAmount);
-            List<Transaction> transactions = new List<Transaction> { transaction1, transaction2 };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
                 .Setup(repo => repo.GetAllAsync(userId))
-                .ReturnsAsync(transactions);
+                .ReturnsAsync
+                (
+                    new List<Transaction>
+                    {
+                        TestDataFactory.CreateTransaction(),
+                        TestDataFactory.CreateTransaction(2, user: TestDataFactory.CreateUser(), category: TestDataFactory.CreateCategory(), name: "Compra 2", amount: customAmount)
+                    }
+                );
 
             // Act
             List<TransactionResponseDTO> result = await _transactionService.GetAllAsync();
@@ -146,11 +142,6 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 1;
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory();
-            Transaction transaction1 = TestDataFactory.CreateTransaction();
-            Transaction transaction2 = TestDataFactory.CreateTransaction(2, user, category, "Compra 2", "", 30.00m, TransactionTypeEnum.Expense, 20, 6, 2024);
-            List<Transaction> transactions = new List<Transaction> { transaction1, transaction2 };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
@@ -160,7 +151,14 @@ namespace Tests.Application
 
             _transactionRepositoryMock
                 .Setup(repo => repo.GetByCategoryIdAsync(categoryId, userId))
-                .ReturnsAsync(transactions);
+                .ReturnsAsync
+                (
+                    new List<Transaction>
+                    {
+                        TestDataFactory.CreateTransaction(),
+                        TestDataFactory.CreateTransaction(2)
+                    }
+                );
 
             // Act
             List<TransactionResponseDTO> result = await _transactionService.GetByCategoryIdAsync(categoryId);
@@ -198,16 +196,21 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
-            Category category = TestDataFactory.CreateCategory();
             Transaction transaction1 = TestDataFactory.CreateTransaction();
             Transaction transaction2 = TestDataFactory.CreateTransaction(2);
-            List<Transaction> transactions = new List<Transaction> { transaction1, transaction2 };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
                 .Setup(repo => repo.GetByMonthlyPeriodAsync(It.IsAny<MonthlyPeriod>(), userId))
-                .ReturnsAsync(transactions);
+                .ReturnsAsync
+                (
+                    new List<Transaction>
+                    {
+                        TestDataFactory.CreateTransaction(),
+                        TestDataFactory.CreateTransaction(2)
+                    }
+                );
 
             // Act
             List<TransactionResponseDTO> result = await _transactionService.GetByMonthlyPeriodAsync(TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_YEAR);
@@ -225,10 +228,6 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            Transaction transaction1 = TestDataFactory.CreateTransaction();
-            Transaction transaction2 = TestDataFactory.CreateTransaction(2);
-            List<Transaction> transactions = new List<Transaction> { transaction1, transaction2 };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
@@ -238,7 +237,14 @@ namespace Tests.Application
 
             _transactionRepositoryMock
                 .Setup(repo => repo.GetByCategoryAndMonthlyPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
-                .ReturnsAsync(transactions);
+                .ReturnsAsync
+                (
+                    new List<Transaction>
+                    {
+                        TestDataFactory.CreateTransaction(),
+                        TestDataFactory.CreateTransaction(2)
+                    }
+                );
 
             // Act
             List<TransactionResponseDTO> result = await _transactionService.GetByCategoryAndMonthlyPeriodAsync(categoryId, TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR);
@@ -274,17 +280,19 @@ namespace Tests.Application
             int userId = 1;
             DateTime from = new DateTime(2024, 6, 1);
             DateTime to = new DateTime(2024, 6, 30);
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory();
-            Transaction transaction1 = TestDataFactory.CreateTransaction();
-            Transaction transaction2 = TestDataFactory.CreateTransaction(2, user, category, "Compra 2", "", 30.00m, TransactionTypeEnum.Expense, 20, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_YEAR);
-            List<Transaction> transactions = new List<Transaction> { transaction1, transaction2 };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
                 .Setup(repo => repo.GetByDateRangeAsync(It.IsAny<DailyPeriod>(), It.IsAny<DailyPeriod>(), userId))
-                .ReturnsAsync(transactions);
+                .ReturnsAsync
+                (
+                    new List<Transaction>
+                    {
+                        TestDataFactory.CreateTransaction(),
+                        TestDataFactory.CreateTransaction(2)
+                    }
+                );
 
             // Act
             List<TransactionResponseDTO> result = await _transactionService.GetByDateRangeAsync(from, to);
@@ -361,31 +369,29 @@ namespace Tests.Application
             int userId = 1;
             int categoryId = 1;
 
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO
-            {
-                CategoryId = categoryId,
-                Name = TestDataFactory.DEFAULT_TRANSACTION_NAME,
-                Description = TestDataFactory.DEFAULT_TRANSACTION_DESCRIPTION,
-                Amount = TestDataFactory.DEFAULT_TRANSACTION_AMOUNT,
-                Type = TransactionTypeEnum.Expense,
-                Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
-            };
-
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory();
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _userRepositoryMock
-                .Setup(repo=>repo.GetByIdAsync(userId))
-                .ReturnsAsync(user);
+                .Setup(repo => repo.GetByIdAsync(userId))
+                .ReturnsAsync(TestDataFactory.CreateUser());
 
             _categoryRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(categoryId, userId, It.IsAny<bool>()))
-                .ReturnsAsync(category);
+                .ReturnsAsync(TestDataFactory.CreateCategory());
 
             // Act
-            TransactionResponseDTO result = await _transactionService.CreateAsync(request);
+            TransactionResponseDTO result = await _transactionService.CreateAsync
+            (
+                new CreateTransactionRequestDTO
+                {
+                    CategoryId = categoryId,
+                    Name = TestDataFactory.DEFAULT_TRANSACTION_NAME,
+                    Description = TestDataFactory.DEFAULT_TRANSACTION_DESCRIPTION,
+                    Amount = TestDataFactory.DEFAULT_TRANSACTION_AMOUNT,
+                    Type = TransactionTypeEnum.Expense,
+                    Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
+                }
+            );
 
             // Assert
             Assert.NotNull(result);
@@ -405,14 +411,6 @@ namespace Tests.Application
             // Arrange
             int userId = 1;
             int categoryId = 999;
-            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO
-            {
-                CategoryId = categoryId,
-                Name = TestDataFactory.DEFAULT_TRANSACTION_NAME,
-                Amount = TestDataFactory.DEFAULT_TRANSACTION_AMOUNT,
-                Type = TransactionTypeEnum.Expense,
-                Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
-            };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
@@ -421,7 +419,20 @@ namespace Tests.Application
                 .ReturnsAsync((Category?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _transactionService.CreateAsync(request));
+            await Assert.ThrowsAsync<KeyNotFoundException>
+            (
+                () => _transactionService.CreateAsync
+                (
+                    new CreateTransactionRequestDTO
+                    {
+                        CategoryId = categoryId,
+                        Name = TestDataFactory.DEFAULT_TRANSACTION_NAME,
+                        Amount = TestDataFactory.DEFAULT_TRANSACTION_AMOUNT,
+                        Type = TransactionTypeEnum.Expense,
+                        Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
+                    }
+                )
+            );
 
             _transactionRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Transaction>()), Times.Never);
         }
@@ -439,27 +450,25 @@ namespace Tests.Application
             decimal updatedAmount = 50.00m;
             int updatedDay = 20;
 
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory();
-            Transaction transaction = TestDataFactory.CreateTransaction();
-
-            UpdateTransactionRequestDTO request = new UpdateTransactionRequestDTO
-            {
-                Name = updatedName,
-                Description = updatedDescription,
-                Amount = updatedAmount,
-                Type = TransactionTypeEnum.Income,
-                Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, updatedDay)
-            };
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(transactionId, userId))
-                .ReturnsAsync(transaction);
+                .ReturnsAsync(TestDataFactory.CreateTransaction());
 
             // Act
-            TransactionResponseDTO result = await _transactionService.UpdateAsync(transactionId, request);
+            TransactionResponseDTO result = await _transactionService.UpdateAsync
+            (
+                transactionId,
+                new UpdateTransactionRequestDTO
+                {
+                    Name = updatedName,
+                    Description = updatedDescription,
+                    Amount = updatedAmount,
+                    Type = TransactionTypeEnum.Income,
+                    Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, updatedDay)
+                }
+            );
 
             // Assert
             Assert.NotNull(result);
@@ -482,14 +491,6 @@ namespace Tests.Application
             int userId = 1;
             int transactionId = 999;
 
-            UpdateTransactionRequestDTO request = new UpdateTransactionRequestDTO
-            {
-                Name = "Compra supermercado",
-                Amount = 50.00m,
-                Type = TransactionTypeEnum.Expense,
-                Date = new DateTime(2024, 6, 20)
-            };
-
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
@@ -497,7 +498,20 @@ namespace Tests.Application
                 .ReturnsAsync((Transaction?)null);
 
             // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _transactionService.UpdateAsync(transactionId, request));
+            await Assert.ThrowsAsync<KeyNotFoundException>
+            (
+                () => _transactionService.UpdateAsync
+                (
+                    transactionId,
+                    new UpdateTransactionRequestDTO
+                    {
+                        Name = "Compra supermercado",
+                        Amount = 50.00m,
+                        Type = TransactionTypeEnum.Expense,
+                        Date = new DateTime(2024, 6, 20)
+                    }
+                )
+            );
 
             _transactionRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Transaction>()), Times.Never);
         }

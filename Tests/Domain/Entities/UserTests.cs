@@ -49,7 +49,6 @@ namespace Tests.Domain.Entities
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(userInfo, null));
-
             Assert.Equal("passwordHash", exception.ParamName);
         }
 
@@ -61,7 +60,6 @@ namespace Tests.Domain.Entities
 
             // Act & Assert
             ArgumentException exception = Assert.Throws<ArgumentException>(() => new User(userInfo, ""));
-
             Assert.Contains("Password hash cannot be empty", exception.Message);
         }
 
@@ -71,15 +69,17 @@ namespace Tests.Domain.Entities
         public void Update_WithValidValues_ShouldUpdateUser()
         {
             // Arrange
+            string updatedUserName = "María García";
+            string updatedEmail = "maria@email.com";
+
             User user = TestDataFactory.CreateUser();
-            UserInfo newUserInfo = TestDataFactory.CreateUserInfo("María García", "maria@email.com");
 
             // Act
-            user.Update(newUserInfo);
+            user.Update(TestDataFactory.CreateUserInfo(updatedUserName, updatedEmail));
 
             // Assert
-            Assert.Equal("María García", user.Info.UserName);
-            Assert.Equal("maria@email.com", user.Info.Email);
+            Assert.Equal(updatedUserName, user.Info.UserName);
+            Assert.Equal(updatedEmail, user.Info.Email);
             Assert.NotNull(user.UpdatedAt);
         }
 
@@ -91,8 +91,7 @@ namespace Tests.Domain.Entities
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.Update(null));
-
-            Assert.Equal("newInfo", exception.ParamName);
+            Assert.Equal("info", exception.ParamName);
         }
 
         // ==================== UPDATE PASSWORD ====================
@@ -102,13 +101,13 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            string newPasswordHash = "new_hashed_password";
+            string updatedPasswordHash = "new_hashed_password";
 
             // Act
-            user.UpdatePassword(newPasswordHash);
+            user.UpdatePassword(updatedPasswordHash);
 
             // Assert
-            Assert.Equal(newPasswordHash, user.PasswordHash);
+            Assert.Equal(updatedPasswordHash, user.PasswordHash);
             Assert.NotNull(user.UpdatedAt);
         }
 
@@ -120,8 +119,7 @@ namespace Tests.Domain.Entities
 
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.UpdatePassword(null));
-
-            Assert.Equal("newPasswordHash", exception.ParamName);
+            Assert.Equal("passwordHash", exception.ParamName);
         }
 
         [Fact]

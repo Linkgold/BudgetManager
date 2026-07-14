@@ -55,11 +55,11 @@ namespace Domain.Entities
         /// <summary>
         /// Actualiza el importe mensual del presupuesto
         /// </summary>
-        public void UpdateAmount(Money newAmount)
+        public void UpdateAmount(Money amount)
         {
-            ArgumentNullException.ThrowIfNull(newAmount);
+            ArgumentNullException.ThrowIfNull(amount);
 
-            MonthlyAmount = newAmount;
+            MonthlyAmount = amount;
             UpdatedAt = DateTime.UtcNow;
         }
         /// <summary>
