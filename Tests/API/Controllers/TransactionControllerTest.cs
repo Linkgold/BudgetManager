@@ -11,7 +11,7 @@ namespace Tests.API.Controllers
     /// Pruebas de integración para TransactionController
     /// </summary>
     [Collection("ApiTestCollection")]
-    public class TransactionControllerTests : IDisposable, IClassFixture<ApiTestFixture>
+    public class TransactionControllerTests : IClassFixture<ApiTestFixture>, IDisposable
     {
         private readonly HttpClient _client;
         private readonly ApiTestFixture _fixture;

@@ -140,7 +140,7 @@ namespace Application.Services
             DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
 
             // 🔥 Obtener el User completo
-            User? user = await _userRepository.GetByIdAsync(UserId);
+            User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
             if (user == null) throw new KeyNotFoundException($"User with ID {UserId} not found");
 
             // Crear entidad de dominio

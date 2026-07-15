@@ -59,8 +59,11 @@ namespace API
             // ==================== CORS (Opcional) ====================
             ConfigureCors(services);
 
-            // ==================== JWT AUTHENTICATION ====================
-            ConfigureAuthentication(services);
+            if (!_environment.IsEnvironment("Testing"))
+            {
+                // ==================== JWT AUTHENTICATION ====================
+                ConfigureAuthentication(services);
+            }
         }
 
         /// <summary>
@@ -181,6 +184,11 @@ namespace API
             services.AddScoped<IFixedExpenseService, FixedExpenseService>();
             services.AddScoped<IBudgetService, BudgetService>();
             services.AddScoped<ITransactionService, TransactionService>();
+            services.AddScoped<IUserService, UserService>();
+
+            // 🔥 Registrar ICurrentUserService (siempre, independientemente del entorno)
+            services.AddHttpContextAccessor();
+            services.AddScoped<ICurrentUserService, CurrentUserService>();
 
             // Registrar AutoMapper
             services.AddAutoMapper(typeof(AutoMapperProfile));
@@ -206,8 +214,8 @@ namespace API
             (
                 options =>
                 {
-                    // Agregar filtro de validación global
-                    options.Filters.Add<ValidationFilter>();
+                        // Agregar filtro de validación global
+                        options.Filters.Add<ValidationFilter>();
                 }
             ).AddJsonOptions
             (

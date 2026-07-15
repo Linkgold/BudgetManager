@@ -258,7 +258,7 @@ namespace Tests.Application
                 .ReturnsAsync(category);
 
             _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId))
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
                 .ReturnsAsync(user);
 
             // Act

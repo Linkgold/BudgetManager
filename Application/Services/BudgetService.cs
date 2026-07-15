@@ -160,7 +160,7 @@ namespace Application.Services
             if (exists) throw new ConflictException($"Budget already exists for category {request.CategoryId} in {request.Month}/{request.Year}");
 
             // 🔥 Obtener el User completo
-            User? user = await _userRepository.GetByIdAsync(UserId);
+            User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
             if (user == null) throw new KeyNotFoundException($"User with ID {UserId} not found");
 
             // Crear entidad de dominio

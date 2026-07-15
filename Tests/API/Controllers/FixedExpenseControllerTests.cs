@@ -6,7 +6,7 @@ using Tests.API.Fixtures;
 namespace Tests.API.Controllers
 {
     [Collection("ApiTestCollection")]
-    public class FixedExpenseControllerTests : IDisposable, IClassFixture<ApiTestFixture>
+    public class FixedExpenseControllerTests : IClassFixture<ApiTestFixture>, IDisposable
     {
         private readonly HttpClient _client;
         private readonly ApiTestFixture _fixture;

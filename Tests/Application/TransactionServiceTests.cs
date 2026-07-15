@@ -372,7 +372,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId))
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
                 .ReturnsAsync(TestDataFactory.CreateUser());
 
             _categoryRepositoryMock

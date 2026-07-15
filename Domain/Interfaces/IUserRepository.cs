@@ -4,7 +4,7 @@ namespace Domain.Interfaces
 {
     public interface IUserRepository
     {
-        Task<User?> GetByIdAsync(int id);
+        Task<User?> GetByIdAsync(int id, bool withTracking = false);
         Task<User?> GetByEmailAsync(string email);
         Task<bool> ExistsAsync(int id);
         Task<bool> ExistsByEmailAsync(string email);

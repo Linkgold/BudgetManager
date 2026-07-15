@@ -5,6 +5,7 @@ using Application.Mappings;
 using Application.Services;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
@@ -87,7 +88,7 @@ namespace Tests.Application
                 .ReturnsAsync(true);
 
             // Act & Assert
-            await Assert.ThrowsAsync<InvalidOperationException>(() => _userService.CreateAsync(request));
+            await Assert.ThrowsAsync<ConflictException>(() => _userService.CreateAsync(request));
 
             _userRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<User>()), Times.Never);
         }

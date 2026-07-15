@@ -59,7 +59,7 @@ namespace Infrastructure.Repositories
             Category? category = await _dbSet
                 .AsNoTracking()
                 .Where(category => category.UserId == userId)
-                .FirstOrDefaultAsync(category => category.Info.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+                .FirstOrDefaultAsync(category => category.Info.Name.ToLower() == name.ToLower());
 
             return category;
         }
@@ -129,7 +129,7 @@ namespace Infrastructure.Repositories
             bool exists = await _dbSet
                 .AsNoTracking()
                 .Where(category => category.UserId == userId)
-                .AnyAsync(category => category.Info.Name.Equals(name, StringComparison.CurrentCultureIgnoreCase));
+                .AnyAsync(category => category.Info.Name.ToLower() == name.ToLower());
 
             return exists;
         }

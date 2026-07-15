@@ -19,12 +19,18 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<User?> GetByIdAsync(int id)
+        public async Task<User?> GetByIdAsync(int id, bool withTracking = false)
         {
             if (id <= 0) throw new ArgumentException("Invalid user ID", nameof(id));
 
-            User? user = await _dbSet
-                .AsNoTracking()
+            IQueryable<User> query = _dbSet;
+
+            if (!withTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            User? user = await query
                 .FirstOrDefaultAsync(u => u.Id == id);
 
             return user;

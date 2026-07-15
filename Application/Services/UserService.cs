@@ -3,6 +3,7 @@ using Application.DTOs.Response;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Crypt = BCrypt.Net.BCrypt;
@@ -65,7 +66,7 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            if (await _userRepository.ExistsByEmailAsync(request.Email)) throw new InvalidOperationException($"User with email {request.Email} already exists");
+            if (await _userRepository.ExistsByEmailAsync(request.Email)) throw new ConflictException($"User with email {request.Email} already exists");
 
             // Crear Value Objects
             UserInfo userInfo = new UserInfo(request.UserName, request.Email);
