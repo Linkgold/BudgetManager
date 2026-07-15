@@ -1,9 +1,9 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
+﻿using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
-using Domain.Enums;
+using Contracts.Enums;
 using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;

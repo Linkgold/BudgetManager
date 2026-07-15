@@ -1,5 +1,5 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
+﻿using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 using System.Net;
 using Tests.API.Fixtures;
 

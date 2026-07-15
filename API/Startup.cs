@@ -63,8 +63,12 @@ namespace API
             {
                 // ==================== JWT AUTHENTICATION ====================
                 ConfigureAuthentication(services);
+
+                ConfigureJwt(services);
             }
         }
+
+        
 
         /// <summary>
         /// Configura el pipeline de la aplicación
@@ -138,7 +142,7 @@ namespace API
             app.UseRouting();
 
             // CORS
-            app.UseCors("AllowAll");
+            app.UseCors("CorsPolicy");
 
             // Asegurar que UseAuthentication está ANTES de UseAuthorization
             app.UseAuthentication();
@@ -269,12 +273,26 @@ namespace API
                 {
                     options.AddPolicy
                     (
-                        "AllowAll",
+                        "CorsPolicy",
                         policy =>
                         {
-                            policy.AllowAnyOrigin()
-                                  .AllowAnyMethod()
-                                  .AllowAnyHeader();
+                            if (_environment.IsDevelopment())
+                            {
+
+                                policy.AllowAnyOrigin()
+                                      .AllowAnyMethod()
+                                      .AllowAnyHeader();
+                            }
+                            else
+                            {
+                                policy.WithOrigins
+                                (
+                                    "https://midominio.com",
+                                    "https://www.midominio.com"
+                                )
+                                .AllowAnyMethod()
+                                .AllowAnyHeader();
+                            }
                         }
                     );
                 }
@@ -330,6 +348,37 @@ namespace API
             // ==================== HTTP CONTEXT ACCESSOR ====================
 
             services.AddHttpContextAccessor();
+        }
+
+        private void ConfigureJwt(IServiceCollection services)
+        {
+            // 🔥 Registrar configuración JWT
+            services.AddScoped<IJwtSettings>
+            (
+                provider =>
+                {
+                    IConfigurationSection jwtSection = _configuration.GetSection("Jwt");
+                    string? key = jwtSection["Key"];
+                    string? issuer = jwtSection["Issuer"];
+                    string? audience = jwtSection["Audience"];
+                    string? expirationString = jwtSection["ExpirationInMinutes"];
+
+                    if 
+                    (
+                        string.IsNullOrEmpty(key) ||
+                        string.IsNullOrEmpty(issuer) ||
+                        string.IsNullOrEmpty(audience) ||
+                        string.IsNullOrEmpty(expirationString)
+                    )
+                    {
+                        throw new InvalidOperationException("JWT configuration is incomplete");
+                    }
+
+                    int expirationInMinutes = int.Parse(expirationString);
+
+                    return new JwtSettings(key, issuer, audience, expirationInMinutes);
+                }
+            );
         }
 
         /// <summary>

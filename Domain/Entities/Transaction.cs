@@ -1,6 +1,5 @@
-﻿using Domain.Enums;
+﻿using Contracts.Enums;
 using Domain.ValueObjects;
-using Microsoft.VisualBasic;
 
 namespace Domain.Entities
 {

@@ -1,6 +1,6 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
-using Domain.Enums;
+﻿using Shared.DTOs.Request;
+using Shared.DTOs.Response;
+using Contracts.Enums;
 using System.Globalization;
 using System.Net;
 using Tests.API.Fixtures;

@@ -1,12 +1,11 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
+﻿using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Interfaces;
-using Domain.ValueObjects;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;

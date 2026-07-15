@@ -1,5 +1,5 @@
 ﻿using Domain.Entities;
-using Domain.Enums;
+using Contracts.Enums;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;

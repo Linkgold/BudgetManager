@@ -1,11 +1,15 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
 using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
+using Microsoft.IdentityModel.Tokens;
+using Shared.DTOs.Request;
+using Shared.DTOs.Response;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using Crypt = BCrypt.Net.BCrypt;
 
 namespace Application.Services
@@ -15,16 +19,53 @@ namespace Application.Services
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
         private readonly ICurrentUserService _currentUserService;
+        private readonly IJwtSettings _jwtSettings;
 
-        public UserService(IUserRepository userRepository, IMapper mapper, ICurrentUserService currentUserService)
+        public UserService
+        (
+            IUserRepository userRepository, 
+            IMapper mapper, 
+            ICurrentUserService currentUserService,
+            IJwtSettings jwtSettings
+        )
         {
             ArgumentNullException.ThrowIfNull(userRepository);
             ArgumentNullException.ThrowIfNull(mapper);
             ArgumentNullException.ThrowIfNull(currentUserService);
+            ArgumentNullException.ThrowIfNull(jwtSettings);
 
             _userRepository = userRepository;
             _mapper = mapper;
             _currentUserService = currentUserService;
+            _jwtSettings = jwtSettings;
+        }
+
+        private string GenerateJwtToken(User user)
+        {
+            JwtSecurityTokenHandler tokenHandler = new JwtSecurityTokenHandler();
+
+            SymmetricSecurityKey key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
+
+            SigningCredentials credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            List<Claim> claims = new List<Claim>
+            {
+                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+                new Claim(ClaimTypes.Name, user.Info.UserName),
+                new Claim(ClaimTypes.Email, user.Info.Email)
+            };
+
+            DateTime expires = DateTime.UtcNow.AddMinutes(_jwtSettings.ExpirationInMinutes);
+
+            JwtSecurityToken token = new JwtSecurityToken(
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
+                claims: claims,
+                expires: expires,
+                signingCredentials: credentials
+            );
+
+            return tokenHandler.WriteToken(token);
         }
 
         // ==================== CONSULTAS ====================
@@ -115,25 +156,30 @@ namespace Application.Services
 
         // ==================== AUTENTICACIÓN ====================
 
-        public async Task<string> LoginAsync(string email, string password)
+        public async Task<LoginResponseDTO> LoginAsync(string email, string password)
         {
             if (string.IsNullOrWhiteSpace(email)) throw new ArgumentException("Email cannot be empty", nameof(email));
             if (string.IsNullOrWhiteSpace(password)) throw new ArgumentException("Password cannot be empty", nameof(password));
 
             // Obtener usuario por email
-            User user = await _userRepository.GetByEmailAsync(email);
+            User? user = await _userRepository.GetByEmailAsync(email);
 
-            if (user == null) throw new UnauthorizedAccessException("Invalid email or password");
-
-            // Verificar si el usuario está activo
-            if (!user.IsActive) throw new UnauthorizedAccessException("User account is disabled");
+            if (user == null || !user.IsActive) throw new UnauthorizedAccessException("Invalid email or password");
 
             // Verificar contraseña
             if (!Crypt.Verify(password, user.PasswordHash)) throw new UnauthorizedAccessException("Invalid email or password");
 
+            // 🔥 Generar token JWT (real)
+            string token = GenerateJwtToken(user);
+
             // Aquí iría la generación del token JWT
             // Por ahora, devolvemos un token dummy
-            return $"token_{user.Id}_{user.Info.UserName}";
+            return new LoginResponseDTO
+            {
+                Token = token,
+                UserName = user.Info.UserName,
+                Email = user.Info.Email
+            };
         }
 
         public async Task<bool> ValidatePasswordAsync(string email, string password)

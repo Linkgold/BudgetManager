@@ -1,5 +1,5 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
+﻿using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 
 namespace Application.Interfaces
 {

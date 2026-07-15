@@ -1,8 +1,5 @@
-﻿using Application.DTOs.Request;
+﻿using Shared.DTOs.Request;
 using FluentValidation;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Application.Validators
 {

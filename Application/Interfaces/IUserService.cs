@@ -1,5 +1,5 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
+﻿using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 
 namespace Application.Interfaces
 {
@@ -16,7 +16,7 @@ namespace Application.Interfaces
         Task DeleteAsync();
 
         // ==================== AUTENTICACIÓN ====================
-        Task<string> LoginAsync(string email, string password);
+        Task<LoginResponseDTO> LoginAsync(string email, string password);
         Task<bool> ValidatePasswordAsync(string email, string password);
         Task ChangePasswordAsync(string currentPassword, string newPassword);
 

@@ -1,5 +1,5 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
+﻿using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -51,9 +51,9 @@ namespace API.Controllers
         {
             if (request == null) return BadRequest("Request cannot be null");
 
-            string token = await _userService.LoginAsync(request.Email, request.Password);
+            LoginResponseDTO token = await _userService.LoginAsync(request.Email, request.Password);
 
-            return Ok(new LoginResponseDTO { Token = token });
+            return Ok(token);
         }
 
         // ==================== USUARIOS (requiere autenticación) ====================

@@ -1,7 +1,10 @@
 <Solution>
   <Project Path="API/API.csproj" Id="e1500dc7-c0e5-4d03-919a-f205655d02bc" />
   <Project Path="Application/Application.csproj" Id="788abdd2-0db2-4c45-b5e0-b394c4a5a9d8" />
+  <Project Path="Contracts/Contracts.csproj" Id="45667d17-fd1c-4e1c-8dd3-88c2601a9269" />
   <Project Path="Domain/Domain.csproj" Id="ed8e5bdd-8401-4e28-90d9-c9da6d2f679d" />
   <Project Path="Infrastructure/Infrastructure.csproj" Id="aa3e4ea6-bf94-4c68-a383-2abc3aa42a46" />
+  <Project Path="Shared/Shared.csproj" Id="888d5857-2cde-454c-86a9-0ed735a6e9f3" />
   <Project Path="Tests/Tests.csproj" Id="580124ed-fbbb-42b3-876e-6bb896570f7c" />
+  <Project Path="UI/UI.csproj" Id="930dca9a-ed57-4e13-b5cf-0d7c2077905a" />
 </Solution>

@@ -1,7 +1,7 @@
-﻿using Application.DTOs.Request;
+﻿using Shared.DTOs.Request;
 using Application.Interfaces;
 using Domain.Entities;
-using Domain.Enums;
+using Contracts.Enums;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Moq;

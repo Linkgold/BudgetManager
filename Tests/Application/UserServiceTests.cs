@@ -1,5 +1,5 @@
-﻿using Application.DTOs.Request;
-using Application.DTOs.Response;
+﻿using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
@@ -17,6 +17,7 @@ namespace Tests.Application
     {
         private readonly Mock<IUserRepository> _userRepositoryMock;
         private readonly Mock<ICurrentUserService> _currentUserServiceMock;
+        private readonly Mock<IJwtSettings> _jwtSettingsMock;
         private readonly IMapper _mapper;
         private readonly IUserService _userService;
 
@@ -37,9 +38,10 @@ namespace Tests.Application
             // Crear mocks
             _userRepositoryMock = new Mock<IUserRepository>();
             _currentUserServiceMock = new Mock<ICurrentUserService>();
+            _jwtSettingsMock = new Mock<IJwtSettings>();
 
             // Instanciar el servicio
-            _userService = new UserService(_userRepositoryMock.Object, _mapper, _currentUserServiceMock.Object);
+            _userService = new UserService(_userRepositoryMock.Object, _mapper, _currentUserServiceMock.Object, _jwtSettingsMock.Object);
         }
 
         // ==================== TEST: CREATE ====================
@@ -308,11 +310,13 @@ namespace Tests.Application
                 .ReturnsAsync(TestDataFactory.CreateUserWithPassword());
 
             // Act
-            string token = await _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, TestDataFactory.DEFAULT_PASSWORD);
+            LoginResponseDTO loginResponse = await _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, TestDataFactory.DEFAULT_PASSWORD);
 
             // Assert
-            Assert.NotNull(token);
-            Assert.StartsWith("token_", token);
+            Assert.NotNull(loginResponse);
+            Assert.StartsWith("token_", loginResponse.Token);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_NAME, loginResponse.UserName);
+            Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, loginResponse.Email);
         }
 
         [Fact]
