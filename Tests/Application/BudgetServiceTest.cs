@@ -61,7 +61,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(budgetId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, budgetId))
                 .ReturnsAsync(budget);
 
             // Act
@@ -86,7 +86,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(budgetId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, budgetId))
                 .ReturnsAsync((Budget?)null);
 
             // Act & Assert
@@ -146,11 +146,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(true);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryIdAsync(categoryId, userId))
+                .Setup(repo => repo.GetByCategoryIdAsync(userId, categoryId))
                 .ReturnsAsync(budgets);
 
             // Act
@@ -159,7 +159,7 @@ namespace Tests.Application
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-            _budgetRepositoryMock.Verify(repo => repo.GetByCategoryIdAsync(categoryId, userId), Times.Once);
+            _budgetRepositoryMock.Verify(repo => repo.GetByCategoryIdAsync(userId, categoryId), Times.Once);
         }
 
         [Fact]
@@ -172,7 +172,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(false);
 
             // Act & Assert
@@ -193,7 +193,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByPeriodAsync(It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetByPeriodAsync(userId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(budgets);
 
             // Act
@@ -218,7 +218,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(budget);
 
             // Act
@@ -241,7 +241,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync((Budget?)null);
 
             // Act & Assert
@@ -263,7 +263,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(budget);
 
             // Act
@@ -290,7 +290,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync((Budget?)null);
 
             // Act & Assert
@@ -309,11 +309,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId, userId, It.IsAny<bool>()))
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
                 .ReturnsAsync(TestDataFactory.CreateCategory(categoryId));
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(false);
 
             _userRepositoryMock
@@ -352,7 +352,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId))
                 .ReturnsAsync((Category?)null);
 
             // Act & Assert
@@ -376,11 +376,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId, userId, It.IsAny<bool>()))
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
                 .ReturnsAsync(category);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(true);
 
             // Act & Assert
@@ -407,7 +407,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(budgetId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, budgetId))
                 .ReturnsAsync(budget);
 
             // Act
@@ -432,7 +432,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(budgetId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, budgetId))
                 .ReturnsAsync((Budget?)null);
 
             // Act & Assert
@@ -453,14 +453,14 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsAsync(budgetId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, budgetId))
                 .ReturnsAsync(true);
 
             // Act
             await _budgetService.DeleteAsync(budgetId);
 
             // Assert
-            _budgetRepositoryMock.Verify(repo => repo.DeleteAsync(budgetId, userId), Times.Once);
+            _budgetRepositoryMock.Verify(repo => repo.DeleteAsync(userId, budgetId), Times.Once);
         }
 
         [Fact]
@@ -473,13 +473,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsAsync(budgetId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, budgetId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.DeleteAsync(budgetId));
 
-            _budgetRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<int>(), userId), Times.Never);
+            _budgetRepositoryMock.Verify(repo => repo.DeleteAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: EXISTS ====================
@@ -494,7 +494,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsAsync(budgetId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, budgetId))
                 .ReturnsAsync(true);
 
             // Act
@@ -514,7 +514,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsAsync(budgetId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, budgetId))
                 .ReturnsAsync(false);
 
             // Act
@@ -536,7 +536,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(true);
 
             // Act
@@ -556,7 +556,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(false);
 
             // Act

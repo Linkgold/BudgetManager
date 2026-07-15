@@ -59,7 +59,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(transactionId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, transactionId))
                 .ReturnsAsync(TestDataFactory.CreateTransaction());
 
             // Act
@@ -86,7 +86,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(transactionId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, transactionId))
                 .ReturnsAsync((Transaction?)null);
 
             // Act & Assert
@@ -146,11 +146,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(true);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetByCategoryIdAsync(categoryId, userId))
+                .Setup(repo => repo.GetByCategoryIdAsync(userId, categoryId))
                 .ReturnsAsync
                 (
                     new List<Transaction>
@@ -167,7 +167,7 @@ namespace Tests.Application
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
 
-            _transactionRepositoryMock.Verify(repo => repo.GetByCategoryIdAsync(categoryId, userId), Times.Once);
+            _transactionRepositoryMock.Verify(repo => repo.GetByCategoryIdAsync(userId, categoryId), Times.Once);
         }
 
         [Fact]
@@ -180,13 +180,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _transactionService.GetByCategoryIdAsync(categoryId));
 
-            _transactionRepositoryMock.Verify(repo => repo.GetByCategoryIdAsync(It.IsAny<int>(), userId), Times.Never);
+            _transactionRepositoryMock.Verify(repo => repo.GetByCategoryIdAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: GET BY MONTHLY PERIOD ====================
@@ -202,7 +202,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetByMonthlyPeriodAsync(It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetByMonthlyPeriodAsync(userId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync
                 (
                     new List<Transaction>
@@ -232,11 +232,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(true);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndMonthlyPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetByCategoryAndMonthlyPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync
                 (
                     new List<Transaction>
@@ -264,7 +264,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(false);
 
             // Act & Assert
@@ -284,7 +284,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetByDateRangeAsync(It.IsAny<DailyPeriod>(), It.IsAny<DailyPeriod>(), userId))
+                .Setup(repo => repo.GetByDateRangeAsync(userId, It.IsAny<DailyPeriod>(), It.IsAny<DailyPeriod>()))
                 .ReturnsAsync
                 (
                     new List<Transaction>
@@ -329,11 +329,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(true);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetTotalByCategoryAndMonthlyPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetTotalByCategoryAndMonthlyPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(expectedTotal);
 
             // Act
@@ -353,7 +353,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(false);
 
             // Act & Assert
@@ -376,7 +376,7 @@ namespace Tests.Application
                 .ReturnsAsync(TestDataFactory.CreateUser());
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId, userId, It.IsAny<bool>()))
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
                 .ReturnsAsync(TestDataFactory.CreateCategory());
 
             // Act
@@ -415,7 +415,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId, userId, It.IsAny<bool>()))
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
                 .ReturnsAsync((Category?)null);
 
             // Act & Assert
@@ -453,7 +453,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(transactionId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, transactionId))
                 .ReturnsAsync(TestDataFactory.CreateTransaction());
 
             // Act
@@ -494,7 +494,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(transactionId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, transactionId))
                 .ReturnsAsync((Transaction?)null);
 
             // Act & Assert
@@ -528,14 +528,14 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.ExistsAsync(transactionId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, transactionId))
                 .ReturnsAsync(true);
 
             // Act
             await _transactionService.DeleteAsync(transactionId);
 
             // Assert
-            _transactionRepositoryMock.Verify(repo => repo.DeleteAsync(transactionId, userId), Times.Once);
+            _transactionRepositoryMock.Verify(repo => repo.DeleteAsync(userId, transactionId), Times.Once);
         }
 
         [Fact]
@@ -548,13 +548,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.ExistsAsync(transactionId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, transactionId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _transactionService.DeleteAsync(transactionId));
 
-            _transactionRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<int>(), userId), Times.Never);
+            _transactionRepositoryMock.Verify(repo => repo.DeleteAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: EXISTS ====================
@@ -569,7 +569,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.ExistsAsync(transactionId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, transactionId))
                 .ReturnsAsync(true);
 
             // Act
@@ -589,7 +589,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _transactionRepositoryMock
-                .Setup(repo => repo.ExistsAsync(transactionId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, transactionId))
                 .ReturnsAsync(false);
 
             // Act
@@ -614,7 +614,7 @@ namespace Tests.Application
             // Assert
             Assert.False(result);
             _transactionRepositoryMock.Verify(
-                repo => repo.ExistsAsync(It.IsAny<int>(), userId),
+                repo => repo.ExistsAsync(userId, It.IsAny<int>()),
                 Times.Never);
         }
 

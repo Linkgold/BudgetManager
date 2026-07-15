@@ -9,19 +9,19 @@ namespace Domain.Interfaces
     public interface IBudgetRepository
     {
         // ==================== CONSULTAS ====================
-        Task<Budget?> GetByIdAsync(int id, int userId);
+        Task<Budget?> GetByIdAsync(int userId, int id);
         Task<IEnumerable<Budget>> GetAllAsync(int userId);
-        Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId);
-        Task<IEnumerable<Budget>> GetByPeriodAsync(MonthlyPeriod periodm, int userId);
-        Task<IEnumerable<Budget>> GetByCategoryIdAsync(int categoryId, int userId);
+        Task<Budget?> GetByCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period);
+        Task<IEnumerable<Budget>> GetByPeriodAsync(int userId, MonthlyPeriod periodm);
+        Task<IEnumerable<Budget>> GetByCategoryIdAsync(int userId, int categoryId);
 
         // ==================== VERIFICACIONES ====================
         Task<bool> ExistsAsync(int id, int userId);
-        Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId);
+        Task<bool> ExistsForCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period);
 
         // ==================== COMANDOS ====================
         Task AddAsync(Budget budget);
         Task UpdateAsync(Budget budget);
-        Task DeleteAsync(int id, int userId);
+        Task DeleteAsync(int userId, int id);
     }
 }

@@ -63,7 +63,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, fixedExpenseId))
                 .ReturnsAsync(fixedExpense);
 
             // Act
@@ -90,7 +90,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, fixedExpenseId))
                 .ReturnsAsync((FixedExpense?)null);
 
             // Act & Assert
@@ -161,11 +161,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(true);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetByCategoryAsync(categoryId, userId))
+                .Setup(repo => repo.GetByCategoryAsync(userId, categoryId))
                 .ReturnsAsync
                 (
                     new List<FixedExpense>
@@ -181,7 +181,7 @@ namespace Tests.Application
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetByCategoryAsync(categoryId, userId), Times.Once);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.GetByCategoryAsync(userId, categoryId), Times.Once);
         }
 
         [Fact]
@@ -194,13 +194,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.GetByCategoryIdAsync(categoryId));
 
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetByCategoryAsync(It.IsAny<int>(), userId), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.GetByCategoryAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: GET ACTIVE ====================
@@ -254,7 +254,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId, userId, true))
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
                 .ReturnsAsync(category);
 
             _userRepositoryMock
@@ -297,7 +297,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId, userId, true))
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
                 .ReturnsAsync((Category?)null);
 
             // Act & Assert
@@ -319,7 +319,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(categoryId, userId, true))
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
                 .ReturnsAsync(category);
 
             // Act & Assert
@@ -350,7 +350,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, fixedExpenseId))
                 .ReturnsAsync(existingFixedExpense);
 
             // Act
@@ -389,7 +389,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.GetByIdAsync(userId, fixedExpenseId))
                 .ReturnsAsync((FixedExpense?)null);
 
             // Act & Assert
@@ -410,14 +410,14 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(true);
 
             // Act
             await _fixedExpenseService.DeleteAsync(fixedExpenseId);
 
             // Assert
-            _fixedExpenseRepositoryMock.Verify(repo => repo.DeleteAsync(fixedExpenseId, userId), Times.Once);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.DeleteAsync(userId, fixedExpenseId), Times.Once);
         }
 
         [Fact]
@@ -430,13 +430,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.DeleteAsync(fixedExpenseId));
 
-            _fixedExpenseRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<int>(), userId), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.DeleteAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: ACTIVATE ====================
@@ -451,14 +451,14 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(true);
 
             // Act
             await _fixedExpenseService.ActivateAsync(fixedExpenseId);
 
             // Assert
-            _fixedExpenseRepositoryMock.Verify(repo => repo.ActivateAsync(fixedExpenseId, userId), Times.Once);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.ActivateAsync(userId, fixedExpenseId), Times.Once);
         }
 
         [Fact]
@@ -471,13 +471,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.ActivateAsync(fixedExpenseId));
 
-            _fixedExpenseRepositoryMock.Verify(repo => repo.ActivateAsync(It.IsAny<int>(), userId), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.ActivateAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: DEACTIVATE ====================
@@ -492,14 +492,14 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(true);
 
             // Act
             await _fixedExpenseService.DeactivateAsync(fixedExpenseId);
 
             // Assert
-            _fixedExpenseRepositoryMock.Verify(repo => repo.DeactivateAsync(fixedExpenseId, userId), Times.Once);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.DeactivateAsync(userId, fixedExpenseId), Times.Once);
         }
 
         [Fact]
@@ -512,13 +512,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.DeactivateAsync(fixedExpenseId));
 
-            _fixedExpenseRepositoryMock.Verify(repo => repo.DeactivateAsync(It.IsAny<int>(), userId), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.DeactivateAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: GET TOTAL FOR PERIOD ====================
@@ -534,11 +534,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(true);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetTotalByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId))
+                .Setup(repo => repo.GetTotalByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
                 .ReturnsAsync(expectedTotal);
 
             // Act
@@ -546,7 +546,7 @@ namespace Tests.Application
 
             // Assert
             Assert.Equal(expectedTotal, result);
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(categoryId, It.IsAny<MonthlyPeriod>(), userId), Times.Once);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()), Times.Once);
         }
 
         [Fact]
@@ -559,13 +559,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(categoryId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, categoryId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR));
 
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(It.IsAny<int>(), It.IsAny<MonthlyPeriod>(), userId), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(userId, It.IsAny<int>(), It.IsAny<MonthlyPeriod>()), Times.Never);
         }
 
         // ==================== TEST: EXISTS ====================
@@ -580,7 +580,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(true);
 
             // Act
@@ -600,7 +600,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(false);
 
             // Act
@@ -624,7 +624,7 @@ namespace Tests.Application
 
             // Assert
             Assert.False(result);
-            _fixedExpenseRepositoryMock.Verify(repo => repo.ExistsAsync(It.IsAny<int>(), userId), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.ExistsAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: IS ACTIVE ====================
@@ -639,11 +639,11 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(true);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.IsActiveAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.IsActiveAsync(userId, fixedExpenseId))
                 .ReturnsAsync(true);
 
             // Act
@@ -663,13 +663,13 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.ExistsAsync(fixedExpenseId, userId))
+                .Setup(repo => repo.ExistsAsync(userId, fixedExpenseId))
                 .ReturnsAsync(false);
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.IsActiveAsync(fixedExpenseId));
 
-            _fixedExpenseRepositoryMock.Verify(repo => repo.IsActiveAsync(It.IsAny<int>(), userId), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.IsActiveAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         [Fact]
@@ -686,7 +686,7 @@ namespace Tests.Application
 
             // Assert
             Assert.False(result);
-            _fixedExpenseRepositoryMock.Verify(repo => repo.ExistsAsync(It.IsAny<int>(), userId), Times.Never);
+            _fixedExpenseRepositoryMock.Verify(repo => repo.ExistsAsync(userId, It.IsAny<int>()), Times.Never);
         }
 
         public void Dispose()

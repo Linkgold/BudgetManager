@@ -22,7 +22,7 @@ namespace Application.Services
         public TransactionService
         (
             ICurrentUserService currentUserService,
-            ITransactionRepository transactionRepository, 
+            ITransactionRepository transactionRepository,
             ICategoryRepository categoryRepository,
             IUserRepository userRepository,
             IMapper mapper
@@ -50,7 +50,7 @@ namespace Application.Services
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             if (id <= 0) throw new ArgumentException("Invalid transaction ID", nameof(id));
 
-            Transaction transaction = await _transactionRepository.GetByIdAsync(id, UserId);
+            Transaction? transaction = await _transactionRepository.GetByIdAsync(UserId, id);
 
             if (transaction == null) throw new KeyNotFoundException($"Transaction with ID {id} not found");
 
@@ -70,9 +70,9 @@ namespace Application.Services
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
-            if (!await _categoryRepository.ExistsAsync(categoryId, UserId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetByCategoryIdAsync(categoryId, UserId);
+            IEnumerable<Transaction> transactions = await _transactionRepository.GetByCategoryIdAsync(UserId, categoryId);
 
             return _mapper.Map<List<TransactionResponseDTO>>(transactions);
         }
@@ -81,7 +81,7 @@ namespace Application.Services
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetByMonthlyPeriodAsync(period, UserId);
+            IEnumerable<Transaction> transactions = await _transactionRepository.GetByMonthlyPeriodAsync(UserId, period);
 
             return _mapper.Map<List<TransactionResponseDTO>>(transactions);
         }
@@ -91,10 +91,10 @@ namespace Application.Services
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
-            if (!await _categoryRepository.ExistsAsync(categoryId, UserId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetByCategoryAndMonthlyPeriodAsync(categoryId, period, UserId);
+            IEnumerable<Transaction> transactions = await _transactionRepository.GetByCategoryAndMonthlyPeriodAsync(UserId, categoryId, period);
 
             return _mapper.Map<List<TransactionResponseDTO>>(transactions);
         }
@@ -107,7 +107,7 @@ namespace Application.Services
             DailyPeriod startDate = new DailyPeriod(from.Day, from.Month, from.Year);
             DailyPeriod endDate = new DailyPeriod(to.Day, to.Month, to.Year);
 
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetByDateRangeAsync(startDate, endDate, UserId);
+            IEnumerable<Transaction> transactions = await _transactionRepository.GetByDateRangeAsync(UserId, startDate, endDate);
 
             return _mapper.Map<List<TransactionResponseDTO>>(transactions);
         }
@@ -117,10 +117,10 @@ namespace Application.Services
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
-            if (!await _categoryRepository.ExistsAsync(categoryId, UserId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            return await _transactionRepository.GetTotalByCategoryAndMonthlyPeriodAsync(categoryId, period, UserId);
+            return await _transactionRepository.GetTotalByCategoryAndMonthlyPeriodAsync(UserId, categoryId, period);
         }
 
         // ==================== COMANDOS ====================
@@ -130,7 +130,7 @@ namespace Application.Services
             ArgumentNullException.ThrowIfNull(request);
 
             // Validar que la categoría existe
-            Category category = await _categoryRepository.GetByIdAsync(request.CategoryId, UserId, withTracking: true);
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId, withTracking: true);
 
             if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
 
@@ -160,7 +160,7 @@ namespace Application.Services
             if (id <= 0) throw new ArgumentException("Invalid transaction ID", nameof(id));
 
             // Obtener la transacción existente
-            Transaction? transaction = await _transactionRepository.GetByIdAsync(id, UserId);
+            Transaction? transaction = await _transactionRepository.GetByIdAsync(UserId, id);
 
             if (transaction == null) throw new KeyNotFoundException($"Transaction with ID {id} not found");
 
@@ -184,9 +184,9 @@ namespace Application.Services
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             if (id <= 0) throw new ArgumentException("Invalid transaction ID", nameof(id));
 
-            if (!await _transactionRepository.ExistsAsync(id, UserId)) throw new KeyNotFoundException($"Transaction with ID {id} not found");
+            if (!await _transactionRepository.ExistsAsync(UserId, id)) throw new KeyNotFoundException($"Transaction with ID {id} not found");
 
-            await _transactionRepository.DeleteAsync(id, UserId);
+            await _transactionRepository.DeleteAsync(UserId, id);
         }
 
         // ==================== VERIFICACIONES ====================
@@ -196,7 +196,7 @@ namespace Application.Services
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             if (id <= 0) return false;
 
-            return await _transactionRepository.ExistsAsync(id, UserId);
+            return await _transactionRepository.ExistsAsync(UserId, id);
         }
     }
 }

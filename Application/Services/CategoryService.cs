@@ -44,7 +44,7 @@ namespace Application.Services
         public async Task<CategoryResponseDTO> GetByIdAsync(int id)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            Category? category = await _categoryRepository.GetByIdAsync(id, UserId);
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, id);
 
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found");
 
@@ -70,7 +70,7 @@ namespace Application.Services
         public async Task<CategoryResponseDTO> GetByNameAsync(string name)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            Category? category = await _categoryRepository.GetByNameAsync(name, UserId);
+            Category? category = await _categoryRepository.GetByNameAsync(UserId, name);
 
             if (category == null) throw new KeyNotFoundException($"Category with name '{name}' not found");
 
@@ -82,7 +82,7 @@ namespace Application.Services
         public async Task<CategoryResponseDTO> CreateAsync(CreateCategoryRequestDTO request)
         {
             // Validar que no exista una categoría con el mismo nombre
-            if (await _categoryRepository.ExistsByNameAsync(request.Name, UserId)) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
+            if (await _categoryRepository.ExistsByNameAsync(UserId, request.Name)) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
 
             // 🔥 Obtener el User completo
             User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
@@ -101,12 +101,12 @@ namespace Application.Services
         public async Task<CategoryResponseDTO> UpdateAsync(int id, UpdateCategoryRequestDTO request)
         {
             // Obtener categoría existente
-            Category? category = await _categoryRepository.GetByIdAsync(id, UserId);
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, id);
 
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found");
 
             // Validar que el nuevo nombre no esté siendo usado por otra categoría
-            Category existingCategory = await _categoryRepository.GetByNameAsync(request.Name, UserId);
+            Category? existingCategory = await _categoryRepository.GetByNameAsync(UserId, request.Name);
 
             if (existingCategory != null && existingCategory.Id != id) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
 
@@ -124,13 +124,13 @@ namespace Application.Services
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             // Verificar si existe
-            if (!await _categoryRepository.ExistsAsync(id, UserId)) throw new KeyNotFoundException($"Category with ID {id} not found");
+            if (!await _categoryRepository.ExistsAsync(UserId, id)) throw new KeyNotFoundException($"Category with ID {id} not found");
 
             // Verificar  si tiene dependencias
-            if (await _categoryRepository.HasDependenciesAsync(id, UserId)) throw new InvalidOperationException($"Category with ID {id} has associated expenses and cannot be deleted");
+            if (await _categoryRepository.HasDependenciesAsync(UserId, id)) throw new InvalidOperationException($"Category with ID {id} has associated expenses and cannot be deleted");
 
             // Eliminar
-            await _categoryRepository.DeleteAsync(id, UserId);
+            await _categoryRepository.DeleteAsync(UserId, id);
         }
 
         // ==================== VALIDACIONES ====================
@@ -139,22 +139,22 @@ namespace Application.Services
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
 
-            return await _categoryRepository.ExistsAsync(id, UserId);
+            return await _categoryRepository.ExistsAsync(UserId, id);
         }
 
         public async Task<bool> ExistsByNameAsync(string name)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
 
-            return await _categoryRepository.ExistsByNameAsync(name, UserId);
+            return await _categoryRepository.ExistsByNameAsync(UserId, name);
         }
 
         public async Task<bool> CanDeleteAsync(int id)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (!await _categoryRepository.ExistsAsync(id, UserId)) return false;
+            if (!await _categoryRepository.ExistsAsync(UserId, id)) return false;
 
-            return !await _categoryRepository.HasDependenciesAsync(id, UserId);
+            return !await _categoryRepository.HasDependenciesAsync(UserId, id);
         }
     }
 }

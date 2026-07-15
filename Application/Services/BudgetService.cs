@@ -20,13 +20,13 @@ namespace Application.Services
         private readonly ICategoryRepository _categoryRepository;
         private readonly IUserRepository _userRepository;
         private readonly IMapper _mapper;
-        
+
         public BudgetService
         (
             ICurrentUserService currentUserService,
-            IBudgetRepository budgetRepository, 
+            IBudgetRepository budgetRepository,
             ICategoryRepository categoryRepository,
-            IUserRepository userRepository, 
+            IUserRepository userRepository,
             IMapper mapper
         )
         {
@@ -50,9 +50,9 @@ namespace Application.Services
         public async Task<BudgetResponseDTO> GetByIdAsync(int id)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));            
+            if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));
 
-            Budget? budget = await _budgetRepository.GetByIdAsync(id, UserId);
+            Budget? budget = await _budgetRepository.GetByIdAsync(UserId, id);
 
             if (budget == null) throw new KeyNotFoundException($"Budget with ID {id} not found");
 
@@ -73,9 +73,9 @@ namespace Application.Services
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
-            if (!await _categoryRepository.ExistsAsync(categoryId, UserId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
-            IEnumerable<Budget> budgets = await _budgetRepository.GetByCategoryIdAsync(categoryId, UserId);
+            IEnumerable<Budget> budgets = await _budgetRepository.GetByCategoryIdAsync(UserId, categoryId);
             return _mapper.Map<List<BudgetResponseDTO>>(budgets);
         }
 
@@ -84,7 +84,7 @@ namespace Application.Services
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
 
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<Budget> budgets = await _budgetRepository.GetByPeriodAsync(period, UserId);
+            IEnumerable<Budget> budgets = await _budgetRepository.GetByPeriodAsync(UserId, period);
 
             return _mapper.Map<List<BudgetResponseDTO>>(budgets);
         }
@@ -95,7 +95,7 @@ namespace Application.Services
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(categoryId, period, UserId);
+            Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(UserId, categoryId, period);
 
             if (budget == null) throw new KeyNotFoundException($"Budget not found for category {categoryId} in {month}/{year}");
 
@@ -110,7 +110,7 @@ namespace Application.Services
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(categoryId, period, UserId);
+            Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(UserId, categoryId, period);
 
             if (budget == null) throw new KeyNotFoundException($"Budget not found for category {categoryId} in {month}/{year}");
 
@@ -149,13 +149,13 @@ namespace Application.Services
             ArgumentNullException.ThrowIfNull(request);
 
             // Validar que la categoría existe
-            Category category = await _categoryRepository.GetByIdAsync(request.CategoryId, UserId, withTracking: true);
+            Category category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId, withTracking: true);
 
             if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
 
             // Validar que no exista un presupuesto para la misma categoría y período
             MonthlyPeriod period = new MonthlyPeriod(request.Month, request.Year);
-            bool exists = await _budgetRepository.ExistsForCategoryAndPeriodAsync(request.CategoryId, period, UserId);
+            bool exists = await _budgetRepository.ExistsForCategoryAndPeriodAsync(UserId, request.CategoryId, period);
 
             if (exists) throw new ConflictException($"Budget already exists for category {request.CategoryId} in {request.Month}/{request.Year}");
 
@@ -182,7 +182,7 @@ namespace Application.Services
 
             if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));
 
-            Budget? budget = await _budgetRepository.GetByIdAsync(id, UserId);
+            Budget? budget = await _budgetRepository.GetByIdAsync(UserId, id);
 
             if (budget == null) throw new KeyNotFoundException($"Budget with ID {id} not found");
 
@@ -203,9 +203,9 @@ namespace Application.Services
 
             if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));
 
-            if (!await _budgetRepository.ExistsAsync(id, UserId)) throw new KeyNotFoundException($"Budget with ID {id} not found");
+            if (!await _budgetRepository.ExistsAsync(UserId, id)) throw new KeyNotFoundException($"Budget with ID {id} not found");
 
-            await _budgetRepository.DeleteAsync(id, UserId);
+            await _budgetRepository.DeleteAsync(UserId, id);
         }
 
         // ==================== VERIFICACIONES ====================
@@ -216,7 +216,7 @@ namespace Application.Services
 
             if (id <= 0) return false;
 
-            return await _budgetRepository.ExistsAsync(id, UserId);
+            return await _budgetRepository.ExistsAsync(UserId, id);
         }
 
         public async Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, int month, int year)
@@ -225,7 +225,7 @@ namespace Application.Services
             if (categoryId <= 0) return false;
 
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            return await _budgetRepository.ExistsForCategoryAndPeriodAsync(categoryId, period, UserId);
+            return await _budgetRepository.ExistsForCategoryAndPeriodAsync(UserId, categoryId, period);
         }
     }
 }

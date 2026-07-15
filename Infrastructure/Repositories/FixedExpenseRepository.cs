@@ -21,7 +21,7 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<FixedExpense?> GetByIdAsync(int id, int userId)
+        public async Task<FixedExpense?> GetByIdAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
@@ -49,7 +49,7 @@ namespace Infrastructure.Repositories
             return fixedExpenses;
         }
 
-        public async Task<IEnumerable<FixedExpense>> GetByCategoryAsync(int categoryId, int userId)
+        public async Task<IEnumerable<FixedExpense>> GetByCategoryAsync(int userId, int categoryId)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -78,7 +78,7 @@ namespace Infrastructure.Repositories
             return fixedExpenses;
         }
 
-        public async Task<IEnumerable<FixedExpense>> GetActiveByCategoryAsync(int categoryId, int userId)
+        public async Task<IEnumerable<FixedExpense>> GetActiveByCategoryAsync(int userId, int categoryId)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -93,7 +93,7 @@ namespace Infrastructure.Repositories
             return fixedExpenses;
         }
 
-        public async Task<IEnumerable<FixedExpense>> GetActiveForPeriodAsync(MonthlyPeriod period, int userId)
+        public async Task<IEnumerable<FixedExpense>> GetActiveForPeriodAsync(int userId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentNullException.ThrowIfNull(period);
@@ -112,7 +112,7 @@ namespace Infrastructure.Repositories
             return fixedExpenses;
         }
 
-        public async Task<IEnumerable<FixedExpense>> GetActiveForPeriodByCategoryAsync(int categoryId, MonthlyPeriod period, int userId)
+        public async Task<IEnumerable<FixedExpense>> GetActiveForPeriodByCategoryAsync(int userId, int categoryId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -122,7 +122,7 @@ namespace Infrastructure.Repositories
             List<FixedExpense> fixedExpenses = await _dbSet
                 .AsNoTracking()
                 .Include(fixedExpense => fixedExpense.Category)
-                .Where(fixedExpense => fixedExpense.UserId == userId && 
+                .Where(fixedExpense => fixedExpense.UserId == userId &&
                                        fixedExpense.CategoryId == categoryId &&
                                        fixedExpense.IsActive == true &&
                                       (fixedExpense.ChargePeriod.Year < period.Year ||
@@ -136,7 +136,7 @@ namespace Infrastructure.Repositories
 
         // ==================== MÉTODOS DE AGREGACIÓN ====================
 
-        public async Task<decimal> GetTotalByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
+        public async Task<decimal> GetTotalByCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -168,7 +168,7 @@ namespace Infrastructure.Repositories
             return total;
         }
 
-        public async Task<decimal> GetTotalActiveByCategoryAsync(int categoryId, int userId)
+        public async Task<decimal> GetTotalActiveByCategoryAsync(int userId, int categoryId)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -183,7 +183,7 @@ namespace Infrastructure.Repositories
 
         // ==================== MÉTODOS DE NEGOCIO ====================
 
-        public async Task<bool> ExistsAsync(int id, int userId)
+        public async Task<bool> ExistsAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) return false;
@@ -196,7 +196,7 @@ namespace Infrastructure.Repositories
             return exists;
         }
 
-        public async Task<bool> IsActiveAsync(int id, int userId)
+        public async Task<bool> IsActiveAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
@@ -228,7 +228,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id, int userId)
+        public async Task DeleteAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
@@ -241,7 +241,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task ActivateAsync(int id, int userId)
+        public async Task ActivateAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
@@ -254,7 +254,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeactivateAsync(int id, int userId)
+        public async Task DeactivateAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));

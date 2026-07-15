@@ -20,7 +20,7 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<Category?> GetByIdAsync(int id, int userId, bool withTracking = false)
+        public async Task<Category?> GetByIdAsync(int userId, int id, bool withTracking = false)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid category ID", nameof(id));
@@ -51,7 +51,7 @@ namespace Infrastructure.Repositories
             return categories;
         }
 
-        public async Task<Category?> GetByNameAsync(string name, int userId)
+        public async Task<Category?> GetByNameAsync(int userId, string name)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentException.ThrowIfNullOrWhiteSpace(name);
@@ -95,7 +95,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id, int userId)
+        public async Task DeleteAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid category ID", nameof(id));
@@ -109,7 +109,7 @@ namespace Infrastructure.Repositories
 
         // ==================== VALIDACIONES ====================
 
-        public async Task<bool> ExistsAsync(int id, int userId)
+        public async Task<bool> ExistsAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) return false;
@@ -121,7 +121,7 @@ namespace Infrastructure.Repositories
             return exists;
         }
 
-        public async Task<bool> ExistsByNameAsync(string name, int userId)
+        public async Task<bool> ExistsByNameAsync(int userId, string name)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (string.IsNullOrWhiteSpace(name)) return false;
@@ -134,7 +134,7 @@ namespace Infrastructure.Repositories
             return exists;
         }
 
-        public async Task<bool> HasDependenciesAsync(int categoryId, int userId)
+        public async Task<bool> HasDependenciesAsync(int userId, int categoryId)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));

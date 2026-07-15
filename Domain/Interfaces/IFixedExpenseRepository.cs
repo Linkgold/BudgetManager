@@ -9,30 +9,30 @@ namespace Domain.Interfaces
     public interface IFixedExpenseRepository
     {
         // CRUD Básico
-        Task<FixedExpense?> GetByIdAsync(int id, int userId);
+        Task<FixedExpense?> GetByIdAsync(int userId, int id);
         Task<IEnumerable<FixedExpense>> GetAllAsync(int userId);
-        Task<IEnumerable<FixedExpense>> GetByCategoryAsync(int categoryId, int userId);
+        Task<IEnumerable<FixedExpense>> GetByCategoryAsync(int userId, int categoryId);
         Task<IEnumerable<FixedExpense>> GetActiveAsync(int userId);
-        Task<IEnumerable<FixedExpense>> GetActiveByCategoryAsync(int categoryId, int userId);
+        Task<IEnumerable<FixedExpense>> GetActiveByCategoryAsync(int userId, int categoryId);
 
         // Métodos de período (para calcular gastos fijos en un mes concreto)
-        Task<IEnumerable<FixedExpense>> GetActiveForPeriodAsync(MonthlyPeriod period, int userId);
-        Task<IEnumerable<FixedExpense>> GetActiveForPeriodByCategoryAsync(int categoryId, MonthlyPeriod period, int userId);
+        Task<IEnumerable<FixedExpense>> GetActiveForPeriodAsync(int userId, MonthlyPeriod period);
+        Task<IEnumerable<FixedExpense>> GetActiveForPeriodByCategoryAsync(int userId, int categoryId, MonthlyPeriod period);
 
         // Métodos de agregación
-        Task<decimal> GetTotalByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId);
+        Task<decimal> GetTotalByCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period);
         Task<decimal> GetTotalActiveAsync(int userId);
-        Task<decimal> GetTotalActiveByCategoryAsync(int categoryId, int userId);
+        Task<decimal> GetTotalActiveByCategoryAsync(int userId, int categoryId);
 
         // Métodos de negocio
-        Task<bool> ExistsAsync(int id, int userId);
-        Task<bool> IsActiveAsync(int id, int userId);
+        Task<bool> ExistsAsync(int userId, int id);
+        Task<bool> IsActiveAsync(int userId, int id);
 
         // Métodos de escritura
         Task AddAsync(FixedExpense fixedExpense);
         Task UpdateAsync(FixedExpense fixedExpense);
-        Task DeleteAsync(int id, int userId);
-        Task ActivateAsync(int id, int userId);
-        Task DeactivateAsync(int id, int userId);
+        Task DeleteAsync(int userId, int id);
+        Task ActivateAsync(int userId, int id);
+        Task DeactivateAsync(int userId, int id);
     }
 }

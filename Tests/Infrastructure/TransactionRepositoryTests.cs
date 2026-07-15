@@ -63,7 +63,7 @@ namespace Tests.Infrastructure
             Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, TestDataFactory.CreateUser(), category);
 
             // Act
-            Transaction? retrieved = await _repository.GetByIdAsync(transaction.Id, userId);
+            Transaction? retrieved = await _repository.GetByIdAsync(userId, transaction.Id);
 
             // Assert
             Assert.NotNull(retrieved);
@@ -82,7 +82,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            Transaction? retrieved = await _repository.GetByIdAsync(999, userId);
+            Transaction? retrieved = await _repository.GetByIdAsync(userId, 999);
 
             // Assert
             Assert.Null(retrieved);
@@ -131,7 +131,7 @@ namespace Tests.Infrastructure
             await TestDataFactory.SeedTransactionAsync(_repository, 3, user, category2);
 
             // Act
-            IEnumerable<Transaction> result = await _repository.GetByCategoryIdAsync(category1.Id, userId);
+            IEnumerable<Transaction> result = await _repository.GetByCategoryIdAsync(userId, category1.Id);
 
             // Assert
             Assert.NotNull(result);
@@ -144,7 +144,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            IEnumerable<Transaction> result = await _repository.GetByCategoryIdAsync(999, userId);
+            IEnumerable<Transaction> result = await _repository.GetByCategoryIdAsync(userId, 999);
 
             // Assert
             Assert.NotNull(result);
@@ -167,7 +167,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(TestDataFactory.DEFAULT_DAILY_MONTH);
 
             // Act
-            IEnumerable<Transaction> result = await _repository.GetByMonthlyPeriodAsync(period, userId);
+            IEnumerable<Transaction> result = await _repository.GetByMonthlyPeriodAsync(userId, period);
 
             // Assert
             Assert.NotNull(result);
@@ -184,7 +184,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(12, 2025);
 
             // Act
-            IEnumerable<Transaction> result = await _repository.GetByMonthlyPeriodAsync(period, userId);
+            IEnumerable<Transaction> result = await _repository.GetByMonthlyPeriodAsync(userId, period);
 
             // Assert
             Assert.NotNull(result);
@@ -195,7 +195,7 @@ namespace Tests.Infrastructure
         public async Task GetByMonthlyPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByMonthlyPeriodAsync(null, 1));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByMonthlyPeriodAsync(1, null));
         }
 
         // ==================== TEST: GET BY CATEGORY AND MONTHLY PERIOD ====================
@@ -216,7 +216,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(TestDataFactory.DEFAULT_DAILY_MONTH);
 
             // Act
-            IEnumerable<Transaction> result = await _repository.GetByCategoryAndMonthlyPeriodAsync(category1.Id, period, userId);
+            IEnumerable<Transaction> result = await _repository.GetByCategoryAndMonthlyPeriodAsync(userId, category1.Id, period);
 
             // Assert
             Assert.NotNull(result);
@@ -234,7 +234,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(TestDataFactory.DEFAULT_DAILY_MONTH);
 
             // Act
-            IEnumerable<Transaction> result = await _repository.GetByCategoryAndMonthlyPeriodAsync(999, period, userId);
+            IEnumerable<Transaction> result = await _repository.GetByCategoryAndMonthlyPeriodAsync(userId, 999, period);
 
             // Assert
             Assert.NotNull(result);
@@ -258,7 +258,7 @@ namespace Tests.Infrastructure
             DailyPeriod endDate = TestDataFactory.CreateDailyPeriod(30);
 
             // Act
-            IEnumerable<Transaction> result = await _repository.GetByDateRangeAsync(startDate, endDate, userId);
+            IEnumerable<Transaction> result = await _repository.GetByDateRangeAsync(userId, startDate, endDate);
 
             // Assert
             Assert.NotNull(result);
@@ -276,7 +276,7 @@ namespace Tests.Infrastructure
             DailyPeriod endDate = TestDataFactory.CreateDailyPeriod(30);
 
             // Act
-            IEnumerable<Transaction> result = await _repository.GetByDateRangeAsync(startDate, endDate, userId);
+            IEnumerable<Transaction> result = await _repository.GetByDateRangeAsync(userId, startDate, endDate);
 
             // Assert
             Assert.NotNull(result);
@@ -291,7 +291,7 @@ namespace Tests.Infrastructure
             DailyPeriod endDate = TestDataFactory.CreateDailyPeriod(30);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(null, endDate, userId));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(userId, null, endDate));
         }
 
         [Fact]
@@ -302,7 +302,7 @@ namespace Tests.Infrastructure
             DailyPeriod startDate = TestDataFactory.CreateDailyPeriod(1);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(startDate, null, userId));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(userId, startDate, null));
         }
 
         // ==================== TEST: GET TOTAL ====================
@@ -322,7 +322,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(6);
 
             // Act
-            decimal total = await _repository.GetTotalByCategoryAndMonthlyPeriodAsync(category.Id, period, userId);
+            decimal total = await _repository.GetTotalByCategoryAndMonthlyPeriodAsync(userId, category.Id, period);
 
             // Assert
             Assert.Equal(otherAmount + TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, total);
@@ -337,7 +337,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(6);
 
             // Act
-            decimal total = await _repository.GetTotalByCategoryAndMonthlyPeriodAsync(categoryId, period, userId);
+            decimal total = await _repository.GetTotalByCategoryAndMonthlyPeriodAsync(userId, categoryId, period);
 
             // Assert
             Assert.Equal(0, total);
@@ -353,7 +353,7 @@ namespace Tests.Infrastructure
             Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
 
             // Act
-            bool exists = await _repository.ExistsAsync(transaction.Id, userId);
+            bool exists = await _repository.ExistsAsync(userId, transaction.Id);
 
             // Assert
             Assert.True(exists);
@@ -364,7 +364,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            bool exists = await _repository.ExistsAsync(999, userId);
+            bool exists = await _repository.ExistsAsync(userId, 999);
 
             // Assert
             Assert.False(exists);
@@ -375,7 +375,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            bool exists = await _repository.ExistsAsync(0, userId);
+            bool exists = await _repository.ExistsAsync(userId, 0);
 
             // Assert
             Assert.False(exists);
@@ -408,7 +408,7 @@ namespace Tests.Infrastructure
             await _repository.UpdateAsync(transaction);
 
             // Assert
-            Transaction? updated = await _repository.GetByIdAsync(transaction.Id, userId);
+            Transaction? updated = await _repository.GetByIdAsync(userId, transaction.Id);
             Assert.NotNull(updated);
             Assert.Equal(updatedEntityInfo.Name, updated.Info.Name);
             Assert.Equal(updatedEntityInfo.Description, updated.Info.Description);
@@ -431,10 +431,10 @@ namespace Tests.Infrastructure
             int id = transaction.Id;
 
             // Act
-            await _repository.DeleteAsync(id, userId);
+            await _repository.DeleteAsync(userId, id);
 
             // Assert
-            Transaction? deleted = await _repository.GetByIdAsync(id, userId);
+            Transaction? deleted = await _repository.GetByIdAsync(userId, id);
             Assert.Null(deleted);
         }
 

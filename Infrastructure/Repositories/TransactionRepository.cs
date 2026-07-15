@@ -24,7 +24,7 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<Transaction?> GetByIdAsync(int id, int userId)
+        public async Task<Transaction?> GetByIdAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid transaction ID", nameof(id));
@@ -54,7 +54,7 @@ namespace Infrastructure.Repositories
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByCategoryIdAsync(int categoryId, int userId)
+        public async Task<IEnumerable<Transaction>> GetByCategoryIdAsync(int userId, int categoryId)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -71,7 +71,7 @@ namespace Infrastructure.Repositories
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByMonthlyPeriodAsync(MonthlyPeriod period, int userId)
+        public async Task<IEnumerable<Transaction>> GetByMonthlyPeriodAsync(int userId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentNullException.ThrowIfNull(period);
@@ -86,7 +86,7 @@ namespace Infrastructure.Repositories
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByCategoryAndMonthlyPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
+        public async Task<IEnumerable<Transaction>> GetByCategoryAndMonthlyPeriodAsync(int userId, int categoryId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -105,7 +105,7 @@ namespace Infrastructure.Repositories
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByDateRangeAsync(DailyPeriod startDate, DailyPeriod endDate, int userId)
+        public async Task<IEnumerable<Transaction>> GetByDateRangeAsync(int userId, DailyPeriod startDate, DailyPeriod endDate)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentNullException.ThrowIfNull(startDate);
@@ -133,7 +133,7 @@ namespace Infrastructure.Repositories
             return transactions;
         }
 
-        public async Task<IEnumerable<Transaction>> GetByCategoryAndDateRangeAsync(int categoryId, DailyPeriod startDate, DailyPeriod endDate, int userId)
+        public async Task<IEnumerable<Transaction>> GetByCategoryAndDateRangeAsync(int userId, int categoryId, DailyPeriod startDate, DailyPeriod endDate)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -162,7 +162,7 @@ namespace Infrastructure.Repositories
             return transactions;
         }
 
-        public async Task<decimal> GetTotalByCategoryAndMonthlyPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
+        public async Task<decimal> GetTotalByCategoryAndMonthlyPeriodAsync(int userId, int categoryId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -181,7 +181,7 @@ namespace Infrastructure.Repositories
 
         // ==================== VERIFICACIONES ====================
 
-        public async Task<bool> ExistsAsync(int id, int userId)
+        public async Task<bool> ExistsAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) return false;
@@ -212,7 +212,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id, int userId)
+        public async Task DeleteAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid transaction ID", nameof(id));

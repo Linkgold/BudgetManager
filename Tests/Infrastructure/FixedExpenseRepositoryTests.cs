@@ -70,7 +70,7 @@ namespace Tests.Infrastructure
             FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
 
             // Act
-            FixedExpense? retrieved = await _repository.GetByIdAsync(fixedExpense.Id, userId);
+            FixedExpense? retrieved = await _repository.GetByIdAsync(userId, fixedExpense.Id);
 
             // Assert
             Assert.NotNull(retrieved);
@@ -89,7 +89,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            FixedExpense? retrieved = await _repository.GetByIdAsync(999, userId);
+            FixedExpense? retrieved = await _repository.GetByIdAsync(userId, 999);
 
             // Assert
             Assert.Null(retrieved);
@@ -141,7 +141,7 @@ namespace Tests.Infrastructure
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category2, "Seguro Coche");
 
             // Act
-            IEnumerable<FixedExpense> result = await _repository.GetByCategoryAsync(category1.Id, userId);
+            IEnumerable<FixedExpense> result = await _repository.GetByCategoryAsync(userId, category1.Id);
 
             // Assert
             Assert.Equal(2, result.Count());
@@ -155,7 +155,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            IEnumerable<FixedExpense> result = await _repository.GetByCategoryAsync(999, userId);
+            IEnumerable<FixedExpense> result = await _repository.GetByCategoryAsync(userId, 999);
 
             // Assert
             Assert.NotNull(result);
@@ -205,7 +205,7 @@ namespace Tests.Infrastructure
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category2, "Seguro Coche");
 
             // Act
-            IEnumerable<FixedExpense> result = await _repository.GetActiveByCategoryAsync(category1.Id, userId);
+            IEnumerable<FixedExpense> result = await _repository.GetActiveByCategoryAsync(userId, category1.Id);
 
             // Assert
             Assert.Single(result);
@@ -231,7 +231,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act
-            IEnumerable<FixedExpense> result = await _repository.GetActiveForPeriodAsync(period, userId);
+            IEnumerable<FixedExpense> result = await _repository.GetActiveForPeriodAsync(userId, period);
 
             // Assert
             // Solo Netflix debe estar activo en febrero 2024 (Spotify empieza en marzo, Disney+ en 2025)
@@ -243,7 +243,7 @@ namespace Tests.Infrastructure
         public async Task GetActiveForPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetActiveForPeriodAsync(null, 1));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetActiveForPeriodAsync(1, null));
         }
 
         // ==================== TEST: GET ACTIVE FOR PERIOD BY CATEGORY ====================
@@ -264,7 +264,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(2);
 
             // Act
-            IEnumerable<FixedExpense> result = await _repository.GetActiveForPeriodByCategoryAsync(category1.Id, period, userId);
+            IEnumerable<FixedExpense> result = await _repository.GetActiveForPeriodByCategoryAsync(userId, category1.Id, period);
 
             // Assert
             Assert.Single(result);
@@ -290,7 +290,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(2, 2024);
 
             // Act
-            decimal total = await _repository.GetTotalByCategoryAndPeriodAsync(category.Id, period, userId);
+            decimal total = await _repository.GetTotalByCategoryAndPeriodAsync(userId, category.Id, period);
 
             // Assert
             Assert.Equal(otherAmount + TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, total); // Netflix + Spotify = 15.99 + 9.99
@@ -342,7 +342,7 @@ namespace Tests.Infrastructure
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 4, user, category2, "Seguro Coche", amount: 50.00m);
 
             // Act
-            decimal total = await _repository.GetTotalActiveByCategoryAsync(category1.Id, userId);
+            decimal total = await _repository.GetTotalActiveByCategoryAsync(userId, category1.Id);
 
             // Assert
             Assert.Equal(otherAmount + TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, total); // Netflix + Spotify = 15.99 + 9.99
@@ -360,7 +360,7 @@ namespace Tests.Infrastructure
             FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
 
             // Act
-            bool exists = await _repository.ExistsAsync(fixedExpense.Id, userId);
+            bool exists = await _repository.ExistsAsync(userId, fixedExpense.Id);
 
             // Assert
             Assert.True(exists);
@@ -371,7 +371,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            bool exists = await _repository.ExistsAsync(999, userId);
+            bool exists = await _repository.ExistsAsync(userId, 999);
 
             // Assert
             Assert.False(exists);
@@ -382,7 +382,7 @@ namespace Tests.Infrastructure
         {
             // Act
             int userId = 1;
-            bool exists = await _repository.ExistsAsync(0, userId);
+            bool exists = await _repository.ExistsAsync(userId, 0);
 
             // Assert
             Assert.False(exists);
@@ -400,7 +400,7 @@ namespace Tests.Infrastructure
             FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
 
             // Act
-            bool isActive = await _repository.IsActiveAsync(fixedExpense.Id, userId);
+            bool isActive = await _repository.IsActiveAsync(userId, fixedExpense.Id);
 
             // Assert
             Assert.True(isActive);
@@ -420,7 +420,7 @@ namespace Tests.Infrastructure
             await _repository.UpdateAsync(fixedExpense);
 
             // Act
-            bool isActive = await _repository.IsActiveAsync(fixedExpense.Id, userId);
+            bool isActive = await _repository.IsActiveAsync(userId, fixedExpense.Id);
 
             // Assert
             Assert.False(isActive);
@@ -434,7 +434,7 @@ namespace Tests.Infrastructure
             int nonExistingId = 999;
 
             // Act
-            bool result = await _repository.IsActiveAsync(nonExistingId, userId);
+            bool result = await _repository.IsActiveAsync(userId, nonExistingId);
 
             // Assert
             Assert.False(result);
@@ -467,7 +467,7 @@ namespace Tests.Infrastructure
             await _repository.UpdateAsync(fixedExpense);
 
             // Assert
-            FixedExpense? updated = await _repository.GetByIdAsync(fixedExpense.Id, userId);
+            FixedExpense? updated = await _repository.GetByIdAsync(userId, fixedExpense.Id);
             Assert.NotNull(updated);
             Assert.Equal(updatedName, updated.Info.Name);
             Assert.Equal(updatedDescription, updated.Info.Description);
@@ -491,10 +491,10 @@ namespace Tests.Infrastructure
             int id = fixedExpense.Id;
 
             // Act
-            await _repository.DeleteAsync(id, userId);
+            await _repository.DeleteAsync(userId, id);
 
             // Assert
-            FixedExpense? deleted = await _repository.GetByIdAsync(id, userId);
+            FixedExpense? deleted = await _repository.GetByIdAsync(userId, id);
             Assert.Null(deleted);
         }
 
@@ -521,10 +521,10 @@ namespace Tests.Infrastructure
             await _repository.UpdateAsync(fixedExpense);
 
             // Act
-            await _repository.ActivateAsync(fixedExpense.Id, userId);
+            await _repository.ActivateAsync(userId, fixedExpense.Id);
 
             // Assert
-            bool isActive = await _repository.IsActiveAsync(fixedExpense.Id, userId);
+            bool isActive = await _repository.IsActiveAsync(userId, fixedExpense.Id);
             Assert.True(isActive);
         }
 
@@ -547,10 +547,10 @@ namespace Tests.Infrastructure
             FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
 
             // Act
-            await _repository.DeactivateAsync(fixedExpense.Id, userId);
+            await _repository.DeactivateAsync(userId, fixedExpense.Id);
 
             // Assert
-            bool isActive = await _repository.IsActiveAsync(fixedExpense.Id, userId);
+            bool isActive = await _repository.IsActiveAsync(userId, fixedExpense.Id);
             Assert.False(isActive);
         }
 

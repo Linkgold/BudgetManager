@@ -24,7 +24,7 @@ namespace Infrastructure.Repositories
 
         // ==================== CONSULTAS ====================
 
-        public async Task<Budget?> GetByIdAsync(int id, int userId)
+        public async Task<Budget?> GetByIdAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));
@@ -53,7 +53,7 @@ namespace Infrastructure.Repositories
                 .ThenBy(budget => budget.Category.Info.Name);
         }
 
-        public async Task<IEnumerable<Budget>> GetByCategoryIdAsync(int categoryId, int userId)
+        public async Task<IEnumerable<Budget>> GetByCategoryIdAsync(int userId, int categoryId)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -70,7 +70,7 @@ namespace Infrastructure.Repositories
                 .ThenBy(budget => budget.Period.Month);
         }
 
-        public async Task<Budget?> GetByCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
+        public async Task<Budget?> GetByCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -88,7 +88,7 @@ namespace Infrastructure.Repositories
             return budget;
         }
 
-        public async Task<IEnumerable<Budget>> GetByPeriodAsync(MonthlyPeriod period, int userId)
+        public async Task<IEnumerable<Budget>> GetByPeriodAsync(int userId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             ArgumentNullException.ThrowIfNull(period);
@@ -106,7 +106,7 @@ namespace Infrastructure.Repositories
 
         // ==================== VERIFICACIONES ====================
 
-        public async Task<bool> ExistsAsync(int id, int userId)
+        public async Task<bool> ExistsAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) return false;
@@ -119,7 +119,7 @@ namespace Infrastructure.Repositories
             return exists;
         }
 
-        public async Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, MonthlyPeriod period, int userId)
+        public async Task<bool> ExistsForCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) return false;
@@ -154,7 +154,7 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task DeleteAsync(int id, int userId)
+        public async Task DeleteAsync(int userId, int id)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (id <= 0) throw new ArgumentException("Invalid budget ID", nameof(id));
