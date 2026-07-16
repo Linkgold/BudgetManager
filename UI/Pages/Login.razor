@@ -1,8 +1,6 @@
 ﻿@page "/login"
-@using Microsoft.JSInterop
-@inject HttpClient Http
-@inject IJSRuntime JSRuntime
-@inject NavigationManager NavigationManager
+@inject IAuthService AuthService
+@inherits BasePage
 
 <div class="container">
     <div class="row justify-content-center">
@@ -59,59 +57,25 @@
 
         try
         {
-            // 🔥 Crear request
-            object request = new
-            {
-                Email = _email,
-                Password = _password
-            };
-
             // 🔥 Enviar a la API
-            HttpResponseMessage response = await Http.PostAsJsonAsync("/api/user/login", request);
+            bool success = await AuthService.LoginAsync(new LoginRequestDTO { Email = _email, Password = _password });
 
-            if (response.IsSuccessStatusCode)
+            if (success)
             {
-                LoginResponseDTO? result = await response.Content.ReadFromJsonAsync<LoginResponseDTO>();
 
-                if (result != null && !string.IsNullOrEmpty(result.Token))
-                {
-                    // 🔥 Guardar token y datos del usuario en localStorage
-                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "auth_token", result.Token);
-                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "user_name", result.UserName);
-                    await JSRuntime.InvokeVoidAsync("localStorage.setItem", "user_email", result.Email);
-
-                    NavigationManager.NavigateTo("/", true);
-                }
-                else
-                {
-                    _errorMessage = "Error al iniciar sesión: respuesta inválida.";
-                }
+                NavigationManager.NavigateTo("/", true);
             }
             else
             {
-                string errorContent = await response.Content.ReadAsStringAsync();
 
-                try
-                {
-                    var errorResponse = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(errorContent);
-                    if (errorResponse != null && errorResponse.ContainsKey("message"))
-                    {
-                        _errorMessage = errorResponse["message"].ToString() ?? "Email o contraseña incorrectos.";
-                    }
-                    else
-                    {
-                        _errorMessage = "Email o contraseña incorrectos.";
-                    }
-                }
-                catch
-                {
-                    _errorMessage = "Email o contraseña incorrectos.";
-                }
+                _errorMessage = "Email o contraseña incorrectos.";
             }
         }
         catch (Exception ex)
         {
-            _errorMessage = $"Ocurrió un error: {ex.Message}";
+            await LogErrorAsync($"Excepción en login para: {_email}", ex);
+
+            _errorMessage = $"Ocurrió un error inesperado.";
         }
         finally
         {

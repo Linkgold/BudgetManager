@@ -3,6 +3,7 @@ using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
 using Application.Validators;
+using AutoMapper;
 using Domain.Exceptions;
 using FluentValidation;
 using Infrastructure;
@@ -194,8 +195,21 @@ namespace API
             services.AddHttpContextAccessor();
             services.AddScoped<ICurrentUserService, CurrentUserService>();
 
-            // Registrar AutoMapper
-            services.AddAutoMapper(typeof(AutoMapperProfile));
+            services.AddSingleton<IMapper>
+            (
+                sp =>
+                {
+                    MapperConfiguration config = new MapperConfiguration
+                    (
+                        cfg =>
+                        {
+                            cfg.AddProfile<AutoMapperProfile>();
+                        },
+                        new LoggerFactory()
+                    );
+                    return config.CreateMapper();
+                }
+            );
 
             // Registrar FluentValidation
             services.AddValidatorsFromAssemblyContaining<CreateBudgetRequestValidator>();

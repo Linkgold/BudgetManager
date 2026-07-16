@@ -1,26 +1,29 @@
-﻿using Microsoft.JSInterop;
-using Shared.DTOs.Request;
+﻿using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using UI.Services.Interface;
+using UI.Services.Interfaces;
 
 namespace UI.Services
 {
     public class AuthService : IAuthService
     {
         private readonly HttpClient _httpClient;
-        private readonly IJSRuntime _jsRuntime;
+        private readonly IStorageService _storageService;
         private readonly CustomAuthenticationStateProvider _authStateProvider;
+        private readonly ILogService _logService;
 
         private const string TOKEN_KEY = "auth_token";
         private const string USER_NAME_KEY = "user_name";
         private const string USER_EMAIL_KEY = "user_email";
 
-        public AuthService(HttpClient httpClient, IJSRuntime jsRuntime, CustomAuthenticationStateProvider authStateProvider)
+        public AuthService(ILogService logService, HttpClient httpClient, IStorageService storageService, CustomAuthenticationStateProvider authStateProvider)
         {
             _httpClient = httpClient;
-            _jsRuntime = jsRuntime;
+            _storageService = storageService;
             _authStateProvider = authStateProvider;
+            _logService = logService;
         }
 
         public bool IsAuthenticated
@@ -40,20 +43,18 @@ namespace UI.Services
         public string? UserName => _userName;
         public string? Email => _email;
 
-        public async Task<bool> LoginAsync(string email, string password)
+        public async Task<bool> LoginAsync(LoginRequestDTO request)
         {
             try
             {
-                LoginRequestDTO request = new LoginRequestDTO
-                {
-                    Email = email,
-                    Password = password
-                };
-
                 HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/api/user/login", request);
 
                 if (!response.IsSuccessStatusCode)
                 {
+                    //  Log del error completo (con status code y contenido)
+                    string errorContent = await response.Content.ReadAsStringAsync();
+                    await _logService.LogErrorAsync($"Login fallido para {request.Email}. Status: {response.StatusCode}", new Exception(errorContent));
+                    
                     return false;
                 }
 
@@ -61,6 +62,8 @@ namespace UI.Services
 
                 if (result == null || string.IsNullOrEmpty(result.Token))
                 {
+                    await _logService.LogErrorAsync($"Login fallido para {request.Email}. Respuesta inválida.", new Exception("LoginResponseDTO es null o token vacío"));
+
                     return false;
                 }
 
@@ -70,9 +73,9 @@ namespace UI.Services
                 _email = result.Email;
 
                 // 🔥 Guardar en localStorage
-                await _jsRuntime.InvokeVoidAsync("localStorage.setItem", TOKEN_KEY, _token);
-                await _jsRuntime.InvokeVoidAsync("localStorage.setItem", USER_NAME_KEY, _userName ?? string.Empty);
-                await _jsRuntime.InvokeVoidAsync("localStorage.setItem", USER_EMAIL_KEY, _email ?? string.Empty);
+                await _storageService.SetItemAsync(TOKEN_KEY, _token);
+                await _storageService.SetItemAsync(USER_NAME_KEY, _userName ?? string.Empty);
+                await _storageService.SetItemAsync(USER_EMAIL_KEY, _email ?? string.Empty);
 
                 // 🔥 Configurar el HttpClient para enviar el token en las siguientes peticiones
                 _authStateProvider.NotifyUserAuthentication(result.Token, result.UserName, result.Email);
@@ -85,6 +88,31 @@ namespace UI.Services
             }
         }
 
+        public async Task<bool> RegisterAsync(CreateUserRequestDTO request)
+        {
+            try
+            {
+                HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/api/user/register", request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    //  Log del error completo (con status code y contenido)
+                    string errorContent = await response.Content.ReadAsStringAsync();
+                    await _logService.LogErrorAsync($"Registro fallido para {request.Email}. Status: {response.StatusCode}", new Exception(errorContent));
+
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogErrorAsync($"Excepción durante el registro para {request.Email}.", ex);
+
+                return false;
+            }
+        }
+
         public async Task LogoutAsync()
         {
             // 🔥 Limpiar memoria
@@ -93,9 +121,11 @@ namespace UI.Services
             _email = null;
 
             // 🔥 Limpiar localStorage
-            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", TOKEN_KEY);
-            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", USER_NAME_KEY);
-            await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", USER_EMAIL_KEY);
+            await _storageService.RemoveItemAsync(TOKEN_KEY);
+            await _storageService.RemoveItemAsync(USER_NAME_KEY);
+            await _storageService.RemoveItemAsync(USER_EMAIL_KEY);
+
+            _httpClient.DefaultRequestHeaders.Authorization = null;
 
             // 🔥 Limpiar el header de autorización
             _authStateProvider.NotifyUserLogout();
@@ -109,15 +139,15 @@ namespace UI.Services
             }
 
             // 🔥 Intentar recuperar el token de localStorage
-            string? token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TOKEN_KEY);
+            string? token = await _storageService.GetItemAsync(TOKEN_KEY);
 
             if (!string.IsNullOrEmpty(token))
             {
                 _token = token;
 
                 // 🔥 Recuperar también los datos del usuario
-                string? userName = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", USER_NAME_KEY);
-                string? email = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", USER_EMAIL_KEY);
+                string? userName = await _storageService.GetItemAsync(USER_NAME_KEY);
+                string? email = await _storageService.GetItemAsync(USER_EMAIL_KEY);
 
                 _userName = userName;
                 _email = email;

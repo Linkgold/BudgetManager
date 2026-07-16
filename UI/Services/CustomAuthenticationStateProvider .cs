@@ -2,28 +2,29 @@
 using Microsoft.JSInterop;
 using System.Net.Http.Headers;
 using System.Security.Claims;
+using UI.Services.Interfaces;
 
 namespace UI.Services
 {
     public class CustomAuthenticationStateProvider : AuthenticationStateProvider
     {
-        private readonly IJSRuntime _jsRuntime;
+        private readonly IStorageService _storageService;
         private readonly HttpClient _httpClient;
 
         private const string TOKEN_KEY = "auth_token";
         private const string USER_NAME_KEY = "user_name";
         private const string USER_EMAIL_KEY = "user_email";
 
-        public CustomAuthenticationStateProvider(IJSRuntime jsRuntime, HttpClient httpClient)
+        public CustomAuthenticationStateProvider(IStorageService storageService, HttpClient httpClient)
         {
-            _jsRuntime = jsRuntime;
+            _storageService = storageService;
             _httpClient = httpClient;
         }
 
         public override async Task<AuthenticationState> GetAuthenticationStateAsync()
         {
             // 🔥 Obtener el token del localStorage
-            string? token = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", TOKEN_KEY);
+            string? token = await _storageService.GetItemAsync(TOKEN_KEY);
             ClaimsIdentity identity;
             ClaimsPrincipal principal;
 
@@ -40,8 +41,8 @@ namespace UI.Services
             _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             // 🔥 Crear claims del usuario
-            string? userName = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", USER_NAME_KEY);
-            string? email = await _jsRuntime.InvokeAsync<string>("localStorage.getItem", USER_EMAIL_KEY);
+            string? userName = await _storageService.GetItemAsync(USER_NAME_KEY);
+            string? email = await _storageService.GetItemAsync(USER_EMAIL_KEY);
 
             List<Claim> claims = new List<Claim>
             {

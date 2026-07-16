@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using UI.Services;
+using UI.Services.Interface;
+using UI.Services.Interfaces;
 
 namespace UI
 {
@@ -13,6 +15,10 @@ namespace UI
             builder.RootComponents.Add<App>("#app");
             builder.RootComponents.Add<HeadOutlet>("head::after");
 
+            // 🔥 Configurar logging
+            builder.Logging.SetMinimumLevel(LogLevel.Information);
+            builder.Services.AddScoped<ILogService, LogService>();
+
             string apiUrl = builder.Configuration["ApiUrl"] ?? builder.HostEnvironment.BaseAddress;
 
             Console.WriteLine($"🌍 Entorno: {builder.HostEnvironment.Environment}");
@@ -23,11 +29,13 @@ namespace UI
             // 🔥 Registrar AuthService
             builder.Services.AddScoped<IAuthService, AuthService>();
 
+            builder.Services.AddScoped<IStorageService, StorageService>();
+
             // 🔥 Registrar servicios de autenticación
             builder.Services.AddAuthorizationCore();
             builder.Services.AddScoped<CustomAuthenticationStateProvider>();  // ← REGISTRAR PRIMERO
             builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
-                provider.GetRequiredService<CustomAuthenticationStateProvider>()); // ← REGISTRAR COMO AuthenticationStateProvider
+            provider.GetRequiredService<CustomAuthenticationStateProvider>()); // ← REGISTRAR COMO AuthenticationStateProvider
             builder.Services.AddScoped<IAuthService, AuthService>(); // ← AHORA DEPENDE DE CustomAuthenticationStateProvider
 
             await builder.Build().RunAsync();
