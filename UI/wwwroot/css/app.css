@@ -1,19 +1,223 @@
-html, body {
-    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+/* ==================== VARIABLES GLOBALES ==================== */
+:root {
+    /* Colores principales */
+    --color-primary: #1A2A3A;
+    --color-secondary: #2C3E50;
+    --color-accent: #3498DB;
+    --color-accent-hover: #2980B9;
+    --color-background: #ECF0F1;
+    --color-white: #FFFFFF;
+    --color-text: #2C3E50;
+    --color-text-light: #7F8C8D;
+    --color-error: #E74C3C;
+    --color-success: #2ECC71;
+    /* Fuentes */
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-h1:focus {
-    outline: none;
+
+html, body {
+    font-family: var(--font-family);
+    background-color: var(--color-background);
+    color: var(--color-text);
+    margin: 0;
+    padding: 0;
+    height: 100%;
 }
 
 a, .btn-link {
-    color: #0071c1;
+    color: var(--color-accent);
+    text-decoration: none;
 }
 
+a:hover {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+}
+
+
+/* ==================== BOTONES ==================== */
 .btn-primary {
-    color: #fff;
-    background-color: #1b6ec2;
-    border-color: #1861ac;
+    background-color: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-white);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-accent-hover);
+    border-color: var(--color-accent-hover);
+    color: var(--color-white);
+}
+
+.btn-danger {
+    background-color: var(--color-error);
+    border-color: var(--color-error);
+    color: var(--color-white);
+}
+
+.btn-danger:hover {
+    background-color: #C0392B;
+    border-color: #C0392B;
+    color: var(--color-white);
+}
+
+.btn-success {
+    background-color: var(--color-success);
+    border-color: var(--color-success);
+    color: var(--color-white);
+}
+
+.btn-success:hover {
+    background-color: #27AE60;
+    border-color: #27AE60;
+    color: var(--color-white);
+}
+
+/* ==================== BARRA DE NAVEGACIÓN ==================== */
+.navbar {
+    background-color: var(--color-primary) !important;
+    color: var(--color-white);
+}
+
+.navbar-brand {
+    color: var(--color-white) !important;
+    font-weight: 600;
+}
+
+.navbar .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.navbar .nav-link:hover {
+    color: var(--color-white) !important;
+}
+
+.navbar .nav-link.active {
+    color: var(--color-white) !important;
+    background-color: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* ==================== TARJETAS (CARDS) ==================== */
+.card {
+    background-color: var(--color-white);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+    border: none;
+    padding: 20px;
+}
+
+.card-header {
+    background-color: var(--color-secondary);
+    color: var(--color-white);
+    border-radius: 8px 8px 0 0;
+    padding: 12px 20px;
+    font-weight: 600;
+}
+
+/* ==================== FORMULARIOS ==================== */
+.form-control {
+    border-radius: 4px;
+    border: 1px solid #D5D8DC;
+    padding: 10px 14px;
+}
+
+.form-control:focus {
+    border-color: var(--color-accent);
+    box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+}
+
+.form-label {
+    font-weight: 500;
+    color: var(--color-secondary);
+}
+
+/* ==================== TABLAS ==================== */
+.table {
+    background-color: var(--color-white);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+.table thead {
+    background-color: var(--color-secondary);
+    color: var(--color-white);
+}
+
+    .table thead th {
+        padding: 12px 16px;
+        font-weight: 500;
+    }
+
+.table tbody tr:hover {
+    background-color: rgba(52, 152, 219, 0.05);
+}
+
+/* ==================== ALERTAS ==================== */
+.alert-danger {
+    background-color: #FDEDEC;
+    border-color: var(--color-error);
+    color: var(--color-error);
+}
+
+.alert-success {
+    background-color: #EAFAF1;
+    border-color: var(--color-success);
+    color: #27AE60;
+}
+
+.alert-info {
+    background-color: #EBF5FB;
+    border-color: var(--color-accent);
+    color: var(--color-accent);
+}
+
+/* ==================== LOGIN ==================== */
+.login-container {
+    max-width: 400px;
+    margin: 80px auto 0;
+    padding: 30px;
+    background-color: var(--color-white);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.login-container h2 {
+    color: var(--color-primary);
+    font-weight: 600;
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+/* ==================== DASHBOARD / RESUMEN ==================== */
+.summary-card {
+    background-color: var(--color-white);
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+    border-left: 4px solid var(--color-accent);
+}
+
+.summary-card.income {
+    border-left-color: var(--color-success);
+}
+
+.summary-card.expense {
+    border-left-color: var(--color-error);
+}
+
+.summary-card .number {
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.summary-card .label {
+    color: var(--color-text-light);
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {

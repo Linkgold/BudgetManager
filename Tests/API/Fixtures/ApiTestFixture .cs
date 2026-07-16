@@ -2,6 +2,7 @@
 using API.Filters;
 using Application.Interfaces;
 using Application.Mappings;
+using Application.Services;
 using AutoMapper;
 using Domain.Entities;
 using Domain.ValueObjects;
@@ -81,6 +82,8 @@ namespace Tests.API.Fixtures
                     ConfigureCurrentUserService(services);
 
                     ConfigureAuthentication(services);
+
+                    ConfigureJwt(services);
                 }
             );
 
@@ -155,6 +158,22 @@ namespace Tests.API.Fixtures
                 options.DefaultAuthenticateScheme = "FakeAuthentication";
                 options.DefaultChallengeScheme = "FakeAuthentication";
             });
+        }
+
+        private void ConfigureJwt(IServiceCollection services)
+        {
+            services.AddScoped<IJwtSettings>
+            (
+                provider =>
+                {
+                    return new JwtSettings(
+                        key: "a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6",
+                        issuer: "https://fake-issuer.com",
+                        audience: "https://fake-audience.com",
+                        expirationInMinutes: 60
+                    );
+                }
+            );
         }
 
         private void ConfigureFilters(IServiceCollection services)

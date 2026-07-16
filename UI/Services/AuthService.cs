@@ -10,15 +10,17 @@ namespace UI.Services
     {
         private readonly HttpClient _httpClient;
         private readonly IJSRuntime _jsRuntime;
+        private readonly CustomAuthenticationStateProvider _authStateProvider;
 
         private const string TOKEN_KEY = "auth_token";
         private const string USER_NAME_KEY = "user_name";
         private const string USER_EMAIL_KEY = "user_email";
 
-        public AuthService(HttpClient httpClient, IJSRuntime jsRuntime)
+        public AuthService(HttpClient httpClient, IJSRuntime jsRuntime, CustomAuthenticationStateProvider authStateProvider)
         {
             _httpClient = httpClient;
             _jsRuntime = jsRuntime;
+            _authStateProvider = authStateProvider;
         }
 
         public bool IsAuthenticated
@@ -73,7 +75,7 @@ namespace UI.Services
                 await _jsRuntime.InvokeVoidAsync("localStorage.setItem", USER_EMAIL_KEY, _email ?? string.Empty);
 
                 // 🔥 Configurar el HttpClient para enviar el token en las siguientes peticiones
-                _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _token);
+                _authStateProvider.NotifyUserAuthentication(result.Token, result.UserName, result.Email);
 
                 return true;
             }
@@ -96,7 +98,7 @@ namespace UI.Services
             await _jsRuntime.InvokeVoidAsync("localStorage.removeItem", USER_EMAIL_KEY);
 
             // 🔥 Limpiar el header de autorización
-            _httpClient.DefaultRequestHeaders.Authorization = null;
+            _authStateProvider.NotifyUserLogout();
         }
 
         public async Task<string?> GetTokenAsync()

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using UI.Services;
@@ -21,6 +22,13 @@ namespace UI
 
             // 🔥 Registrar AuthService
             builder.Services.AddScoped<IAuthService, AuthService>();
+
+            // 🔥 Registrar servicios de autenticación
+            builder.Services.AddAuthorizationCore();
+            builder.Services.AddScoped<CustomAuthenticationStateProvider>();  // ← REGISTRAR PRIMERO
+            builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
+                provider.GetRequiredService<CustomAuthenticationStateProvider>()); // ← REGISTRAR COMO AuthenticationStateProvider
+            builder.Services.AddScoped<IAuthService, AuthService>(); // ← AHORA DEPENDE DE CustomAuthenticationStateProvider
 
             await builder.Build().RunAsync();
         }

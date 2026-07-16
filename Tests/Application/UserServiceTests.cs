@@ -309,12 +309,16 @@ namespace Tests.Application
                 .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
                 .ReturnsAsync(TestDataFactory.CreateUserWithPassword());
 
+            _jwtSettingsMock
+                .Setup(settings => settings.Key)
+                .Returns("a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6");
+
             // Act
             LoginResponseDTO loginResponse = await _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, TestDataFactory.DEFAULT_PASSWORD);
 
             // Assert
             Assert.NotNull(loginResponse);
-            Assert.StartsWith("token_", loginResponse.Token);
+            Assert.NotEmpty(loginResponse.Token);
             Assert.Equal(TestDataFactory.DEFAULT_USER_NAME, loginResponse.UserName);
             Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, loginResponse.Email);
         }
