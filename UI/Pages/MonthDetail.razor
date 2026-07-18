@@ -53,6 +53,11 @@
                                         <span class="status-circle @GetStatusClass(item.Diferencia)"></span>
                                     </td>
                                 </tr>
+                                
+                                // 🔥 Determinar si hay alguna descripción no vacía
+                                bool hayDescripcion = _transaccionesPorCategoria.TryGetValue(item.Nombre, out var transacciones) &&
+                                                      transacciones.Any(t => !string.IsNullOrWhiteSpace(t.Descripcion));
+
 
                                 // 🔥 Fila de transacciones (expandible)
                                 @if (_expandedCategories.ContainsKey(item.Nombre) && _expandedCategories[item.Nombre])
@@ -60,23 +65,31 @@
                                     <tr class="transaction-row">
                                         <td colspan="6" style="padding: 0;">
                                             <div class="transaction-container">
-                                                <table class="table table-sm table-borderless mb-0">
+                                                <table class="table table-sm table-borderless mb-0" style="width: auto; min-width: 300px;">
                                                     <thead>
                                                         <tr>
-                                                            <th style="width: 80px;">Fecha</th>
-                                                            <th>Concepto</th>
-                                                            <th class="text-end" style="width: 100px;">Importe</th>
+                                                            <th style="width: 40px; white-space: nowrap;">Día</th>
+                                                            <th style="white-space: nowrap;">Concepto</th>
+                                                            @if (hayDescripcion)
+                                                            {
+                                                                <th style="white-space: nowrap;">Descripción</th>
+                                                            }
+                                                            <th class="text-end" style="white-space: nowrap; width: 100px;">Importe</th>
                                                         </tr>
                                                     </thead>
                                                     <tbody>
-                                                        @if (_transaccionesPorCategoria.TryGetValue(item.Nombre, out var transacciones) && transacciones.Any())
+                                                        @if (transacciones != null && transacciones.Any())
                                                         {
                                                             @foreach (var t in transacciones)
                                                             {
                                                                 <tr>
-                                                                    <td>@t.Fecha.ToShortDateString()</td>
-                                                                    <td>@t.Concepto</td>
-                                                                    <td class="text-end @(t.Tipo == "Gasto" ? "text-danger" : "text-success")">
+                                                                    <td style="white-space: nowrap;">@t.Fecha.Day</td>
+                                                                    <td style="white-space: nowrap;">@t.Concepto</td>
+                                                                    @if (hayDescripcion)
+                                                                    {
+                                                                        <td style="white-space: nowrap;">@t.Descripcion</td>
+                                                                    }
+                                                                    <td class="text-end @(t.Tipo == "Gasto" ? "text-danger" : "text-success")" style="white-space: nowrap;">
                                                                         @(t.Tipo == "Gasto" ? "-" : "+")@FormatCurrency(t.Importe)
                                                                     </td>
                                                                 </tr>
@@ -85,7 +98,7 @@
                                                         else
                                                         {
                                                             <tr>
-                                                                <td colspan="3" class="text-center text-muted py-1" style="font-size: 0.75rem;">
+                                                                <td colspan="@(hayDescripcion ? 4 : 3)" class="text-center text-muted py-1" style="font-size: 0.75rem;">
                                                                     No hay transacciones para esta categoría.
                                                                 </td>
                                                             </tr>
@@ -207,9 +220,9 @@
         {
             ["Alimentación"] = new List<TransaccionEjemplo>
             {
-                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 5), Concepto = "Supermercado", Importe = 120.00m, Tipo = "Gasto" },
-                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 12), Concepto = "Panadería", Importe = 15.00m, Tipo = "Gasto" },
-                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 18), Concepto = "Carne", Importe = 85.00m, Tipo = "Gasto" }
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 5), Concepto = "Supermercado", Descripcion = "Compra semanal", Importe = 120.00m, Tipo = "Gasto" },
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 12), Concepto = "Panadería", Importe = 15.00m, Tipo = "Gasto" },  // Sin descripción
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 18), Concepto = "Carne", Descripcion = "Carnicería", Importe = 85.00m, Tipo = "Gasto" }
             },
             ["Transporte"] = new List<TransaccionEjemplo>
             {
@@ -322,6 +335,7 @@
     {
         public DateTime Fecha { get; set; }
         public string Concepto { get; set; } = string.Empty;
+        public string? Descripcion { get; set; }
         public decimal Importe { get; set; }
         public string Tipo { get; set; } = "Gasto";
     }

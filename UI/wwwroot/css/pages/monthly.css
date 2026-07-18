@@ -42,6 +42,9 @@
 }
 
     .transaction-container table {
+        width: auto !important;
+        min-width: 300px;
+        max-width: 100%;
         font-size: 0.75rem;
         margin-bottom: 0;
         background-color: #FFFFFF;
@@ -50,6 +53,7 @@
     }
 
         .transaction-container table thead th {
+            white-space: nowrap;
             background-color: #D4E6F1;
             color: #1A2A3A;
             font-weight: 600;
