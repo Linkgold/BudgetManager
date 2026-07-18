@@ -1,0 +1,24 @@
+﻿/* ==================== BARRA DE NAVEGACIÓN ==================== */
+.navbar {
+    background-color: var(--color-primary) !important;
+    color: var(--color-white);
+}
+
+.navbar-brand {
+    color: var(--color-white) !important;
+    font-weight: 600;
+}
+
+.navbar .nav-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+    .navbar .nav-link:hover {
+        color: var(--color-white) !important;
+    }
+
+    .navbar .nav-link.active {
+        color: var(--color-white) !important;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+    }

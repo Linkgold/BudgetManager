@@ -1,0 +1,109 @@
+﻿/* ==================== DASHBOARD ANUAL ==================== */
+
+/* 🔥 Contenedor principal de la tabla */
+.dashboard-table-wrapper {
+    overflow-x: auto; /* Scroll horizontal cuando sea necesario */
+    -webkit-overflow-scrolling: touch;
+    padding: 0 4px; /* Pequeño padding para evitar bordes cortados */
+}
+
+/* 🔥 Estilos de la tabla */
+.dashboard-table {
+    width: 100%;
+    min-width: 600px; /* Ancho mínimo para que se vea bien en pantallas grandes */
+    border-collapse: collapse;
+    font-size: 0.75rem; /* Fuente más pequeña (12px aprox) */
+    margin-bottom: 0;
+}
+
+    /* 🔥 Cabecera */
+    .dashboard-table thead th {
+        background-color: var(--color-secondary);
+        color: var(--color-white);
+        padding: 6px 4px;
+        font-weight: 500;
+        font-size: 0.7rem; /* Cabecera aún más pequeña */
+        text-align: center;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    /* 🔥 Celdas */
+    .dashboard-table tbody td {
+        padding: 4px 4px;
+        vertical-align: middle;
+        white-space: nowrap; /* Evita saltos de línea en los valores */
+        text-align: center;
+    }
+
+        /* 🔥 Primera columna (nombre del mes) */
+        .dashboard-table tbody td:first-child,
+        .dashboard-table thead th:first-child {
+            font-weight: 600;
+            text-align: left;
+            padding-left: 6px;
+            min-width: 80px;
+            max-width: 120px;
+            white-space: nowrap;
+        }
+
+    /* 🔥 Columnas de categorías (presupuesto/gasto) */
+    .dashboard-table .category-cell {
+        font-size: 0.7rem; /* Números más pequeños */
+        padding: 2px 4px;
+        min-width: 60px;
+    }
+
+/* 🔥 Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+    .dashboard-table {
+        font-size: 0.65rem; /* Fuente aún más pequeña en móvil */
+        min-width: 500px;
+    }
+
+        .dashboard-table thead th {
+            font-size: 0.6rem;
+            padding: 4px 2px;
+        }
+
+        .dashboard-table tbody td {
+            padding: 3px 2px;
+        }
+
+        .dashboard-table .category-cell {
+            font-size: 0.6rem;
+            min-width: 40px;
+        }
+
+        .dashboard-table tbody td:first-child,
+        .dashboard-table thead th:first-child {
+            min-width: 60px;
+            max-width: 80px;
+            font-size: 0.65rem;
+        }
+}
+
+/* 🔥 Estilos de color para los valores */
+.text-success {
+    color: var(--color-success) !important;
+}
+
+.text-danger {
+    color: var(--color-error) !important;
+}
+
+.text-muted {
+    color: var(--color-text-light) !important;
+}
+
+/* 🔥 Efecto hover en filas */
+.dashboard-table tbody tr {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+    .dashboard-table tbody tr:hover {
+        background-color: rgba(52, 152, 219, 0.08);
+    }

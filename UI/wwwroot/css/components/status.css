@@ -1,0 +1,22 @@
+﻿.status-circle {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    margin: 0 auto;
+}
+
+.status-circle.green {
+    background-color: #2ECC71;
+    box-shadow: 0 0 6px rgba(46, 204, 113, 0.4);
+}
+
+.status-circle.yellow {
+    background-color: #F1C40F;
+    box-shadow: 0 0 6px rgba(241, 196, 15, 0.4);
+}
+
+.status-circle.red {
+    background-color: #E74C3C;
+    box-shadow: 0 0 6px rgba(231, 76, 60, 0.4);
+}

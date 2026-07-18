@@ -1,0 +1,22 @@
+﻿h1:focus {
+    outline: none;
+}
+
+html, body {
+    font-family: var(--font-family);
+    background-color: var(--color-background);
+    color: var(--color-text);
+    margin: 0;
+    padding: 0;
+    height: 100%;
+}
+
+a, .btn-link {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+
+a:hover {
+    color: var(--color-accent-hover);
+    text-decoration: underline;
+}

@@ -1,0 +1,328 @@
+﻿@page "/monthly"
+@page "/monthly/{Month:int}/{Year:int}"
+@attribute [Authorize]
+@inherits BasePage
+
+<div class="container mt-3">
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">📊 Resumen de @_currentMonth</h4>
+        <div>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="PreviousMonth">◀</button>
+            <button class="btn btn-outline-secondary btn-sm" @onclick="NextMonth">▶</button>
+            <a href="/" class="btn btn-outline-primary btn-sm ms-2">📅 Vista anual</a>
+        </div>
+    </div>
+
+    <div class="card shadow-sm">
+        <div class="card-header py-2">
+            <small class="fw-bold">📊 Presupuestos vs Gastos Reales</small>
+        </div>
+        <div class="card-body p-1">
+            <div class="table-responsive">
+                <table class="dashboard-table table table-striped table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 30px;"></th>
+                            <th style="text-align: left;">Categoría</th>
+                            <th class="text-end">Presupuesto</th>
+                            <th class="text-end">Gastos reales</th>
+                            <th class="text-end">Diferencia</th>
+                            <th class="text-center">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_categorias.Any())
+                        {
+                            @foreach (var item in _categorias)
+                            {
+                                // 🔥 Fila principal de categoría
+                                <tr @onclick="() => ToggleExpand(item.Nombre)" style="cursor: pointer;">
+                                    <td class="text-center">
+                                        <span class="expand-icon">@(_expandedCategories.ContainsKey(item.Nombre) && _expandedCategories[item.Nombre] ? "▼" : "▶")</span>
+                                    </td>
+                                    <td style="text-align: left;">
+                                        <span class="transaction-count">@(_transaccionesPorCategoria.TryGetValue(item.Nombre, out var lista) ? lista.Count : 0)</span>
+                                        <span>@item.Nombre</span>
+                                    </td>
+                                    <td class="text-end">@FormatCurrency(item.Presupuesto)</td>
+                                    <td class="text-end">@FormatCurrency(item.GastosReales)</td>
+                                    <td class="text-end @(item.Diferencia >= 0 ? "text-success" : "text-danger")">
+                                        @(item.Diferencia >= 0 ? "+" : "")@FormatCurrency(item.Diferencia)
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="status-circle @GetStatusClass(item.Diferencia)"></span>
+                                    </td>
+                                </tr>
+
+                                // 🔥 Fila de transacciones (expandible)
+                                @if (_expandedCategories.ContainsKey(item.Nombre) && _expandedCategories[item.Nombre])
+                                {
+                                    <tr class="transaction-row">
+                                        <td colspan="6" style="padding: 0;">
+                                            <div class="transaction-container">
+                                                <table class="table table-sm table-borderless mb-0">
+                                                    <thead>
+                                                        <tr>
+                                                            <th style="width: 80px;">Fecha</th>
+                                                            <th>Concepto</th>
+                                                            <th class="text-end" style="width: 100px;">Importe</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @if (_transaccionesPorCategoria.TryGetValue(item.Nombre, out var transacciones) && transacciones.Any())
+                                                        {
+                                                            @foreach (var t in transacciones)
+                                                            {
+                                                                <tr>
+                                                                    <td>@t.Fecha.ToShortDateString()</td>
+                                                                    <td>@t.Concepto</td>
+                                                                    <td class="text-end @(t.Tipo == "Gasto" ? "text-danger" : "text-success")">
+                                                                        @(t.Tipo == "Gasto" ? "-" : "+")@FormatCurrency(t.Importe)
+                                                                    </td>
+                                                                </tr>
+                                                            }
+                                                        }
+                                                        else
+                                                        {
+                                                            <tr>
+                                                                <td colspan="3" class="text-center text-muted py-1" style="font-size: 0.75rem;">
+                                                                    No hay transacciones para esta categoría.
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="text-center text-muted py-3">
+                                    No hay datos para este mes.
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-secondary fw-bold">
+                            <td></td>
+                            <td style="text-align: left;">TOTAL</td>
+                            <td class="text-end">@FormatCurrency(_totalPresupuesto)</td>
+                            <td class="text-end">@FormatCurrency(_totalGastos)</td>
+                            <td class="text-end @(_totalDiferencia >= 0 ? "text-success" : "text-danger")">
+                                @(_totalDiferencia >= 0 ? "+" : "")@FormatCurrency(_totalDiferencia)
+                            </td>
+                            <td class="text-center">
+                                <span class="status-circle @GetStatusClass(_totalDiferencia)"></span>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumen general con altura uniforme -->
+    <div class="row mt-3 align-items-stretch">
+        <div class="col-md-4 mb-2">
+            <div class="card summary-card h-100">
+                <div class="card-body text-center">
+                    <div class="label" style="font-size: 0.7rem;">Total Presupuesto</div>
+                    <div class="number" style="font-size: 1.2rem;">@FormatCurrency(_totalPresupuesto)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-2">
+            <div class="card summary-card expense h-100">
+                <div class="card-body text-center">
+                    <div class="label" style="font-size: 0.7rem;">Total Gastado</div>
+                    <div class="number text-danger" style="font-size: 1.2rem;">@FormatCurrency(_totalGastos)</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-2">
+            <div class="card summary-card @(_totalDiferencia >= 0 ? "income" : "expense") h-100">
+                <div class="card-body text-center">
+                    <div class="label" style="font-size: 0.7rem;">Diferencia</div>
+                    <div class="number @(_totalDiferencia >= 0 ? "text-success" : "text-danger")" style="font-size: 1.2rem;">
+                        @(_totalDiferencia >= 0 ? "+" : "")@FormatCurrency(_totalDiferencia)
+                    </div>
+                    <small style="font-size: 0.65rem;">@(Math.Abs(_porcentajeUtilizado).ToString("F1"))% utilizado</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@code {
+    [Parameter]
+    public int Month { get; set; }
+
+    [Parameter]
+    public int Year { get; set; }
+
+    private string _currentMonth => new DateTime(Year, Month, 1).ToString("MMMM yyyy", new CultureInfo("es-ES"));
+
+    private List<CategoriaResumen> _categorias = new();
+    private decimal _totalPresupuesto = 0;
+    private decimal _totalGastos = 0;
+    private decimal _totalDiferencia = 0;
+    private decimal _porcentajeUtilizado = 0;
+
+    private Dictionary<string, bool> _expandedCategories = new();
+    private Dictionary<string, List<TransaccionEjemplo>> _transaccionesPorCategoria = new();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Month == 0) Month = DateTime.Now.Month;
+        if (Year == 0) Year = DateTime.Now.Year;
+
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        // 🔥 Datos de ejemplo para categorías
+        _categorias = new List<CategoriaResumen>
+        {
+            new CategoriaResumen { Nombre = "Alimentación", Presupuesto = 500.00m, GastosReales = 450.00m },
+            new CategoriaResumen { Nombre = "Transporte", Presupuesto = 200.00m, GastosReales = 180.00m },
+            new CategoriaResumen { Nombre = "Ocio", Presupuesto = 150.00m, GastosReales = 200.00m },
+            new CategoriaResumen { Nombre = "Vivienda", Presupuesto = 300.00m, GastosReales = 300.00m },
+            new CategoriaResumen { Nombre = "Salud", Presupuesto = 100.00m, GastosReales = 90.00m },
+            new CategoriaResumen { Nombre = "Educación", Presupuesto = 80.00m, GastosReales = 0.00m },
+            new CategoriaResumen { Nombre = "Otros", Presupuesto = 50.00m, GastosReales = 20.00m }
+        };
+
+        foreach (var cat in _categorias)
+        {
+            _expandedCategories[cat.Nombre] = false;
+        }
+
+        _transaccionesPorCategoria = new Dictionary<string, List<TransaccionEjemplo>>
+        {
+            ["Alimentación"] = new List<TransaccionEjemplo>
+            {
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 5), Concepto = "Supermercado", Importe = 120.00m, Tipo = "Gasto" },
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 12), Concepto = "Panadería", Importe = 15.00m, Tipo = "Gasto" },
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 18), Concepto = "Carne", Importe = 85.00m, Tipo = "Gasto" }
+            },
+            ["Transporte"] = new List<TransaccionEjemplo>
+            {
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 7), Concepto = "Gasolina", Importe = 50.00m, Tipo = "Gasto" },
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 22), Concepto = "Mantenimiento", Importe = 130.00m, Tipo = "Gasto" }
+            },
+            ["Ocio"] = new List<TransaccionEjemplo>
+            {
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 3), Concepto = "Cine", Importe = 20.00m, Tipo = "Gasto" },
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 15), Concepto = "Restaurante", Importe = 80.00m, Tipo = "Gasto" },
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 25), Concepto = "Concierto", Importe = 100.00m, Tipo = "Gasto" }
+            },
+            ["Vivienda"] = new List<TransaccionEjemplo>
+            {
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 1), Concepto = "Alquiler", Importe = 300.00m, Tipo = "Gasto" }
+            },
+            ["Salud"] = new List<TransaccionEjemplo>
+            {
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 10), Concepto = "Farmacia", Importe = 45.00m, Tipo = "Gasto" }
+            },
+            ["Educación"] = new List<TransaccionEjemplo>(),
+            ["Otros"] = new List<TransaccionEjemplo>
+            {
+                new TransaccionEjemplo { Fecha = new DateTime(Year, Month, 8), Concepto = "Regalo", Importe = 20.00m, Tipo = "Gasto" }
+            }
+        };
+
+        CalcularTotales();
+        await Task.CompletedTask;
+    }
+
+    private void CalcularTotales()
+    {
+        _totalPresupuesto = _categorias.Sum(c => c.Presupuesto);
+        _totalGastos = _categorias.Sum(c => c.GastosReales);
+        _totalDiferencia = _totalPresupuesto - _totalGastos;
+        _porcentajeUtilizado = _totalPresupuesto > 0 ? (_totalGastos / _totalPresupuesto) * 100 : 0;
+    }
+
+    private void ToggleExpand(string categoriaNombre)
+    {
+        if (_expandedCategories.ContainsKey(categoriaNombre))
+        {
+            _expandedCategories[categoriaNombre] = !_expandedCategories[categoriaNombre];
+        }
+        else
+        {
+            _expandedCategories[categoriaNombre] = true;
+        }
+    }
+
+    private string FormatCurrency(decimal amount)
+    {
+        return amount.ToString("C", new CultureInfo("es-ES"));
+    }
+
+    private string GetStatusClass(decimal diferencia)
+    {
+        if (diferencia >= 9) return "green";
+        if (diferencia > -10) return "yellow";
+        return "red";
+    }
+
+    private async Task PreviousMonth()
+    {
+        if (Month == 1)
+        {
+            Month = 12;
+            Year--;
+        }
+        else
+        {
+            Month--;
+        }
+        _expandedCategories.Clear();
+        await LoadDataAsync();
+        UpdateUrl();
+    }
+
+    private async Task NextMonth()
+    {
+        if (Month == 12)
+        {
+            Month = 1;
+            Year++;
+        }
+        else
+        {
+            Month++;
+        }
+        _expandedCategories.Clear();
+        await LoadDataAsync();
+        UpdateUrl();
+    }
+
+    private void UpdateUrl()
+    {
+        NavigationManager.NavigateTo($"/monthly/{Month}/{Year}", replace: true);
+    }
+
+    private class CategoriaResumen
+    {
+        public string Nombre { get; set; } = string.Empty;
+        public decimal Presupuesto { get; set; }
+        public decimal GastosReales { get; set; }
+        public decimal Diferencia => Presupuesto - GastosReales;
+    }
+
+    private class TransaccionEjemplo
+    {
+        public DateTime Fecha { get; set; }
+        public string Concepto { get; set; } = string.Empty;
+        public decimal Importe { get; set; }
+        public string Tipo { get; set; } = "Gasto";
+    }
+}

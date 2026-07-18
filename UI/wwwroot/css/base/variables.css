@@ -1,0 +1,15 @@
+﻿:root {
+    /* Colores principales */
+    --color-primary: #1A2A3A;
+    --color-secondary: #2C3E50;
+    --color-accent: #3498DB;
+    --color-accent-hover: #2980B9;
+    --color-background: #ECF0F1;
+    --color-white: #FFFFFF;
+    --color-text: #2C3E50;
+    --color-text-light: #7F8C8D;
+    --color-error: #E74C3C;
+    --color-success: #2ECC71;
+    /* Fuentes */
+    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
