@@ -6,6 +6,7 @@
 @import url('components/buttons.css');
 @import url('components/navbar.css'); 
 @import url('components/status.css');
+@import url('components/tables.css'); 
 
 /* ==================== PÁGINAS ==================== */
 @import url('pages/login.css');

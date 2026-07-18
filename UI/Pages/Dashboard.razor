@@ -4,25 +4,23 @@
 
 <div class="container mt-3">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">📊 Resumen Anual @_currentYear</h4>
-        <div>
-            <a href="/monthly" class="btn btn-outline-primary btn-sm">📅 Ver mes actual</a>
-        </div>
+        <h4 class="mb-0 dashboard-title">📊 Resumen Anual @_currentYear</h4>
+        <a href="/monthly" class="btn btn-outline-primary btn-sm dashboard-btn">📅 Ver mes actual</a>
     </div>
 
-    <div class="card">
-        <div class="card-header py-2">
-            <small class="fw-bold">📊 Presupuesto vs Gasto por Categoría</small>
+    <div class="card dashboard-card">
+        <div class="card-header dashboard-card-header py-2">
+            <small class="fw-bold">📊 Presupuestos vs Gastos reales por categoría</small>
         </div>
         <div class="card-body p-1">
-            <div class="dashboard-table-wrapper">
-                <table class="dashboard-table table table-striped table-hover mb-0">
+            <div class="table-wrapper">
+                <table class="data-table table table-hover mb-0">
                     <thead>
                         <tr>
                             <th>Mes</th>
                             @foreach (var categoria in _categorias)
                             {
-                                <th>@categoria</th>
+                                <th class="text-center">@categoria</th>
                             }
                         </tr>
                     </thead>
@@ -34,7 +32,7 @@
                                 @foreach (var categoria in _categorias)
                                 {
                                     var valor = mes.ObtenerValor(categoria);
-                                    <td class="category-cell">
+                                    <td class="category-cell text-center">
                                         @if (valor.TieneDatos)
                                         {
                                             <span class="fw-bold @(valor.Diferencia >= 0 ? "text-success" : "text-danger")">

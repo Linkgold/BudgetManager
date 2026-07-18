@@ -1,6 +1,6 @@
 ﻿using Shared.DTOs.Request;
 
-namespace UI.Services.Interface
+namespace UI.Services.Interfaces
 {
     public interface IAuthService
     {

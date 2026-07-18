@@ -1,17 +1,36 @@
 ﻿@inherits LayoutComponentBase
+@inject IThemeService ThemeService
+@implements IDisposable
 
-<div class="page">
+<div class="page @(ThemeService.IsDark ? "dark-theme" : "light-theme")">
     <div class="sidebar">
         <NavMenu />
     </div>
-
     <main>
         <div class="top-row px-4">
             @* Aquí puedes mostrar el nombre del usuario *@
         </div>
-
         <article class="content px-4">
             @Body
         </article>
     </main>
 </div>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await ThemeService.LoadTheme();
+        ThemeService.ThemeChanged += OnThemeChanged;
+    }
+
+    private void OnThemeChanged()
+    {
+        // 🔥 Forzar la actualización de la interfaz
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        ThemeService.ThemeChanged -= OnThemeChanged;
+    }
+}

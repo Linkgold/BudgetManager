@@ -1,4 +1,4 @@
-﻿namespace UI.Services.Interface
+﻿namespace UI.Services.Interfaces
 {
     public interface ILogService
     {

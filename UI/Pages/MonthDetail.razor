@@ -4,22 +4,24 @@
 @inherits BasePage
 
 <div class="container mt-3">
+    <!-- Título y botones -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">📊 Resumen de @_currentMonth</h4>
+        <h4 class="mb-0 monthly-title">📊 Resumen de @_currentMonth</h4>
         <div>
-            <button class="btn btn-outline-secondary btn-sm" @onclick="PreviousMonth">◀</button>
-            <button class="btn btn-outline-secondary btn-sm" @onclick="NextMonth">▶</button>
-            <a href="/" class="btn btn-outline-primary btn-sm ms-2">📅 Vista anual</a>
+            <button class="btn btn-outline-secondary btn-sm monthly-nav-btn" @onclick="PreviousMonth">◀</button>
+            <button class="btn btn-outline-secondary btn-sm monthly-nav-btn" @onclick="NextMonth">▶</button>
+            <a href="/" class="btn btn-outline-primary btn-sm ms-2 monthly-btn">📅 Vista anual</a>
         </div>
     </div>
 
-    <div class="card shadow-sm">
-        <div class="card-header py-2">
-            <small class="fw-bold">📊 Presupuestos vs Gastos Reales</small>
+    <!-- Tarjeta principal -->
+    <div class="card monthly-card">
+        <div class="card-header monthly-card-header py-2">
+            <small class="fw-bold">📊 Presupuesto vs Gasto real por categoría</small>
         </div>
         <div class="card-body p-1">
-            <div class="table-responsive">
-                <table class="dashboard-table table table-striped table-hover mb-0">
+            <div class="table-wrapper">
+                <table class="data-table table table-hover mb-0">
                     <thead>
                         <tr>
                             <th style="width: 30px;"></th>
@@ -139,32 +141,32 @@
         </div>
     </div>
 
-    <!-- Resumen general con altura uniforme -->
+    <!-- Tarjetas de resumen -->
     <div class="row mt-3 align-items-stretch">
         <div class="col-md-4 mb-2">
             <div class="card summary-card h-100">
                 <div class="card-body text-center">
-                    <div class="label" style="font-size: 0.7rem;">Total Presupuesto</div>
-                    <div class="number" style="font-size: 1.2rem;">@FormatCurrency(_totalPresupuesto)</div>
+                    <div class="summary-label">Total Presupuesto</div>
+                    <div class="summary-number">@FormatCurrency(_totalPresupuesto)</div>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-2">
             <div class="card summary-card expense h-100">
                 <div class="card-body text-center">
-                    <div class="label" style="font-size: 0.7rem;">Total Gastado</div>
-                    <div class="number text-danger" style="font-size: 1.2rem;">@FormatCurrency(_totalGastos)</div>
+                    <div class="summary-label">Total Gastado</div>
+                    <div class="summary-number text-danger">@FormatCurrency(_totalGastos)</div>
                 </div>
             </div>
         </div>
         <div class="col-md-4 mb-2">
             <div class="card summary-card @(_totalDiferencia >= 0 ? "income" : "expense") h-100">
                 <div class="card-body text-center">
-                    <div class="label" style="font-size: 0.7rem;">Diferencia</div>
-                    <div class="number @(_totalDiferencia >= 0 ? "text-success" : "text-danger")" style="font-size: 1.2rem;">
+                    <div class="summary-label">Diferencia</div>
+                    <div class="summary-number @(_totalDiferencia >= 0 ? "text-success" : "text-danger")">
                         @(_totalDiferencia >= 0 ? "+" : "")@FormatCurrency(_totalDiferencia)
                     </div>
-                    <small style="font-size: 0.65rem;">@(Math.Abs(_porcentajeUtilizado).ToString("F1"))% utilizado</small>
+                    <small class="summary-percent">@(Math.Abs(_porcentajeUtilizado).ToString("F1"))% utilizado</small>
                 </div>
             </div>
         </div>

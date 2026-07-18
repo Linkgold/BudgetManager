@@ -1,5 +1,5 @@
 ﻿using Microsoft.JSInterop;
-using UI.Services.Interface;
+using UI.Services.Interfaces;
 
 namespace UI.Services
 {

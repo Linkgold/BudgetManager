@@ -1,15 +1,74 @@
-﻿:root {
-    /* Colores principales */
-    --color-primary: #1A2A3A;
-    --color-secondary: #2C3E50;
+﻿/* Tema oscuro (por defecto) */
+:root,
+.dark-theme {
+    /* Colores de fondo */
+    --color-background: #1E1E2E;
+    --color-surface: #1E1E2E;
+    --color-table-stripe: #2A2A3E;
+    --color-table-hover: #3A3A5E;
+    --color-surface-light: #3A3A4E;
+    --color-card: #2D2D3F;
+    --color-card-header: #3A3A4E;
+    --color-table-stripe: #2A2A3A;
+    --color-table-hover: #3A3A4E;
+    /* Colores de texto */
+    --color-text: #E0E0E0;
+    --color-text-light: #A0A0B0;
+    --color-text-muted: #7A7A8A;
+    --color-text-inverse: #FFFFFF;
+    /* Colores de borde */
+    --color-border: #3A3A4A;
+    --color-border-light: #4A4A5A;
+    /* Colores de acento */
+    --color-accent-rgb: 52, 152, 219; /* 3498DB en RGB */
     --color-accent: #3498DB;
     --color-accent-hover: #2980B9;
+    --color-success: #4ADE80;
+    --color-error: #E74C3C;
+    --color-warning: #F1C40F;
+    --color-secondary: #2C3E50;
+    /* Sombras */
+    --shadow-color: rgba(0, 0, 0, 0.4);
+    --shadow-light: rgba(0, 0, 0, 0.2);
+    /* Scrollbar */
+    --color-scrollbar-track: #2D2D3F;
+    --color-scrollbar-thumb: #4A4A5A;
+    --color-scrollbar-thumb-hover: #5A5A6A;
+}
+
+/* Tema claro */
+.light-theme {
+    /* Colores de fondo */
     --color-background: #ECF0F1;
-    --color-white: #FFFFFF;
+    --color-surface: #FFFFFF;
+    --color-table-stripe: #F2F3F4;
+    --color-table-hover: #E8F0FE;
+    --color-surface-light: #F8F9FA;
+    --color-card: #FFFFFF;
+    --color-card-header: #2C3E50;
+    --color-table-stripe: #F2F3F4;
+    --color-table-hover: #E8F0FE;
+    /* Colores de acento */
+    --color-accent-rgb: 52, 152, 219; /* mismo color base */
+    --color-accent: #3498DB;
+    --color-accent-hover: #2980B9;
+    --color-success: #2ECC71;
+    --color-error: #E74C3C;
+    --color-warning: #F1C40F;
+    --color-secondary: #2C3E50;
+    /* Colores de texto */
     --color-text: #2C3E50;
     --color-text-light: #7F8C8D;
-    --color-error: #E74C3C;
-    --color-success: #2ECC71;
-    /* Fuentes */
-    --font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --color-text-muted: #95A5A6;
+    --color-text-inverse: #FFFFFF;
+    /* Colores de borde */
+    --color-border: #D5D8DC;
+    --color-border-light: #E5E8EB;
+    /* Sombras */
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --shadow-light: rgba(0, 0, 0, 0.05);
+    /* Scrollbar */
+    --color-scrollbar-track: #FFFFFF;
+    --color-scrollbar-thumb: #C0C0C0;
+    --color-scrollbar-thumb-hover: #A0A0A0;
 }

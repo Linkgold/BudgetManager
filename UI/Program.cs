@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using UI.Services;
-using UI.Services.Interface;
 using UI.Services.Interfaces;
 
 namespace UI
@@ -37,6 +36,8 @@ namespace UI
             builder.Services.AddScoped<AuthenticationStateProvider>(provider =>
             provider.GetRequiredService<CustomAuthenticationStateProvider>()); // ← REGISTRAR COMO AuthenticationStateProvider
             builder.Services.AddScoped<IAuthService, AuthService>(); // ← AHORA DEPENDE DE CustomAuthenticationStateProvider
+
+            builder.Services.AddScoped<IThemeService, ThemeService>();
 
             await builder.Build().RunAsync();
         }

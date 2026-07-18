@@ -9,6 +9,7 @@ html, body {
     margin: 0;
     padding: 0;
     height: 100%;
+    transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 a, .btn-link {
@@ -19,4 +20,32 @@ a, .btn-link {
 a:hover {
     color: var(--color-accent-hover);
     text-decoration: underline;
+}
+
+.page {
+    background-color: var(--color-background);
+    min-height: 100vh;
+    transition: background-color 0.2s ease;
+}
+
+/* ==================== SCROLLBAR PERSONALIZADA ==================== */
+
+/* 🔥 WebKit (Chrome, Edge, Safari) */
+::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    border-radius: 4px;
+}
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: var(--color-scrollbar-thumb-hover);
+    }
+
+/* 🔥 Firefox */
+* {
+    scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
 }
