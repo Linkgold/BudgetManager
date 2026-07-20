@@ -61,6 +61,85 @@ namespace Tests.API.Controllers
             return budget?.Id ?? -1;
         }
 
+        // ==================== TEST: CREATE BULK ====================
+
+        [Fact]
+        public async Task CreateBulk_WithValidData_ReturnsCreated()
+        {
+            // Arrange
+            int categoryId = await CreateCategoryAsync("Alimentación");
+
+            CreateBulkBudgetRequestDTO request = new CreateBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = 2026,
+                MonthlyBudgets = new List<MonthlyBudgetDTO>
+                {
+                    new() { Month = 1, Amount = 500.00m },
+                    new() { Month = 2, Amount = 600.00m },
+                    new() { Month = 3, Amount = 700.00m }
+                }
+            };
+
+            StringContent content = _fixture.SerializeRequest(request);
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("/api/budget/bulk", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.Created, response.StatusCode);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+            BulkBudgetResponseDTO? result = _fixture.DeserializeResponse<BulkBudgetResponseDTO>(responseContent);
+
+            Assert.NotNull(result);
+            Assert.Equal(categoryId, result.CategoryId);
+            Assert.Equal(2026, result.Year);
+            Assert.Equal(3, result.TotalCreated);
+        }
+
+        [Fact]
+        public async Task CreateBulk_WithInvalidData_ReturnsBadRequest()
+        {
+            // Arrange
+            int categoryId = await CreateCategoryAsync("Alimentación");
+
+            CreateBulkBudgetRequestDTO request = new CreateBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = 2026,
+                MonthlyBudgets = [new() { Month = 13, Amount = 500.00m }]// Mes inválido
+            };
+
+            StringContent content = _fixture.SerializeRequest(request);
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("/api/budget/bulk", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task CreateBulk_WithNonExistingCategory_ReturnsNotFound()
+        {
+            // Arrange
+            CreateBulkBudgetRequestDTO request = new CreateBulkBudgetRequestDTO
+            {
+                CategoryId = 999,
+                Year = 2026,
+                MonthlyBudgets = [new() { Month = 1, Amount = 500.00m }]
+            };
+
+            StringContent content = _fixture.SerializeRequest(request);
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("/api/budget/bulk", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
         // ==================== TEST: CREATE ====================
 
         [Fact]

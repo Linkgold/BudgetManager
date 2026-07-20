@@ -1,8 +1,9 @@
-using Shared.DTOs.Request;
-using Shared.DTOs.Response;
 using Application.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
+using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 
 namespace API.Controllers
 {
@@ -148,6 +149,29 @@ namespace API.Controllers
             BudgetResponseDTO createdBudget = await _budgetService.CreateAsync(request);
 
             return CreatedAtAction(nameof(GetById), new { id = createdBudget.Id }, createdBudget);
+        }
+
+        /// <summary>
+        /// Crea un bloque de presupuestos por año
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("bulk")]
+        [ProducesResponseType(typeof(BulkBudgetResponseDTO), StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> CreateBulk([FromBody] CreateBulkBudgetRequestDTO request)
+        {
+            if (request == null) return BadRequest("Request cannot be null");
+
+            BulkBudgetResponseDTO createBulkBudget = await _budgetService.CreateBulkAsync(request);
+            // 🔥 Usar el primer ID creado para la ubicación
+            int firstId = createBulkBudget.CreatedIds.FirstOrDefault();
+            if (firstId == 0) return BadRequest("No budgets were created.");
+
+            return CreatedAtAction(nameof(GetById), new { id = new { id = firstId } }, createBulkBudget);
         }
 
         /// <summary>

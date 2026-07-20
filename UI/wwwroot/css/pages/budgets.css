@@ -210,3 +210,28 @@
         background: linear-gradient(to left, var(--shadow-color), transparent);
         pointer-events: none;
     }
+
+/* 🔥 Tabla de meses dentro del modal */
+.budget-month-table {
+    background-color: var(--color-surface) !important;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+}
+
+    .budget-month-table table {
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
+    }
+
+    .budget-month-table td,
+    .budget-month-table th {
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
+        border-bottom: 1px solid var(--color-border-light);
+    }
+
+    .budget-month-table .form-control {
+        background-color: var(--color-surface-light) !important;
+        color: var(--color-text) !important;
+        border: 1px solid var(--color-border) !important;
+    }

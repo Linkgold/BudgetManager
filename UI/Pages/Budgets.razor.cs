@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Shared.DTOs.Request;
 using Shared.DTOs.Response;
+using System.Net.Http.Json;
 using UI.Services.Interfaces;
 using UI.Shared;
 
@@ -11,6 +13,7 @@ namespace UI.Pages
         private List<CategoryResponseDTO> _allCategories = new();
         private List<CategoryResponseDTO> filteredCategories = new();
         private List<BudgetResponseDTO> _allBudgets = new();
+        private Dictionary<int, decimal> monthlyAmounts = new();
 
         private List<MonthFake> _months = new();
         private List<int> _years = new();
@@ -76,7 +79,19 @@ namespace UI.Pages
                 new CategoryResponseDTO { Id = 1, Name = "Alimentación", Description = "Gastos de comida" },
                 new CategoryResponseDTO { Id = 2, Name = "Transporte", Description = "Gastos de movilidad" },
                 new CategoryResponseDTO { Id = 3, Name = "Ocio", Description = "Entretenimiento" },
-                new CategoryResponseDTO { Id = 4, Name = "Vivienda", Description = "Hogar y servicios" }
+                new CategoryResponseDTO { Id = 4, Name = "Vivienda 4", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 5, Name = "Vivienda 5", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 6, Name = "Vivienda 6", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 7, Name = "Vivienda 7", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 8, Name = "Vivienda 8", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 9, Name = "Vivienda 9", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 11, Name = "Vivienda 10", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 12, Name = "Vivienda 10", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 13, Name = "Vivienda 10", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 14, Name = "Vivienda 10", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 15, Name = "Vivienda 10", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 16, Name = "Vivienda 10", Description = "Hogar y servicios" },
+                new CategoryResponseDTO { Id = 17, Name = "Vivienda 10", Description = "Hogar y servicios" },
             };
 
             // 🔥 Datos fake de presupuestos
@@ -115,6 +130,25 @@ namespace UI.Pages
                 new BudgetResponseDTO { Id = 26, CategoryId = 3, CategoryName = "Ocio", Month = 7, Year = 2026, Amount = 200.00m },
                 new BudgetResponseDTO { Id = 27, CategoryId = 3, CategoryName = "Ocio", Month = 8, Year = 2026, Amount = 180.00m },
             };
+
+            int month = 1;
+            int categoryId = 4;
+
+            for (int i = 28; i <= 231; i++)
+            {
+                _allBudgets.Add(new BudgetResponseDTO { Id = i, CategoryId = categoryId, CategoryName = $"Vivienda {categoryId}", Month = month, Year = 2026, Amount = 150.00m });
+
+                if (month < 13)
+                {
+                    month++;
+                }
+                else
+                {
+                    month = 1;
+                    categoryId++;
+
+                }
+            }
 
             ApplyFilters();
             await Task.CompletedTask;
@@ -175,31 +209,121 @@ namespace UI.Pages
         {
             isEditing = false;
             isDeleteMode = false;
-            budgetForm = new BudgetResponseDTO { Month = DateTime.Now.Month, Year = selectedYear };
+            budgetForm = new BudgetResponseDTO
+            {
+                Year = selectedYear,
+                CategoryId = 0,
+                Amount = 0
+            };
+            // Inicializar el diccionario de meses con 0
+            monthlyAmounts = _months.ToDictionary(m => m.Value, m => 0m);
             isModalOpen = true;
             StateHasChanged();
         }
 
         private void OpenEditModal(int categoryId, int year)
         {
-            // Buscar el primer presupuesto de esa categoría y año para editar
-            BudgetResponseDTO? budget = _allBudgets.FirstOrDefault(b => b.CategoryId == categoryId && b.Year == year);
+            // Cargar los presupuestos existentes para esa categoría y año
+            List<BudgetResponseDTO> existingBudgets = _allBudgets
+                .Where(budget => budget.CategoryId == categoryId && budget.Year == year)
+                .ToList();
 
-            if (budget != null)
+            if (existingBudgets.Any())
             {
                 isEditing = true;
                 isDeleteMode = false;
                 budgetForm = new BudgetResponseDTO
                 {
-                    Id = budget.Id,
-                    CategoryId = budget.CategoryId,
-                    CategoryName = budget.CategoryName,
-                    Month = budget.Month,
-                    Year = budget.Year,
-                    Amount = budget.Amount
+                    CategoryId = categoryId,
+                    CategoryName = _allCategories.FirstOrDefault(category => category.Id == categoryId)?.Name ?? string.Empty,
+                    Year = year,
+                    Amount = existingBudgets.First().Amount // Tomamos el primer importe como referencia
                 };
+
+                // Rellenar el diccionario con los importes existentes
+                monthlyAmounts = _months.ToDictionary(
+                    month => month.Value,
+                    month => existingBudgets.FirstOrDefault(budget => budget.Month == month.Value)?.Amount ?? 0
+                );
+
                 isModalOpen = true;
                 StateHasChanged();
+            }
+        }
+
+        private void ApplyAmountToAllMonths()
+        {
+            // Aplicar el importe del campo "budgetForm.Amount" a todos los meses
+            foreach (MonthFake month in _months)
+            {
+                monthlyAmounts[month.Value] = budgetForm.Amount;
+            }
+            StateHasChanged();
+        }
+
+        private decimal CalculateTotalAnnualBudget()
+        {
+            return monthlyAmounts.Values.Sum();
+        }
+
+        private async Task SaveBudget()
+        {
+            try
+            {
+                if (isDeleteMode)
+                {
+                    // Eliminar todos los presupuestos de la categoría y año
+                    _allBudgets.RemoveAll(budget => budget.CategoryId == budgetForm.CategoryId && budget.Year == budgetForm.Year);
+                    ToastService.ShowSuccess($"Presupuestos de {budgetForm.CategoryName} para {budgetForm.Year} eliminados correctamente.");
+                }
+                else
+                {
+                    // 1. Obtener los meses que tienen un importe > 0
+                    List<KeyValuePair<int, decimal>> monthsToCreate = monthlyAmounts
+                        .Where(kvp => kvp.Value > 0)
+                        .ToList();
+
+                    if (!monthsToCreate.Any())
+                    {
+                        ToastService.ShowError("Debes asignar al menos un importe para crear un presupuesto.");
+                        return;
+                    }
+
+                    // 2. Eliminar presupuestos existentes para esa categoría y año (si es edición)
+                    if (isEditing)
+                    {
+                        _allBudgets.RemoveAll(budget => budget.CategoryId == budgetForm.CategoryId && budget.Year == budgetForm.Year);
+                    }
+
+                    // 3. Crear el DTO para la llamada en bloque
+                    CreateBulkBudgetRequestDTO request = new CreateBulkBudgetRequestDTO
+                    {
+                        CategoryId = budgetForm.CategoryId,
+                        Year = budgetForm.Year,
+                        MonthlyBudgets = monthsToCreate.Select(kvp => new MonthlyBudgetDTO
+                        {
+                            Month = kvp.Key,
+                            Amount = kvp.Value
+                        }).ToList()
+                    };
+
+                    // 4. Llamar a la API
+                    HttpResponseMessage response = await Http.PostAsJsonAsync("/api/budget/bulk", request);
+
+                    // 5. Recargar datos y cerrar modal
+                    ToastService.ShowSuccess($"Presupuestos creados/actualizados correctamente para {budgetForm.Year}.");
+                }
+
+                isModalOpen = false;
+                isDeleteMode = false;
+                await LoadData();
+                ApplyFilters();
+                StateHasChanged();
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync($"Error en SaveBudget", ex);
+                ToastService.ShowError("Ocurrió un error inesperado.");
             }
         }
 
@@ -221,58 +345,6 @@ namespace UI.Pages
                 };
                 isModalOpen = true;
                 StateHasChanged();
-            }
-        }
-
-        private async Task SaveBudget()
-        {
-            try
-            {
-                if (isDeleteMode)
-                {
-                    // Eliminar todos los presupuestos de la categoría y año
-                    _allBudgets.RemoveAll(b => b.CategoryId == budgetForm.CategoryId && b.Year == budgetForm.Year);
-                    ToastService.ShowSuccess($"Presupuestos de {budgetForm.CategoryName} para {budgetForm.Year} eliminados correctamente.");
-                }
-                else if (isEditing)
-                {
-                    // Actualizar el presupuesto
-                    BudgetResponseDTO? existing = _allBudgets.FirstOrDefault(b => b.Id == budgetForm.Id);
-                    if (existing != null)
-                    {
-                        existing.CategoryId = budgetForm.CategoryId;
-                        existing.CategoryName = _allCategories.FirstOrDefault(c => c.Id == budgetForm.CategoryId)?.Name ?? string.Empty;
-                        existing.Month = budgetForm.Month;
-                        existing.Year = budgetForm.Year;
-                        existing.Amount = budgetForm.Amount;
-                    }
-                    ToastService.ShowSuccess($"Presupuesto actualizado correctamente.");
-                }
-                else
-                {
-                    // Crear nuevo presupuesto
-                    int newId = _allBudgets.Any() ? _allBudgets.Max(b => b.Id) + 1 : 1;
-                    _allBudgets.Add(new BudgetResponseDTO
-                    {
-                        Id = newId,
-                        CategoryId = budgetForm.CategoryId,
-                        CategoryName = _allCategories.FirstOrDefault(c => c.Id == budgetForm.CategoryId)?.Name ?? string.Empty,
-                        Month = budgetForm.Month,
-                        Year = budgetForm.Year,
-                        Amount = budgetForm.Amount
-                    });
-                    ToastService.ShowSuccess($"Presupuesto creado correctamente.");
-                }
-
-                isModalOpen = false;
-                isDeleteMode = false;
-                ApplyFilters();
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                await LogService.LogErrorAsync($"Error en SaveBudget", ex);
-                ToastService.ShowError("Ocurrió un error inesperado.");
             }
         }
 

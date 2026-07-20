@@ -19,6 +19,7 @@ namespace Application.Interfaces
         Task<BudgetSummaryDTO> GetSummaryByCategoryAndPeriodAsync(int categoryId, int month, int year);
 
         // ==================== COMANDOS ====================
+        Task<BulkBudgetResponseDTO> CreateBulkAsync(CreateBulkBudgetRequestDTO request);
         Task<BudgetResponseDTO> CreateAsync(CreateBudgetRequestDTO request);
         Task<BudgetResponseDTO> UpdateAsync(int id, UpdateBudgetRequestDTO request);
         Task DeleteAsync(int id);

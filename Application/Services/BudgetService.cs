@@ -15,6 +15,7 @@ namespace Application.Services
     /// </summary>
     public class BudgetService : IBudgetService
     {
+        private readonly ITransactionManager _transactionManager;
         private readonly ICurrentUserService _currentUserService;
         private readonly IBudgetRepository _budgetRepository;
         private readonly ICategoryRepository _categoryRepository;
@@ -23,6 +24,7 @@ namespace Application.Services
 
         public BudgetService
         (
+            ITransactionManager transactionManager,
             ICurrentUserService currentUserService,
             IBudgetRepository budgetRepository,
             ICategoryRepository categoryRepository,
@@ -30,12 +32,14 @@ namespace Application.Services
             IMapper mapper
         )
         {
+            ArgumentNullException.ThrowIfNull(transactionManager);
             ArgumentNullException.ThrowIfNull(currentUserService);
             ArgumentNullException.ThrowIfNull(budgetRepository);
             ArgumentNullException.ThrowIfNull(categoryRepository);
             ArgumentNullException.ThrowIfNull(userRepository);
             ArgumentNullException.ThrowIfNull(mapper);
 
+            _transactionManager = transactionManager;
             _currentUserService = currentUserService;
             _budgetRepository = budgetRepository;
             _categoryRepository = categoryRepository;
@@ -142,26 +146,84 @@ namespace Application.Services
 
         // ==================== COMANDOS ====================
 
-        public async Task<BudgetResponseDTO> CreateAsync(CreateBudgetRequestDTO request)
+        /// <summary>
+        /// Crea múltiples presupuestos para una categoría y año
+        /// </summary>
+        public async Task<BulkBudgetResponseDTO> CreateBulkAsync(CreateBulkBudgetRequestDTO request)
         {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
+            // Validar que el usuario está autenticado
+            User? user = await GetAndValidateUserAuthenticatedAsync();
 
             ArgumentNullException.ThrowIfNull(request);
 
             // Validar que la categoría existe
-            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId, withTracking: true);
+            Category? category = await GatAndValidateCategoryExistsAsync(request.CategoryId);
 
-            if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
+            // Validar que hay meses con importe > 0
+            List<MonthlyBudgetDTO> validMonths = request.MonthlyBudgets.Where(m => m.Amount > 0).ToList();
+
+            if (validMonths.Count == 0) throw new ArgumentException("At least one month with amount > 0 is required");
+
+            // Validar que los meses son válidos (1-12)
+            foreach (MonthlyBudgetDTO month in validMonths)
+            {
+                if (month.Month < 1 || month.Month > 12) throw new ArgumentException($"Invalid month: {month.Month}");
+            }
+
+            await _transactionManager.BeginTransactionAsync();
+
+            try
+            {
+                // 🔥 Crear los presupuestos en bloque
+                List<int> createdIds = new List<int>();
+
+                foreach (MonthlyBudgetDTO month in validMonths)
+                {
+                    MonthlyPeriod period = new MonthlyPeriod(month.Month, request.Year);
+                    bool exists = await _budgetRepository.ExistsForCategoryAndPeriodAsync(UserId, request.CategoryId, period);
+
+                    if (!exists)
+                    {
+                        Money money = new Money(month.Amount);
+                        Budget budget = new Budget(user, category, money, period);
+                        await _budgetRepository.AddAsync(budget);
+                        createdIds.Add(budget.Id);
+                    }
+                }
+
+                await _transactionManager.CommitTransactionAsync();
+
+                // Devolver respuesta
+                return new BulkBudgetResponseDTO
+                {
+                    CategoryId = request.CategoryId,
+                    Year = request.Year,
+                    CreatedIds = createdIds,
+                    TotalCreated = createdIds.Count
+                };
+            }
+            catch (Exception)
+            {
+                await _transactionManager.RollbackTransactionAsync();
+                throw;
+            }
+        }
+
+        public async Task<BudgetResponseDTO> CreateAsync(CreateBudgetRequestDTO request)
+        {
+            // 🔥 Obtener y validar el User completo
+            User? user = await GetAndValidateUserAuthenticatedAsync();
+
+            ArgumentNullException.ThrowIfNull(request);
+
+            // Validar que la categoría existe
+            Category? category = await GatAndValidateCategoryExistsAsync(request.CategoryId);
 
             // Validar que no exista un presupuesto para la misma categoría y período
             MonthlyPeriod period = new MonthlyPeriod(request.Month, request.Year);
             bool exists = await _budgetRepository.ExistsForCategoryAndPeriodAsync(UserId, request.CategoryId, period);
 
             if (exists) throw new ConflictException($"Budget already exists for category {request.CategoryId} in {request.Month}/{request.Year}");
-
-            // 🔥 Obtener el User completo
-            User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
-            if (user == null) throw new KeyNotFoundException($"User with ID {UserId} not found");
 
             // Crear entidad de dominio
             Money amount = new Money(request.Amount);
@@ -226,6 +288,24 @@ namespace Application.Services
 
             MonthlyPeriod period = new MonthlyPeriod(month, year);
             return await _budgetRepository.ExistsForCategoryAndPeriodAsync(UserId, categoryId, period);
+        }
+
+        private async Task<User> GetAndValidateUserAuthenticatedAsync()
+        {
+            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
+
+            User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
+            if (user == null) throw new KeyNotFoundException($"User with ID {UserId} not found");
+
+            return user;
+        }
+
+        private async Task<Category> GatAndValidateCategoryExistsAsync(int categoryId)
+        {
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, categoryId, withTracking: true);
+            if (category == null) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
+
+            return category;
         }
     }
 }

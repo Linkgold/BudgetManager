@@ -55,6 +55,16 @@
     }
 
 /* 🔥 Contenedor que envuelve la tarjeta (con altura mínima) */
+.table-card-wrapper-budget {
+    position: relative;
+    min-height: 635px; /* ← Altura mínima para que el modal no se corte */
+    border-radius: 13px !important;
+    overflow: hidden !important;
+    transition: filter 0.3s ease;
+    /* Ajusta el valor según el tamaño de tu modal */
+}
+
+/* 🔥 Contenedor que envuelve la tarjeta (con altura mínima) */
 .table-card-wrapper {
     position: relative;
     min-height: 288px; /* ← Altura mínima para que el modal no se corte */
@@ -63,21 +73,19 @@
     transition: filter 0.3s ease;
     /* Ajusta el valor según el tamaño de tu modal */
 }
-
-    /* 🔥 Cuando el modal está abierto, aumentar la altura */
-    .table-card-wrapper.modal-open {
-        min-height: 600px; /* ← Altura suficiente para el modal abierto */
+    /* 🔥 Cuando el modal está abierto, desenfocar el contenido */
+    .table-card-wrapper-budget.modal-open.filter-card,
+    .table-card-wrapper-budget.modal-open .table-card,
+    .table-card-wrapper.modal-open .filter-card,
+    .table-card-wrapper.modal-open .table-card {
+        filter: blur(4px);
+        pointer-events: none; /* ← Evita que se pueda interactuar con los elementos */
+        user-select: none; /* ← Evita que se seleccione texto */
     }
-        /* 🔥 Cuando el modal está abierto, desenfocar el contenido */
-        .table-card-wrapper.modal-open .filter-card,
-        .table-card-wrapper.modal-open .table-card {
-            filter: blur(4px);
-            pointer-events: none; /* ← Evita que se pueda interactuar con los elementos */
-            user-select: none; /* ← Evita que se seleccione texto */
-        }
 
-        /* 🔥 El modal y su overlay NO deben desenfocarse */
-        .table-card-wrapper.modal-open .modal-overlay {
-            filter: none !important;
-            pointer-events: auto !important;
-        }
+    /* 🔥 El modal y su overlay NO deben desenfocarse */
+    .table-card-wrapper-budget.modal-open .modal-overlay,
+    .table-card-wrapper.modal-open .modal-overlay {
+        filter: none !important;
+        pointer-events: auto !important;
+    }  
