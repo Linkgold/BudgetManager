@@ -37,6 +37,7 @@ namespace UI
             provider.GetRequiredService<CustomAuthenticationStateProvider>()); // ← REGISTRAR COMO AuthenticationStateProvider
             builder.Services.AddScoped<IAuthService, AuthService>(); // ← AHORA DEPENDE DE CustomAuthenticationStateProvider
 
+            builder.Services.AddScoped<IToastService, ToastService>();
             builder.Services.AddScoped<IThemeService, ThemeService>();
 
             await builder.Build().RunAsync();

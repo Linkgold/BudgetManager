@@ -91,7 +91,6 @@ namespace Tests.API.Controllers
             Assert.Equal(15.99m, fixedExpense.Amount);
             Assert.Equal(1, fixedExpense.Month);
             Assert.Equal(2024, fixedExpense.Year);
-            Assert.True(fixedExpense.IsActive);
         }
 
         [Fact]
@@ -213,58 +212,6 @@ namespace Tests.API.Controllers
         {
             // Act
             HttpResponseMessage response = await _client.DeleteAsync("/api/fixedexpense/999");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        // ==================== TEST: ACTIVATE ====================
-
-        [Fact]
-        public async Task Activate_WithExistingId_ReturnsNoContent()
-        {
-            // Arrange
-            int categoryId = await CreateCategoryAsync("Suscripciones");
-            int fixedExpenseId = await CreateFixedExpenseAsync(categoryId, "ToActivate", 10.00m, 2024, 1);
-
-            // Act
-            HttpResponseMessage response = await _client.PatchAsync($"/api/fixedexpense/{fixedExpenseId}/activate", null);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task Activate_WithNonExistingId_ReturnsNotFound()
-        {
-            // Act
-            HttpResponseMessage response = await _client.PatchAsync("/api/fixedexpense/999/activate", null);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        // ==================== TEST: DEACTIVATE ====================
-
-        [Fact]
-        public async Task Deactivate_WithExistingId_ReturnsNoContent()
-        {
-            // Arrange
-            int categoryId = await CreateCategoryAsync("Suscripciones");
-            int fixedExpenseId = await CreateFixedExpenseAsync(categoryId, "ToDeactivate", 10.00m, 2024, 1);
-
-            // Act
-            HttpResponseMessage response = await _client.PatchAsync($"/api/fixedexpense/{fixedExpenseId}/deactivate", null);
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        }
-
-        [Fact]
-        public async Task Deactivate_WithNonExistingId_ReturnsNotFound()
-        {
-            // Act
-            HttpResponseMessage response = await _client.PatchAsync("/api/fixedexpense/999/deactivate", null);
 
             // Assert
             Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);

@@ -50,7 +50,7 @@ namespace Infrastructure.Extensions
         /// </summary>
         private static IDbContextFactory CreateDbContextFactory(IConfiguration configuration, string databaseType)
         {
-            string connectionString;
+            string? connectionString;
 
             switch (databaseType.ToLower())
             {

@@ -37,11 +37,6 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired()
                 .HasMaxLength(255);
 
-            builder.Property(user => user.IsActive)
-                .HasColumnName("IsActive")
-                .IsRequired()
-                .HasDefaultValue(true);
-
             builder.Property(user => user.CreatedAt)
                 .HasColumnName("CreatedAt")
                 .IsRequired()
@@ -75,10 +70,6 @@ namespace Infrastructure.Data.Configurations
                     .IsUnique()
                     .HasDatabaseName("IX_Users_UserName");
             });
-
-            // Índice para IsActive (búsquedas de usuarios activos)
-            builder.HasIndex(user => user.IsActive)
-                .HasDatabaseName("IX_Users_IsActive");
         }
     }
 }

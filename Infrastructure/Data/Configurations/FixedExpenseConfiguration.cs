@@ -70,11 +70,6 @@ namespace Infrastructure.Data.Configurations
 
             // ==================== PROPIEDADES SIMPLES ====================
 
-            builder.Property(fixedExpense => fixedExpense.IsActive)
-                .HasColumnName("IsActive")
-                .IsRequired()
-                .HasDefaultValue(true);
-
             builder.Property(fixedExpense => fixedExpense.CreatedAt)
                 .HasColumnName("CreatedAt")
                 .IsRequired()
@@ -97,9 +92,6 @@ namespace Infrastructure.Data.Configurations
             builder.HasIndex(fixedExpense => fixedExpense.CategoryId)
                 .HasDatabaseName("IX_FixedExpenses_CategoryId");
 
-            builder.HasIndex(fixedExpense => new { fixedExpense.CategoryId, fixedExpense.IsActive })
-                .HasDatabaseName("IX_FixedExpenses_CategoryId_IsActive");
-
             // 1. Definir Shadow Properties para el período (para usarlas en índices compuestos)
             builder.Property<int>("Month")
                 .HasColumnName("Month")
@@ -110,12 +102,8 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired();
 
             // ✅ ÍNDICE COMPUESTO USANDO SHADOW PROPERTIES
-            builder.HasIndex("CategoryId", "Month", "Year", "IsActive")
-                .HasDatabaseName("IX_FixedExpenses_Category_Period_Active");
-
-            // Índice para IsActive (si haces búsquedas globales de activos)
-            builder.HasIndex(fixedExpense => fixedExpense.IsActive)
-                .HasDatabaseName("IX_FixedExpenses_IsActive");
+            builder.HasIndex("CategoryId", "Month", "Year")
+                .HasDatabaseName("IX_FixedExpenses_Category_Period");
         }
     }
 }

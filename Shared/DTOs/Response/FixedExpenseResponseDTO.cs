@@ -15,7 +15,6 @@
         public string Currency { get; set; }
         public int Year { get; set; }
         public int Month { get; set; }
-        public bool IsActive { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
     }

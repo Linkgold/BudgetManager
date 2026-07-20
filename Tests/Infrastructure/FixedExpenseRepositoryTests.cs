@@ -54,7 +54,6 @@ namespace Tests.Infrastructure
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.ChargePeriod.Year);
             Assert.Equal(user.Id, retrieved.UserId);
             Assert.Equal(category.Id, retrieved.CategoryId);
-            Assert.True(retrieved.IsActive);
             Assert.NotEqual(default, retrieved.CreatedAt);
         }
 
@@ -162,58 +161,6 @@ namespace Tests.Infrastructure
             Assert.Empty(result);
         }
 
-        // ==================== TEST: GET ACTIVE ====================
-
-        [Fact]
-        public async Task GetActiveAsync_ReturnsOnlyActiveFixedExpenses()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(1, user);
-
-            FixedExpense active = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
-            FixedExpense inactive = await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Disney+");
-            inactive.Deactivate();
-            await _repository.UpdateAsync(inactive);
-
-            // Act
-            IEnumerable<FixedExpense> result = await _repository.GetActiveAsync(userId);
-
-            // Assert
-            Assert.Single(result);
-            Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME, result.First().Info.Name);
-            Assert.True(result.First().IsActive);
-        }
-
-        // ==================== TEST: GET ACTIVE BY CATEGORY ====================
-
-        [Fact]
-        public async Task GetActiveByCategoryAsync_ReturnsActiveFixedExpensesForCategory()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category1 = TestDataFactory.CreateCategory(1, user);
-            Category category2 = TestDataFactory.CreateCategory(2, user, "Seguros");
-
-            FixedExpense active = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category1);
-            FixedExpense inactive = await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category1, "Disney+");
-            inactive.Deactivate();
-            await _repository.UpdateAsync(inactive);
-
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category2, "Seguro Coche");
-
-            // Act
-            IEnumerable<FixedExpense> result = await _repository.GetActiveByCategoryAsync(userId, category1.Id);
-
-            // Assert
-            Assert.Single(result);
-            Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME, result.First().Info.Name);
-            Assert.Equal(category1.Id, result.First().CategoryId);
-            Assert.True(result.First().IsActive);
-        }
-
         // ==================== TEST: GET ACTIVE FOR PERIOD ====================
 
         [Fact]
@@ -231,7 +178,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act
-            IEnumerable<FixedExpense> result = await _repository.GetActiveForPeriodAsync(userId, period);
+            IEnumerable<FixedExpense> result = await _repository.GetByPeriodAsync(userId, period);
 
             // Assert
             // Solo Netflix debe estar activo en febrero 2024 (Spotify empieza en marzo, Disney+ en 2025)
@@ -243,7 +190,7 @@ namespace Tests.Infrastructure
         public async Task GetActiveForPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetActiveForPeriodAsync(1, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByPeriodAsync(1, null));
         }
 
         // ==================== TEST: GET ACTIVE FOR PERIOD BY CATEGORY ====================
@@ -264,7 +211,7 @@ namespace Tests.Infrastructure
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(2);
 
             // Act
-            IEnumerable<FixedExpense> result = await _repository.GetActiveForPeriodByCategoryAsync(userId, category1.Id, period);
+            IEnumerable<FixedExpense> result = await _repository.GetByPeriodByCategoryAsync(userId, category1.Id, period);
 
             // Assert
             Assert.Single(result);
@@ -291,58 +238,6 @@ namespace Tests.Infrastructure
 
             // Act
             decimal total = await _repository.GetTotalByCategoryAndPeriodAsync(userId, category.Id, period);
-
-            // Assert
-            Assert.Equal(otherAmount + TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, total); // Netflix + Spotify = 15.99 + 9.99
-        }
-
-        // ==================== TEST: GET TOTAL ACTIVE ====================
-
-        [Fact]
-        public async Task GetTotalActiveAsync_ReturnsTotalOfAllActiveFixedExpenses()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(1, user);
-
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
-
-            FixedExpense inactive = await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Disney+", amount: 11.99m);
-            inactive.Deactivate();
-
-            await _repository.UpdateAsync(inactive);
-
-            // Act
-            decimal total = await _repository.GetTotalActiveAsync(userId);
-
-            // Assert
-            Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, total);
-        }
-
-        // ==================== TEST: GET TOTAL ACTIVE BY CATEGORY ====================
-
-        [Fact]
-        public async Task GetTotalActiveByCategoryAsync_ReturnsTotalActiveForCategory()
-        {
-            // Arrange
-            int userId = 1;
-            decimal otherAmount = 9.99m;
-            User user = TestDataFactory.CreateUser();
-            Category category1 = TestDataFactory.CreateCategory(1, user);
-            Category category2 = TestDataFactory.CreateCategory(2, user, "Seguros");
-
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category1);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category1, "Spotify", amount: otherAmount);
-
-            FixedExpense inactive = await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category1, "Disney+", amount: 11.99m, year: 2025);
-            inactive.Deactivate();
-            await _repository.UpdateAsync(inactive);
-
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 4, user, category2, "Seguro Coche", amount: 50.00m);
-
-            // Act
-            decimal total = await _repository.GetTotalActiveByCategoryAsync(userId, category1.Id);
 
             // Assert
             Assert.Equal(otherAmount + TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, total); // Netflix + Spotify = 15.99 + 9.99
@@ -386,58 +281,6 @@ namespace Tests.Infrastructure
 
             // Assert
             Assert.False(exists);
-        }
-
-        // ==================== TEST: IS ACTIVE ====================
-
-        [Fact]
-        public async Task IsActiveAsync_WithActiveFixedExpense_ReturnsTrue()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(1, user);
-            FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
-
-            // Act
-            bool isActive = await _repository.IsActiveAsync(userId, fixedExpense.Id);
-
-            // Assert
-            Assert.True(isActive);
-        }
-
-        [Fact]
-        public async Task IsActiveAsync_WithInactiveFixedExpense_ReturnsFalse()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(1, user);
-
-            FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
-            fixedExpense.Deactivate();
-
-            await _repository.UpdateAsync(fixedExpense);
-
-            // Act
-            bool isActive = await _repository.IsActiveAsync(userId, fixedExpense.Id);
-
-            // Assert
-            Assert.False(isActive);
-        }
-
-        [Fact]
-        public async Task IsActiveAsync_WithNonExistingId_ReturnsFalse()
-        {
-            // Arrange
-            int userId = 1;
-            int nonExistingId = 999;
-
-            // Act
-            bool result = await _repository.IsActiveAsync(userId, nonExistingId);
-
-            // Assert
-            Assert.False(result);
         }
 
         // ==================== TEST: UPDATE ====================
@@ -503,62 +346,6 @@ namespace Tests.Infrastructure
         {
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.DeleteAsync(999, 1));
-        }
-
-        // ==================== TEST: ACTIVATE ====================
-
-        [Fact]
-        public async Task ActivateAsync_ShouldActivateFixedExpense()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(1, user);
-
-            FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
-            fixedExpense.Deactivate();
-
-            await _repository.UpdateAsync(fixedExpense);
-
-            // Act
-            await _repository.ActivateAsync(userId, fixedExpense.Id);
-
-            // Assert
-            bool isActive = await _repository.IsActiveAsync(userId, fixedExpense.Id);
-            Assert.True(isActive);
-        }
-
-        [Fact]
-        public async Task ActivateAsync_WithNonExistingId_ThrowsKeyNotFoundException()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.ActivateAsync(999, 1));
-        }
-
-        // ==================== TEST: DEACTIVATE ====================
-
-        [Fact]
-        public async Task DeactivateAsync_ShouldDeactivateFixedExpense()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(1, user);
-            FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
-
-            // Act
-            await _repository.DeactivateAsync(userId, fixedExpense.Id);
-
-            // Assert
-            bool isActive = await _repository.IsActiveAsync(userId, fixedExpense.Id);
-            Assert.False(isActive);
-        }
-
-        [Fact]
-        public async Task DeactivateAsync_WithNonExistingId_ThrowsKeyNotFoundException()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.DeactivateAsync(999, 1));
         }
 
         // ==================== DISPOSE ====================

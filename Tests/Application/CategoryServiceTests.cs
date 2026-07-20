@@ -70,7 +70,6 @@ namespace Tests.Application
             result.Id.Should().Be(expectedCategory.Id);
             result.Name.Should().Be(expectedCategory.Info.Name);
             result.Description.Should().Be(expectedCategory.Info.Description);
-            result.IsActive.Should().Be(expectedCategory.IsActive);
 
             _mockRepository.Verify(repo => repo.GetByIdAsync(userId, categoryId), Times.Once);
         }
@@ -118,32 +117,6 @@ namespace Tests.Application
             result.Count.Should().Be(categories.Count);
             result.Select(dto => dto.Name).Should().Contain([$"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 1", $"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 2", $"{TestDataFactory.DEFAULT_CATEGORIES_NAME} 3"]);
             _mockRepository.Verify(repo => repo.GetAllAsync(userId), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetActiveCategoriesAsync_ShouldReturnOnlyActiveCategories()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser(userId);
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            List<Category> categories = TestDataFactory.CreateCategories(2);
-
-            // Simular que solo devuelve las activas
-            _mockRepository
-                .Setup(repo => repo.GetActiveCategoriesAsync(userId))
-                .ReturnsAsync(categories);
-
-            // Act
-            List<CategoryResponseDTO> result = await _service.GetActiveCategoriesAsync();
-
-            // Assert
-            result.Should().NotBeNull();
-            result.Count.Should().Be(categories.Count);
-            result.All(dto => dto.IsActive).Should().BeTrue();
-            _mockRepository.Verify(repo => repo.GetActiveCategoriesAsync(userId), Times.Once);
         }
 
         [Fact]
@@ -224,7 +197,6 @@ namespace Tests.Application
             result.Should().NotBeNull();
             result.Name.Should().Be(request.Name);
             result.Description.Should().Be(request.Description);
-            result.IsActive.Should().BeTrue();
 
             _mockRepository.Verify(repo => repo.ExistsByNameAsync(userId, request.Name), Times.Once);
             _mockRepository.Verify(repo => repo.AddAsync(It.IsAny<Category>()), Times.Once);

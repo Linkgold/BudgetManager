@@ -7,7 +7,6 @@ namespace Domain.Interfaces
         Task<Category?> GetByIdAsync(int userId, int id, bool withTracking = false);
         Task<IEnumerable<Category>> GetAllAsync(int userId);
         Task<Category?> GetByNameAsync(int userId, string name);
-        Task<IEnumerable<Category>> GetActiveCategoriesAsync(int userId);
 
         Task AddAsync(Category category);
         Task UpdateAsync(Category category);

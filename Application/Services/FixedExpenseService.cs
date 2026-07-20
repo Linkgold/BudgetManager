@@ -77,36 +77,16 @@ namespace Application.Services
             return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
 
-        public async Task<List<FixedExpenseResponseDTO>> GetActiveAsync()
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveAsync(UserId);
-
-            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
-        }
-
-        public async Task<List<FixedExpenseResponseDTO>> GetActiveByCategoryIdAsync(int categoryId)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-
-            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveByCategoryAsync(UserId, categoryId);
-
-            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
-        }
-
-        public async Task<List<FixedExpenseResponseDTO>> GetActiveForPeriodAsync(int month, int year)
+        public async Task<List<FixedExpenseResponseDTO>> GetByPeriodAsync(int month, int year)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveForPeriodAsync(UserId, period);
+            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetByPeriodAsync(UserId, period);
 
             return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
 
-        public async Task<List<FixedExpenseResponseDTO>> GetActiveForPeriodByCategoryAsync(int categoryId, int month, int year)
+        public async Task<List<FixedExpenseResponseDTO>> GetByPeriodByCategoryAsync(int categoryId, int month, int year)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
@@ -114,7 +94,7 @@ namespace Application.Services
             if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
             MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetActiveForPeriodByCategoryAsync(UserId, categoryId, period);
+            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetByPeriodByCategoryAsync(UserId, categoryId, period);
 
             return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
@@ -190,26 +170,6 @@ namespace Application.Services
             await _fixedExpenseRepository.DeleteAsync(UserId, id);
         }
 
-        public async Task ActivateAsync(int id)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
-
-            if (!await _fixedExpenseRepository.ExistsAsync(UserId, id)) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
-
-            await _fixedExpenseRepository.ActivateAsync(UserId, id);
-        }
-
-        public async Task DeactivateAsync(int id)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
-
-            if (!await _fixedExpenseRepository.ExistsAsync(UserId, id)) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
-
-            await _fixedExpenseRepository.DeactivateAsync(UserId, id);
-        }
-
         // ==================== VALIDACIONES ====================
 
         public async Task<bool> ExistsAsync(int id)
@@ -218,16 +178,6 @@ namespace Application.Services
             if (id <= 0) return false;
 
             return await _fixedExpenseRepository.ExistsAsync(UserId, id);
-        }
-
-        public async Task<bool> IsActiveAsync(int id)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (id <= 0) return false;
-
-            if (!await _fixedExpenseRepository.ExistsAsync(UserId, id)) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
-
-            return await _fixedExpenseRepository.IsActiveAsync(UserId, id);
         }
 
         public async Task<decimal> GetTotalForPeriodByCategoryAsync(int categoryId, int month, int year)

@@ -1,33 +1,25 @@
-﻿using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components;
+using Shared.DTOs.Request;
 using Shared.DTOs.Response;
+using System.Net.Http.Json;
+using UI.Services.Interfaces;
 using UI.Shared;
 
 namespace UI.Pages
 {
     public partial class Categories : BasePage
     {
-        private List<CategoryResponseDTO> categories = new();
-        private List<CategoryResponseDTO> filteredCategories = new();
+        [Inject]
+        private IToastService ToastService { get; set; } = default!;
+
+        private List<CategoryResponseDTO> categories = [];
+        private List<CategoryResponseDTO> filteredCategories = [];
 
         private string _searchTerm = string.Empty;
-        private bool _showInactive = false;
         private bool isModalOpen = false;
         private bool isEditing = false;
         private bool isDeleteMode = false;
         private CategoryResponseDTO categoryForm = new();
-
-        private bool showInactive
-        {
-            get => _showInactive;
-            set
-            {
-                if (_showInactive != value)
-                {
-                    _showInactive = value;
-                    ApplyFilters();
-                }
-            }
-        }
 
         private string searchTerm
         {
@@ -50,33 +42,100 @@ namespace UI.Pages
 
         private async Task LoadCategories()
         {
-            // 🔥 Aquí irá la llamada a la API
-            // Por ahora usamos datos de ejemplo
-            categories = new List<CategoryResponseDTO>
+            try
             {
-                new CategoryResponseDTO { Id = 1, Name = "Alimentación", Description = "Gastos de comida", IsActive = true },
-                new CategoryResponseDTO { Id = 2, Name = "Transporte", Description = "Gastos de movilidad", IsActive = true },
-                new CategoryResponseDTO { Id = 3, Name = "Ocio", Description = "Entretenimiento", IsActive = false },
-                new CategoryResponseDTO { Id = 4, Name = "Vivienda", Description = "Hogar y servicios", IsActive = true },
-                new CategoryResponseDTO { Id = 1, Name = "Alimentación", Description = "Gastos de comida", IsActive = true },
-                new CategoryResponseDTO { Id = 2, Name = "Transporte", Description = "Gastos de movilidad", IsActive = true },
-                new CategoryResponseDTO { Id = 3, Name = "Ocio", Description = "Entretenimiento", IsActive = false },
-                new CategoryResponseDTO { Id = 4, Name = "Vivienda", Description = "Hogar y servicios", IsActive = true },
-                new CategoryResponseDTO { Id = 1, Name = "Alimentación", Description = "Gastos de comida", IsActive = true },
-                new CategoryResponseDTO { Id = 2, Name = "Transporte", Description = "Gastos de movilidad", IsActive = true },
-                new CategoryResponseDTO { Id = 3, Name = "Ocio", Description = "Entretenimiento", IsActive = false },
-                new CategoryResponseDTO { Id = 4, Name = "Vivienda", Description = "Hogar y servicios", IsActive = true },
-                new CategoryResponseDTO { Id = 1, Name = "Alimentación", Description = "Gastos de comida", IsActive = true },
-                new CategoryResponseDTO { Id = 2, Name = "Transporte", Description = "Gastos de movilidad", IsActive = true },
-                new CategoryResponseDTO { Id = 3, Name = "Ocio", Description = "Entretenimiento", IsActive = false },
-                new CategoryResponseDTO { Id = 4, Name = "Vivienda", Description = "Hogar y servicios", IsActive = true },
-                new CategoryResponseDTO { Id = 1, Name = "Alimentación", Description = "Gastos de comida", IsActive = true },
-                new CategoryResponseDTO { Id = 2, Name = "Transporte", Description = "Gastos de movilidad", IsActive = true },
-                new CategoryResponseDTO { Id = 3, Name = "Ocio", Description = "Entretenimiento", IsActive = false },
-                new CategoryResponseDTO { Id = 4, Name = "Vivienda", Description = "Hogar y servicios", IsActive = true }
-            };
+                HttpResponseMessage response = await SendAuthenticatedRequestAsync(() => Http.GetAsync("/api/category"));
 
-            ApplyFilters();
+                if (response.IsSuccessStatusCode)
+                {
+                    List<CategoryResponseDTO>? result = await response.Content.ReadFromJsonAsync<List<CategoryResponseDTO>>();
+
+                    categories = result ?? throw new InvalidOperationException("La respuesta de la API no contenía datos.");
+                }
+                else
+                {
+                    throw new InvalidOperationException($"Error al obtener categorías: {response.StatusCode}");
+                }
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync($"Error al cargar categorías", ex);
+                ToastService.ShowError("Error al cargar las categorías.");
+                categories = [];
+            }
+            finally
+            {
+                ApplyFilters();
+            }
+        }
+
+        private async Task SaveCategory()
+        {
+            try
+            {
+                if (isDeleteMode)
+                {
+                    // 🔥 Eliminar categoría
+                    HttpResponseMessage deleteResponse = await Http.DeleteAsync($"/api/category/{categoryForm.Id}");
+                    if (!deleteResponse.IsSuccessStatusCode)
+                    {
+                        string errorContent = await deleteResponse.Content.ReadAsStringAsync();
+                        await LogService.LogErrorAsync($"Error al eliminar categoría ID {categoryForm.Id}", new Exception(errorContent));
+                        ToastService.ShowError($"Error al eliminar la categoría [{categoryForm.Name}].");
+
+                        return;
+                    }
+                }
+                else if (isEditing)
+                {
+                    // 🔥 Editar categoría
+                    UpdateCategoryRequestDTO request = new()
+                    {
+                        Name = categoryForm.Name,
+                        Description = categoryForm.Description
+                    };
+
+                    HttpResponseMessage updateResponse = await Http.PutAsJsonAsync($"/api/category/{categoryForm.Id}", request);
+                    if (!updateResponse.IsSuccessStatusCode)
+                    {
+                        string errorContent = await updateResponse.Content.ReadAsStringAsync();
+                        await LogService.LogErrorAsync($"Error al actualizar categoría ID {categoryForm.Id}", new Exception(errorContent));
+                        ToastService.ShowError($"Error al actualizar la categoría [{categoryForm.Name}].");
+
+                        return;
+                    }
+                }
+                else
+                {
+                    // 🔥 Crear categoría
+                    CreateCategoryRequestDTO request = new()
+                    {
+                        Name = categoryForm.Name,
+                        Description = categoryForm.Description
+                    };
+
+                    HttpResponseMessage createResponse = await Http.PostAsJsonAsync("/api/category", request);
+                    if (!createResponse.IsSuccessStatusCode)
+                    {
+                        string errorContent = await createResponse.Content.ReadAsStringAsync();
+                        await LogService.LogErrorAsync($"Error al crear categoría", new Exception(errorContent));
+                        ToastService.ShowError($"Error al crear la categoría [{categoryForm.Name}].");
+
+                        return;
+                    }
+                }
+
+                // Por ahora cerramos el modal
+                isModalOpen = false;
+                isDeleteMode = false;
+                await LoadCategories(); // Recargar lista
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync($"Error en SaveCategory", ex);
+                ToastService.ShowError("Ocurrió un error inesperado.");
+            }
         }
 
         private string GetModalTitle()
@@ -98,7 +157,7 @@ namespace UI.Pages
         private void OpenCreateModal()
         {
             isEditing = false;
-            categoryForm = new CategoryResponseDTO { IsActive = true };
+            categoryForm = new CategoryResponseDTO { };
             isModalOpen = true;
             InvokeAsync(StateHasChanged);
         }
@@ -112,7 +171,6 @@ namespace UI.Pages
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
-                IsActive = category.IsActive
             };
             isModalOpen = true;
             InvokeAsync(StateHasChanged);
@@ -130,37 +188,10 @@ namespace UI.Pages
                     Id = categoryToDelete.Id,
                     Name = categoryToDelete.Name,
                     Description = categoryToDelete.Description,
-                    IsActive = categoryToDelete.IsActive
                 };
                 isModalOpen = true;
                 StateHasChanged();
             }
-        }
-
-        private async Task SaveCategory()
-        {
-            if (isDeleteMode)
-            {
-                // 🔥 Eliminar categoría
-                // await Http.DeleteAsync($"/api/category/{categoryForm.Id}");
-                // Mostrar mensaje de éxito
-            }
-            else if (isEditing)
-            {
-                // 🔥 Editar categoría
-                // await Http.PutAsync($"/api/category/{categoryForm.Id}", ...);
-            }
-            else
-            {
-                // 🔥 Crear categoría
-                // await Http.PostAsync("/api/category", ...);
-            }
-
-            // Por ahora cerramos el modal
-            isModalOpen = false;
-            isDeleteMode = false;
-            await LoadCategories(); // Recargar lista
-            await InvokeAsync(StateHasChanged);
         }
 
         private void CloseModal()
@@ -176,7 +207,7 @@ namespace UI.Pages
                 .Where(c => string.IsNullOrEmpty(searchTerm) ||
                              c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                              (c.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
-                .Where(c => showInactive || c.IsActive)
+                .OrderBy(c => c.Id)
                 .ToList();
         }
     }

@@ -219,6 +219,7 @@ namespace Tests.API.Fixtures
 
         public void Dispose()
         {
+            GC.SuppressFinalize(this);
             Client?.Dispose();
             ServiceScope?.Dispose();
             DbContext?.Dispose();

@@ -6,7 +6,6 @@ namespace Domain.Entities
     {
         public int Id { get; private set; }
         public EntityInfo Info { get; private set; }
-        public bool IsActive { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
@@ -26,7 +25,6 @@ namespace Domain.Entities
             User = user;
             UserId = user.Id;
             Info = info;
-            IsActive = true;
             CreatedAt = DateTime.UtcNow;
 
             // Inicialización de colecciones (cuando se descomenten)
@@ -40,18 +38,6 @@ namespace Domain.Entities
             ArgumentNullException.ThrowIfNull(info);
 
             Info = info;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void Activate()
-        {
-            IsActive = true;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void Deactivate()
-        {
-            IsActive = false;
             UpdatedAt = DateTime.UtcNow;
         }
 

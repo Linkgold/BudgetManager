@@ -114,7 +114,6 @@ namespace Tests.API.Controllers
             Assert.NotNull(category);
             Assert.Equal("NewCategory", category.Name);
             Assert.Equal("New Description", category.Description);
-            Assert.True(category.IsActive);
         }
 
         [Fact]
@@ -163,7 +162,7 @@ namespace Tests.API.Controllers
 
             StringContent updateContent = _fixture.SerializeRequest(updateRequest);
 
-            HttpResponseMessage response = await _client.PutAsync($"/api/category/{createdCategory.Id}", updateContent);
+            HttpResponseMessage response = await _client.PutAsync($"/api/category/{createdCategory?.Id}", updateContent);
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -195,7 +194,7 @@ namespace Tests.API.Controllers
             CategoryResponseDTO? createdCategory = _fixture.DeserializeResponse<CategoryResponseDTO>(createContentString);
 
             // Act
-            HttpResponseMessage response = await _client.DeleteAsync($"/api/category/{createdCategory.Id}");
+            HttpResponseMessage response = await _client.DeleteAsync($"/api/category/{createdCategory?.Id}");
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);

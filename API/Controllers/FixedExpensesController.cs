@@ -75,18 +75,6 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Obtiene todos los gastos fijos activos
-        /// </summary>
-        [HttpGet("active")]
-        [ProducesResponseType(typeof(List<FixedExpenseResponseDTO>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetActive()
-        {
-            List<FixedExpenseResponseDTO> fixedExpenses = await _fixedExpenseService.GetActiveAsync();
-
-            return Ok(fixedExpenses);
-        }
-
-        /// <summary>
         /// Obtiene los gastos fijos activos para un período específico
         /// </summary>
         [HttpGet("active/period")]
@@ -98,7 +86,7 @@ namespace API.Controllers
 
             if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
 
-            List<FixedExpenseResponseDTO> fixedExpenses = await _fixedExpenseService.GetActiveForPeriodAsync(month, year);
+            List<FixedExpenseResponseDTO> fixedExpenses = await _fixedExpenseService.GetByPeriodAsync(month, year);
 
             return Ok(fixedExpenses);
         }
@@ -176,38 +164,6 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Activa un gasto fijo
-        /// </summary>
-        [HttpPatch("{id}/activate")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Activate(int id)
-        {
-            if (id <= 0) return BadRequest("Invalid fixed expense ID");
-
-            await _fixedExpenseService.ActivateAsync(id);
-
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Desactiva un gasto fijo
-        /// </summary>
-        [HttpPatch("{id}/deactivate")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Deactivate(int id)
-        {
-            if (id <= 0) return BadRequest("Invalid fixed expense ID");
-
-            await _fixedExpenseService.DeactivateAsync(id);
-
-            return NoContent();
-        }
-
-        /// <summary>
         /// Verifica si un gasto fijo existe
         /// </summary>
         [HttpGet("{id}/exists")]
@@ -220,22 +176,6 @@ namespace API.Controllers
             bool exists = await _fixedExpenseService.ExistsAsync(id);
 
             return Ok(new { Exists = exists });
-        }
-
-        /// <summary>
-        /// Verifica si un gasto fijo está activo
-        /// </summary>
-        [HttpGet("{id}/is-active")]
-        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> IsActive(int id)
-        {
-            if (id <= 0) return BadRequest("Invalid fixed expense ID");
-
-            bool isActive = await _fixedExpenseService.IsActiveAsync(id);
-
-            return Ok(new { Id = id, IsActive = isActive });
         }
     }
 }

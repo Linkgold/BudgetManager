@@ -37,11 +37,6 @@ namespace Infrastructure.Data.Configurations
                 }
             );
 
-            builder.Property(category => category.IsActive)
-                .HasColumnName("IsActive")
-                .IsRequired()
-                .HasDefaultValue(true);
-
             builder.Property(category => category.CreatedAt)
                 .HasColumnName("CreatedAt")
                 .IsRequired()
@@ -50,9 +45,6 @@ namespace Infrastructure.Data.Configurations
             builder.Property(category => category.UpdatedAt)
                 .HasColumnName("UpdatedAt")
                 .IsRequired(false);
-
-            builder.HasIndex(category => category.IsActive)
-                .HasDatabaseName("IX_Categories_IsActive");
         }
     }
 }

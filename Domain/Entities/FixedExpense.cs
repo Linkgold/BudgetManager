@@ -12,7 +12,6 @@ namespace Domain.Entities
         public EntityInfo Info { get; private set; }
         public Money Amount { get; private set; }
         public MonthlyPeriod ChargePeriod { get; private set; }
-        public bool IsActive { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
@@ -47,7 +46,6 @@ namespace Domain.Entities
             Info = info;
             Amount = amount;
             ChargePeriod = chargePeriod;
-            IsActive = true;
             CreatedAt = DateTime.UtcNow;
         }
 
@@ -65,18 +63,6 @@ namespace Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void Activate()
-        {
-            IsActive = true;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void Deactivate()
-        {
-            IsActive = false;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
         public void UpdateAmount(Money amount)
         {
             ArgumentNullException.ThrowIfNull(amount);
@@ -84,20 +70,6 @@ namespace Domain.Entities
             Amount = amount;
             UpdatedAt = DateTime.UtcNow;
         }
-
-        /// <summary>
-        /// Verifica si el gasto fijo está activo para un período específico
-        /// </summary>
-        public bool IsActiveForPeriod(MonthlyPeriod period)
-        {
-            ArgumentNullException.ThrowIfNull(period);
-
-            if (!IsActive) return false;
-
-            // El gasto fijo aplica si el período es igual o posterior al de inicio
-            return period.Year > ChargePeriod.Year || (period.Year == ChargePeriod.Year && period.Month >= ChargePeriod.Month);
-        }
-
         public override string ToString() => $"FixedExpense: {Info.Name} - {Amount:F2} {Amount.Currency} (Desde {ChargePeriod})";
     }
 }

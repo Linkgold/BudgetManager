@@ -10,7 +10,6 @@ namespace Domain.Entities
         public int Id { get; private set; }
         public UserInfo Info { get; private set; }
         public string PasswordHash { get; private set; }
-        public bool IsActive { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
@@ -31,7 +30,6 @@ namespace Domain.Entities
 
             Info = info;
             PasswordHash = passwordHash;
-            IsActive = true;
             CreatedAt = DateTime.UtcNow;
 
             Categories = new List<Category>();
@@ -54,18 +52,6 @@ namespace Domain.Entities
             if (string.IsNullOrWhiteSpace(passwordHash)) throw new ArgumentException("Password hash cannot be empty", nameof(passwordHash));
 
             PasswordHash = passwordHash;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void Activate()
-        {
-            IsActive = true;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void Deactivate()
-        {
-            IsActive = false;
             UpdatedAt = DateTime.UtcNow;
         }
 

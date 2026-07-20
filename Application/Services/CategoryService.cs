@@ -59,14 +59,6 @@ namespace Application.Services
             return _mapper.Map<List<CategoryResponseDTO>>(categories);
         }
 
-        public async Task<List<CategoryResponseDTO>> GetActiveCategoriesAsync()
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            IEnumerable<Category> categories = await _categoryRepository.GetActiveCategoriesAsync(UserId);
-
-            return _mapper.Map<List<CategoryResponseDTO>>(categories);
-        }
-
         public async Task<CategoryResponseDTO> GetByNameAsync(string name)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");

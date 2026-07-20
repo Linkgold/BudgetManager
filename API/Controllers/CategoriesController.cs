@@ -57,18 +57,6 @@ namespace API.Controllers
         }
 
         /// <summary>
-        /// Obtiene todas las categorías activas
-        /// </summary>
-        /// <returns>Lista de categorías activas</returns>
-        [HttpGet("active")]
-        [ProducesResponseType(typeof(List<CategoryResponseDTO>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetActive()
-        {
-            List<CategoryResponseDTO> categories = await _categoryService.GetActiveCategoriesAsync();
-            return Ok(categories);
-        }
-
-        /// <summary>
         /// Obtiene una categoría por su nombre
         /// </summary>
         /// <param name="name">Nombre de la categoría</param>

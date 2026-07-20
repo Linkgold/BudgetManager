@@ -9,7 +9,7 @@ namespace Infrastructure.Data.Factories
     public class SqliteDbContextFactory : IDbContextFactory
     {
         private readonly string _connectionString;
-        private DbContextOptions<ApplicationDbContext> _options;
+        private DbContextOptions<ApplicationDbContext>? _options;
 
         public SqliteDbContextFactory(string connectionString)
         {

@@ -18,7 +18,6 @@ namespace Tests.Domain.Entities
             Assert.NotNull(category);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, category.Info.Name);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_DESCRIPTION, category.Info.Description);
-            Assert.True(category.IsActive);
             Assert.NotEqual(default, category.CreatedAt);
             Assert.Null(category.UpdatedAt);
         }
@@ -74,37 +73,6 @@ namespace Tests.Domain.Entities
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => category.Update(null));
 
             Assert.Equal("info", exception.ParamName);
-        }
-
-        // ==================== ACTIVAR / DESACTIVAR ====================
-
-        [Fact]
-        public void Activate_ShouldActivateCategory()
-        {
-            // Arrange
-            Category category = TestDataFactory.CreateCategory();
-            category.Deactivate();
-
-            // Act
-            category.Activate();
-
-            // Assert
-            Assert.True(category.IsActive);
-            Assert.NotNull(category.UpdatedAt);
-        }
-
-        [Fact]
-        public void Deactivate_ShouldDeactivateCategory()
-        {
-            // Arrange
-            Category category = TestDataFactory.CreateCategory();
-
-            // Act
-            category.Deactivate();
-
-            // Assert
-            Assert.False(category.IsActive);
-            Assert.NotNull(category.UpdatedAt);
         }
 
         // ==================== TO STRING ====================

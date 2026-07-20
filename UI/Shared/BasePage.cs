@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
+using System.Net;
+using UI.Services;
 using UI.Services.Interfaces;
 
 namespace UI.Shared
@@ -10,6 +12,9 @@ namespace UI.Shared
     public abstract class BasePage : ComponentBase
     {
         [Inject]
+        private IAuthService AuthService { get; set; } = default!;
+
+        [Inject]
         protected ILogService LogService { get; set; } = default!;
 
         [Inject]
@@ -17,9 +22,6 @@ namespace UI.Shared
 
         [Inject]
         protected HttpClient Http { get; set; } = default!;
-
-        [Inject]
-        protected IJSRuntime JSRuntime { get; set; } = default!;
 
         protected async Task LogErrorAsync(string message, Exception? exception = null)
         {
@@ -36,10 +38,18 @@ namespace UI.Shared
             await LogService.LogInfoAsync(message);
         }
 
-        protected void ShowErrorMessage(string message)
+        protected async Task<HttpResponseMessage> SendAuthenticatedRequestAsync(Func<Task<HttpResponseMessage>> request)
         {
-            // Este método puede ser sobrescrito por las páginas hijas
-            // para mostrar el mensaje en la UI
+            HttpResponseMessage response = await request();
+
+            if (response.StatusCode == HttpStatusCode.Unauthorized)
+            {
+                await AuthService.LogoutAsync();
+                NavigationManager.NavigateTo("/login", true);
+                throw new UnauthorizedAccessException("Token expirado o inválido.");
+            }
+
+            return response;
         }
     }
 }

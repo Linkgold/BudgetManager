@@ -42,7 +42,6 @@ namespace Tests.Infrastructure
             Assert.NotNull(retrieved);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, retrieved.Info.Name);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_DESCRIPTION, retrieved.Info.Description);
-            Assert.True(retrieved.IsActive);
             Assert.NotEqual(default, retrieved.CreatedAt);
         }
 
@@ -121,28 +120,6 @@ namespace Tests.Infrastructure
 
             // Assert
             Assert.Null(retrieved);
-        }
-
-        // ==================== TEST: GET ACTIVE ====================
-
-        [Fact]
-        public async Task GetActiveCategoriesAsync_ReturnsOnlyActiveCategories()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser(userId);
-            Category categoryActive = await TestDataFactory.SeedCategoryAsync(_repository, 1, user);
-            Category categoryInactive = await TestDataFactory.SeedCategoryAsync(_repository, 2, user);
-            categoryInactive.Deactivate(); // Desactivamos
-
-            await _repository.UpdateAsync(categoryInactive);
-
-            // Act
-            IEnumerable<Category> result = await _repository.GetActiveCategoriesAsync(userId);
-
-            // Assert
-            Assert.Single(result);
-            Assert.True(result.First().IsActive);
         }
 
         // ==================== TEST: UPDATE ====================

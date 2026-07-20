@@ -64,19 +64,6 @@ namespace Infrastructure.Repositories
             return category;
         }
 
-        public async Task<IEnumerable<Category>> GetActiveCategoriesAsync(int userId)
-        {
-            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
-
-            List<Category> categories = await _dbSet
-                .AsNoTracking()
-                .Where(category => category.IsActive == true && category.UserId == userId)
-                .OrderBy(category => category.Info.Name)
-                .ToListAsync();
-
-            return categories;
-        }
-
         // ==================== COMANDOS ====================
 
         public async Task AddAsync(Category category)

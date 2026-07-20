@@ -25,7 +25,6 @@ namespace Tests.Domain.Entities
             Assert.Equal(TestDataFactory.DEFAULT_MONEY_AMOUNT, fixedExpense.Amount.Value);
             Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, fixedExpense.ChargePeriod.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, fixedExpense.ChargePeriod.Year);
-            Assert.True(fixedExpense.IsActive);
             Assert.NotEqual(default, fixedExpense.CreatedAt);
             Assert.Null(fixedExpense.UpdatedAt);
         }
@@ -103,37 +102,6 @@ namespace Tests.Domain.Entities
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, category, info, amount, null));
 
             Assert.Equal("chargePeriod", exception.ParamName);
-        }
-
-        // ==================== ACTIVAR / DESACTIVAR ====================
-
-        [Fact]
-        public void Activate_ShouldActivateFixedExpense()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-
-            // Act
-            fixedExpense.Deactivate();
-            fixedExpense.Activate();
-
-            // Assert
-            Assert.True(fixedExpense.IsActive);
-            Assert.NotNull(fixedExpense.UpdatedAt);
-        }
-
-        [Fact]
-        public void Deactivate_ShouldDeactivateFixedExpense()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-
-            // Act
-            fixedExpense.Deactivate();
-
-            // Assert
-            Assert.False(fixedExpense.IsActive);
-            Assert.NotNull(fixedExpense.UpdatedAt);
         }
 
         // ==================== UPDATE ====================
@@ -228,73 +196,6 @@ namespace Tests.Domain.Entities
             // Act & Assert
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.UpdateAmount(null));
             Assert.Equal("amount", exception.ParamName);
-        }
-
-        // ==================== IS ACTIVE FOR PERIOD ====================
-
-        [Fact]
-        public void IsActiveForPeriod_WithActiveAndSamePeriod_ShouldReturnTrue()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-
-            // Act
-            bool result = fixedExpense.IsActiveForPeriod(TestDataFactory.CreateMonthlyPeriod());
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsActiveForPeriod_WithActiveAndLaterPeriod_ShouldReturnTrue()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-
-            // Act
-            bool result = fixedExpense.IsActiveForPeriod(TestDataFactory.CreateMonthlyPeriod(2));
-
-            // Assert
-            Assert.True(result);
-        }
-
-        [Fact]
-        public void IsActiveForPeriod_WithActiveAndEarlierPeriod_ShouldReturnFalse()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId(monthlyPeriod: TestDataFactory.CreateMonthlyPeriod(2));
-
-            // Act
-            bool result = fixedExpense.IsActiveForPeriod(TestDataFactory.CreateMonthlyPeriod());
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void IsActiveForPeriod_WithInactiveFixedExpense_ShouldReturnFalse()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-            fixedExpense.Deactivate();
-
-            // Act
-            bool result = fixedExpense.IsActiveForPeriod(TestDataFactory.CreateMonthlyPeriod());
-
-            // Assert
-            Assert.False(result);
-        }
-
-        [Fact]
-        public void IsActiveForPeriod_WithNullPeriod_ShouldThrowArgumentNullException()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-
-            // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.IsActiveForPeriod(null));
-
-            Assert.Equal("period", exception.ParamName);
         }
 
         // ==================== TO STRING ====================

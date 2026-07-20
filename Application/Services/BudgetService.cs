@@ -149,7 +149,7 @@ namespace Application.Services
             ArgumentNullException.ThrowIfNull(request);
 
             // Validar que la categoría existe
-            Category category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId, withTracking: true);
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId, withTracking: true);
 
             if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
 

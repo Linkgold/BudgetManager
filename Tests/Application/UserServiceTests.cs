@@ -349,21 +349,6 @@ namespace Tests.Application
             await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, "WrongPassword"));
         }
 
-        [Fact]
-        public async Task LoginAsync_WithInactiveUser_ThrowsUnauthorizedAccessException()
-        {
-            // Arrange
-            User user = TestDataFactory.CreateUserWithPassword();
-            user.Deactivate();
-
-            _userRepositoryMock
-                .Setup(repo => repo.GetByEmailAsync(TestDataFactory.DEFAULT_USER_EMAIL))
-                .ReturnsAsync(user);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.LoginAsync(TestDataFactory.DEFAULT_USER_EMAIL, "Password123!"));
-        }
-
         // ==================== TEST: CHANGE PASSWORD ====================
 
         [Fact]

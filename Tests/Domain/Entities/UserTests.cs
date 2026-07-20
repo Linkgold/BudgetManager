@@ -23,7 +23,6 @@ namespace Tests.Domain.Entities
             Assert.Equal(TestDataFactory.DEFAULT_USER_NAME, user.Info.UserName);
             Assert.Equal(TestDataFactory.DEFAULT_USER_EMAIL, user.Info.Email);
             Assert.Equal(passwordHash, user.PasswordHash);
-            Assert.True(user.IsActive);
             Assert.NotEqual(default, user.CreatedAt);
             Assert.Null(user.UpdatedAt);
             Assert.NotNull(user.Categories);
@@ -132,37 +131,6 @@ namespace Tests.Domain.Entities
             ArgumentException exception = Assert.Throws<ArgumentException>(() => user.UpdatePassword(""));
 
             Assert.Contains("Password hash cannot be empty", exception.Message);
-        }
-
-        // ==================== ACTIVATE / DEACTIVATE ====================
-
-        [Fact]
-        public void Activate_ShouldActivateUser()
-        {
-            // Arrange
-            User user = TestDataFactory.CreateUser();
-            user.Deactivate();
-
-            // Act
-            user.Activate();
-
-            // Assert
-            Assert.True(user.IsActive);
-            Assert.NotNull(user.UpdatedAt);
-        }
-
-        [Fact]
-        public void Deactivate_ShouldDeactivateUser()
-        {
-            // Arrange
-            User user = TestDataFactory.CreateUser();
-
-            // Act
-            user.Deactivate();
-
-            // Assert
-            Assert.False(user.IsActive);
-            Assert.NotNull(user.UpdatedAt);
         }
 
         // ==================== TO STRING ====================

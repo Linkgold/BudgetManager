@@ -164,7 +164,7 @@ namespace Application.Services
             // Obtener usuario por email
             User? user = await _userRepository.GetByEmailAsync(email);
 
-            if (user == null || !user.IsActive) throw new UnauthorizedAccessException("Invalid email or password");
+            if (user == null) throw new UnauthorizedAccessException("Invalid email or password");
 
             // Verificar contraseña
             if (!Crypt.Verify(password, user.PasswordHash)) throw new UnauthorizedAccessException("Invalid email or password");
@@ -186,9 +186,9 @@ namespace Application.Services
         {
             if (string.IsNullOrWhiteSpace(email) || string.IsNullOrWhiteSpace(password)) return false;
 
-            User user = await _userRepository.GetByEmailAsync(email);
+            User? user = await _userRepository.GetByEmailAsync(email);
 
-            if (user == null || !user.IsActive) return false;
+            if (user == null) return false;
 
             return Crypt.Verify(password, user.PasswordHash);
         }

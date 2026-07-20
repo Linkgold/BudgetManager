@@ -58,7 +58,6 @@ namespace Tests.API.Controllers
             Assert.NotNull(user);
             Assert.Equal("TestValidUser", user.UserName);
             Assert.Equal("testvalid@example.com", user.Email);
-            Assert.True(user.IsActive);
         }
 
         [Fact]

@@ -8,7 +8,6 @@ namespace Application.Interfaces
         // Consultas
         Task<CategoryResponseDTO> GetByIdAsync(int id);
         Task<List<CategoryResponseDTO>> GetAllAsync();
-        Task<List<CategoryResponseDTO>> GetActiveCategoriesAsync();
         Task<CategoryResponseDTO> GetByNameAsync(string name);
 
         // Comandos

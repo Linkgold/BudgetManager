@@ -82,7 +82,7 @@ namespace UI.Pages
                     _errorMessage = "Error al registrar el usuario";
                 }
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 _errorMessage = $"Ocurrió un error inesperado.";
             }
