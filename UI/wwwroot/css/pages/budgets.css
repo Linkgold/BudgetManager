@@ -1,0 +1,212 @@
+﻿/* ==================== TABLA DE PRESUPUESTOS ==================== */
+
+.budgets-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+    /* 🔥 Celdas con una sola línea y fuente más pequeña */
+    .budgets-table td,
+    .budgets-table th {
+        white-space: nowrap !important;
+        padding: 4px 6px !important;
+    }
+
+        /* 🔥 COLUMNAS FIJAS (fondo y texto adaptados al tema) */
+        .budgets-table th:first-child,
+        .budgets-table td:first-child,
+        .budgets-table th:nth-last-child(2),
+        .budgets-table td:nth-last-child(2),
+        .budgets-table th:last-child,
+        .budgets-table td:last-child {
+            background-color: var(--color-surface) !important;
+            color: var(--color-text) !important;
+        }
+
+    /* 🔥 Cabecera de las columnas fijas (texto blanco) */
+    .budgets-table thead th:first-child,
+    .budgets-table thead th:nth-last-child(2),
+    .budgets-table thead th:last-child {
+        color: var(--color-text-inverse) !important;
+    }
+
+    /* 🔥 Primera columna (Categoría) */
+    .budgets-table th:first-child,
+    .budgets-table td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        width: auto;
+        min-width: unset;
+        max-width: none;
+        text-align: left;
+        padding-right: 12px;
+    }
+
+    /* 🔥 Columna de Total (penúltima) */
+    .budgets-table th:nth-last-child(2),
+    .budgets-table td:nth-last-child(2) {
+        position: sticky;
+        right: 100px;
+        z-index: 10;
+        width: auto;
+        min-width: unset;
+        max-width: none;
+        text-align: right;
+        padding-right: 12px;
+    }
+
+    /* 🔥 Columna de Acciones (última) */
+    .budgets-table th:last-child,
+    .budgets-table td:last-child {
+        position: sticky;
+        right: 0;
+        z-index: 10;
+        min-width: 100px;
+        text-align: right;
+    }
+
+    /* 🔥 CABECERA FIJA (TODAS LAS COLUMNAS) */
+    .budgets-table thead th {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+        border-bottom: 2px solid var(--color-border) !important;
+    }
+
+        /* 🔥 Esquina superior izquierda */
+        .budgets-table thead th:first-child {
+            z-index: 30;
+            left: 0;
+            background-color: var(--color-secondary) !important;
+            color: var(--color-text-inverse) !important;
+        }
+
+        /* 🔥 Esquina superior derecha (total y acciones) */
+        .budgets-table thead th:nth-last-child(2),
+        .budgets-table thead th:last-child {
+            z-index: 30;
+            background-color: var(--color-secondary) !important;
+            color: var(--color-text-inverse) !important;
+        }
+
+        .budgets-table thead th:nth-last-child(2) {
+            right: 100px;
+        }
+
+        .budgets-table thead th:last-child {
+            right: 0;
+        }
+
+        /* 🔥 CABECERA DE LOS MESES */
+        .budgets-table thead th:not(:first-child):not(:last-child):not(:nth-last-child(2)) {
+            background-color: var(--color-secondary) !important;
+            color: var(--color-text-inverse) !important;
+            padding: 4px 2px !important;
+            min-width: 50px;
+            text-align: center;
+        }
+
+    /* 🔥 CELDAS DE LOS MESES (fondo adaptado al tema) */
+    .budgets-table tbody td:not(:first-child):not(:last-child):not(:nth-last-child(2)) {
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
+        padding: 2px 2px !important;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    /* 🔥 FILAS ALTERNAS Y HOVER */
+    .budgets-table tbody tr:nth-child(even) {
+        background-color: var(--color-table-stripe);
+    }
+
+    .budgets-table tbody tr:hover {
+        background-color: var(--color-table-hover);
+    }
+
+    /* 🔥 PIE DE TABLA (TOTALES) */
+    .budgets-table tfoot td {
+        background-color: var(--color-surface-light) !important;
+        color: var(--color-text) !important;
+        border-top: 2px solid var(--color-border);
+        font-weight: 600;
+    }
+
+        .budgets-table tfoot td:first-child,
+        .budgets-table tfoot td:nth-last-child(2),
+        .budgets-table tfoot td:last-child {
+            background-color: var(--color-surface-light) !important;
+            color: var(--color-text) !important;
+        }
+
+        .budgets-table tfoot td:first-child {
+            position: sticky;
+            left: 0;
+            z-index: 5;
+        }
+
+        .budgets-table tfoot td:nth-last-child(2) {
+            position: sticky;
+            right: 100px;
+            z-index: 5;
+        }
+
+        .budgets-table tfoot td:last-child {
+            position: sticky;
+            right: 0;
+            z-index: 5;
+        }
+
+    /* 🔥 SOMBRA LATERAL */
+    .budgets-table td:first-child::after,
+    .budgets-table th:first-child::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -4px;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to right, var(--shadow-color), transparent);
+        pointer-events: none;
+    }
+
+    .budgets-table td:last-child::before,
+    .budgets-table th:last-child::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -4px;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to left, var(--shadow-color), transparent);
+        pointer-events: none;
+    }
+
+    /* 🔥 Sombra lateral para la columna Total (penúltima) */
+    .budgets-table td:nth-last-child(2)::after,
+    .budgets-table th:nth-last-child(2)::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -4px;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to right, var(--shadow-color), transparent);
+        pointer-events: none;
+    }
+
+    .budgets-table td:nth-last-child(2)::before,
+    .budgets-table th:nth-last-child(2)::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -4px;
+        width: 4px;
+        height: 100%;
+        background: linear-gradient(to left, var(--shadow-color), transparent);
+        pointer-events: none;
+    }

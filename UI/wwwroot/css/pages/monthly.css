@@ -54,7 +54,6 @@
 }
 
     .transaction-container table {
-        font-size: 0.75rem;
         margin-bottom: 0;
         background-color: var(--color-card) !important;
         border: 1px solid var(--color-border) !important;
@@ -66,13 +65,11 @@
             background-color: var(--color-secondary) !important;
             color: var(--color-text-inverse) !important;
             padding: 4px 8px !important;
-            font-size: 0.7rem;
             border-bottom: 1px solid var(--color-border) !important;
         }
 
         .transaction-container table tbody td {
             padding: 3px 8px !important;
-            font-size: 0.7rem;
             border-bottom: 1px solid var(--color-border-light) !important;
             color: var(--color-text) !important;
             background-color: transparent !important;
@@ -89,8 +86,8 @@
 /* 🔥 Icono de expansión */
 .expand-icon {
     display: inline-block;
-    font-size: 0.7rem;
     color: var(--color-text-muted);
+    font-size: 0.8rem;
     width: 20px;
     text-align: center;
 }
@@ -148,7 +145,7 @@ tr:hover .expand-icon {
 
 .summary-label {
     color: var(--color-text-light);
-    font-size: 0.7rem;
+    font-size: 0.8rem;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     margin-bottom: 2px;
@@ -161,6 +158,6 @@ tr:hover .expand-icon {
 }
 
 .summary-percent {
-    font-size: 0.65rem;
+    font-size: 0.7rem;
     color: var(--color-text-muted);
 }

@@ -13,7 +13,8 @@
 @import url('components/toggles.css');
 
 /* ==================== PÁGINAS ==================== */
-@import url('pages/categories.css');
+@import url('pages/budgets.css');
 @import url('pages/dashboard.css');
 @import url('pages/login.css');
 @import url('pages/monthly.css');
+@import url('pages/shared.css');

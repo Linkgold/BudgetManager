@@ -34,7 +34,6 @@
 }
 
 .dashboard-table .category-cell {
-    font-size: 0.7rem;
     padding: 2px 4px;
     min-width: 60px;
 }
@@ -53,7 +52,6 @@
 /* 🔥 Responsive adicional */
 @media (max-width: 768px) {
     .dashboard-table thead th {
-        font-size: 0.6rem;
         padding: 4px 2px;
     }
 
@@ -62,7 +60,6 @@
     }
 
     .dashboard-table .category-cell {
-        font-size: 0.6rem;
         min-width: 40px;
     }
 
@@ -70,6 +67,5 @@
     .dashboard-table thead th:first-child {
         min-width: 60px;
         max-width: 80px;
-        font-size: 0.65rem;
     }
 }

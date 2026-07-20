@@ -5,7 +5,6 @@
     width: 100% !important;
     min-width: 600px !important;
     border-collapse: collapse !important;
-    font-size: 0.75rem !important;
     background-color: var(--color-surface) !important;
     color: var(--color-text) !important;
 }
@@ -69,10 +68,6 @@
 
 /* 🔥 Responsive base */
 @media (max-width: 768px) {
-    .data-table {
-        font-size: 0.65rem !important;
-    }
-
         .data-table thead th,
         .data-table tbody td {
             padding: 3px 4px !important;
