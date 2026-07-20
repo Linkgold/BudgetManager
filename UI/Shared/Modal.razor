@@ -1,0 +1,17 @@
+﻿@* Componente reutilizable para modales *@
+
+<div class="modal-overlay @(IsVisible ? "d-block" : "d-none")" @onclick="CloseModal">
+    <div class="modal-content" @onclick:stopPropagation>
+        <div class="modal-header">
+            <h5 class="modal-title">@Title</h5>
+            <button type="button" class="btn-close" @onclick="CloseModal">✕</button>
+        </div>
+        <div class="modal-body">
+            @ChildContent
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" @onclick="CloseModal">Cancelar</button>
+            <button class="btn @SaveButtonClass btn-sm" @onclick="OnSave">@SaveButtonText</button>
+        </div>
+    </div>
+</div>

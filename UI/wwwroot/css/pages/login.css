@@ -1,15 +1,106 @@
-﻿.login-container {
+﻿/* ==================== LOGIN Y REGISTER ==================== */
+/* 🔥 Usa variables del tema global (no fija) */
+
+.login-container {
     max-width: 400px;
     margin: 80px auto 0;
     padding: 30px;
-    background-color: var(--color-white);
+    background-color: var(--color-card);
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 20px var(--shadow-color);
+    border: 1px solid var(--color-border);
+    transition: background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.login-container h2 {
-    color: var(--color-primary);
-    font-weight: 600;
-    text-align: center;
-    margin-bottom: 24px;
+    .login-container h2 {
+        color: var(--color-text);
+        font-weight: 600;
+        text-align: center;
+        margin-bottom: 24px;
+    }
+
+    .login-container .form-label {
+        font-weight: 500;
+        color: var(--color-label);
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+
+    .login-container .form-control {
+        background-color: var(--color-surface);
+        color: var(--color-text);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 15px;
+        transition: border-color 0.2s ease, background-color 0.2s ease, color 0.2s ease;
+    }
+
+        .login-container .form-control:focus {
+            border-color: var(--color-accent);
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15);
+            outline: none;
+        }
+
+        .login-container .form-control::placeholder {
+            color: var(--color-text-muted);
+            opacity: 1;
+        }
+
+    .login-container .btn-primary {
+        background-color: var(--color-accent);
+        border-color: var(--color-accent);
+        color: var(--color-text-inverse);
+        padding: 10px;
+        font-weight: 600;
+        border-radius: 8px;
+        transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+        .login-container .btn-primary:hover {
+            background-color: var(--color-accent-hover);
+            border-color: var(--color-accent-hover);
+            color: var(--color-text-inverse);
+        }
+
+        .login-container .btn-primary:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+    .login-container a {
+        color: var(--color-accent);
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .login-container a:hover {
+            color: var(--color-accent-hover);
+            text-decoration: underline;
+        }
+
+    .login-container .alert {
+        border-radius: 8px;
+        font-size: 14px;
+        padding: 10px 14px;
+    }
+
+    .login-container .alert-danger {
+        background-color: rgba(231, 76, 60, 0.1);
+        border: 1px solid var(--color-error);
+        color: var(--color-error);
+    }
+
+    .login-container .alert-success {
+        background-color: rgba(46, 204, 113, 0.1);
+        border: 1px solid var(--color-success);
+        color: var(--color-success);
+    }
+
+/* 🔥 Ajustes para pantallas pequeñas */
+@media (max-width: 576px) {
+    .login-container {
+        margin: 40px 16px 0;
+        padding: 20px;
+    }
 }

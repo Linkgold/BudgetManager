@@ -1,0 +1,105 @@
+﻿@page "/categories"
+@attribute [Authorize]
+@inherits BasePage
+
+<div class="container mt-3">
+    <!-- 🔹 Título y botón de acción -->
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
+        <h4 class="mb-0 page-title">📂 Categorías</h4>
+        <button class="btn btn-primary btn-sm" @onclick="OpenCreateModal">
+            ➕ Nueva Categoría
+        </button>
+    </div>
+
+    <!-- 🔹 Contenedort de Modal -->
+    <div class="table-card-wrapper" @(isModalOpen ? "modal-open" : "" )">
+        <!-- 🔹 Filtros y búsqueda -->
+        <div class="card filter-card mb-3">
+            <div class="card-body d-flex flex-wrap align-items-center gap-2">
+                <div class="flex-grow-1" style="min-width: 200px;">
+                    <input type="text" class="form-control form-control-sm" placeholder="🔍 Buscar categoría..." @bind="searchTerm" @bind:event="oninput" />
+                </div>
+                <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="showInactive" @bind="showInactive" />
+                    <label class="form-check-label" for="showInactive">Mostrar inactivas</label>
+                </div>
+            </div>
+        </div>
+        <!-- Modal para crear/editar/eliminar categoría -->
+        <Modal Title="@GetModalTitle()"
+               IsVisible="@isModalOpen"
+               IsDeleteMode="@isDeleteMode"
+               OnSave="@SaveCategory"
+               OnClose="@CloseModal"
+               SaveButtonText="@GetSaveButtonText()"
+               SaveButtonClass="@GetSaveButtonClass()">
+            <div class="form-group">
+                <label class="form-label">Nombre</label>
+                <input type="text" class="form-control" @bind="categoryForm.Name" disabled="@isDeleteMode" placeholder="Ej. Alimentación" />
+            </div>
+            <div class="form-group mt-2">
+                <label class="form-label">Descripción</label>
+                <input type="text" class="form-control" @bind="categoryForm.Description" disabled="@isDeleteMode" placeholder="Ej. Gastos de comida" />
+            </div>
+            <div class="form-check form-switch mt-3 d-flex align-items-center" style="gap: 4px;">
+                <input class="form-check-input" type="checkbox" id="isActive" @bind="categoryForm.IsActive" disabled="@isDeleteMode" />
+                <label class="form-check-label" for="isActive">Activa</label>
+                    <span class="status-circle @(categoryForm.IsActive ? "green" : "red")" 
+                        title="@(categoryForm.IsActive ? "Activa" : "Inactiva")" style="margin-left: 2px;"></span>
+            </div>
+        </Modal>
+    
+        <!-- 🔹 Tabla de categorías -->
+        <div class="card table-card">
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="data-table table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th class="text-start">Nombre</th>
+                                <th class="text-start">Descripción</th>
+                                <th class="text-center" style="width: 100px;">Estado</th>
+                                <th class="text-end" style="width: 120px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (filteredCategories.Any())
+                            {
+                                @foreach (var category in filteredCategories)
+                                {
+                                    <tr>
+                                        <td class="text-start">@category.Name</td>
+                                        <td class="text-start">@category.Description</td>
+                                        <td class="text-center">
+                                            <span class="status-circle @(category.IsActive ? "green" : "red")"
+                                                    title="@(category.IsActive ? "Activo" : "Inactivo")"></span>
+                                        </td>
+                                        <td class="text-end">
+                                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(category)">
+                                                ✏️
+                                            </button>
+                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteCategory(category.Id)">
+                                                🗑️
+                                            </button>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
+                            {
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted py-3">
+                                        No hay categorías que coincidan con los filtros.
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="card-footer text-muted small">
+                Mostrando @filteredCategories.Count() de @categories.Count() categorías
+            </div>
+        </div>
+    </div>
+</div>

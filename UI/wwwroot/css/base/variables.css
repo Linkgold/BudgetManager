@@ -2,6 +2,7 @@
 :root,
 .dark-theme {
     /* Colores de fondo */
+    --color-white: #FFFFFF;
     --color-background: #1E1E2E;
     --color-surface: #1E1E2E;
     --color-table-stripe: #2A2A3E;
@@ -12,6 +13,7 @@
     --color-table-stripe: #2A2A3A;
     --color-table-hover: #3A3A4E;
     /* Colores de texto */
+    --color-label: #D0D0D0;
     --color-text: #E0E0E0;
     --color-text-light: #A0A0B0;
     --color-text-muted: #7A7A8A;
@@ -39,6 +41,7 @@
 /* Tema claro */
 .light-theme {
     /* Colores de fondo */
+    --color-white: #FFFFFF;
     --color-background: #ECF0F1;
     --color-surface: #FFFFFF;
     --color-table-stripe: #F2F3F4;
@@ -48,6 +51,15 @@
     --color-card-header: #2C3E50;
     --color-table-stripe: #F2F3F4;
     --color-table-hover: #E8F0FE;
+    /* Colores de texto */
+    --color-label: #34495E;
+    --color-text: #2C3E50;
+    --color-text-light: #7F8C8D;
+    --color-text-muted: #95A5A6;
+    --color-text-inverse: #FFFFFF;
+    /* Colores de borde */
+    --color-border: #D5D8DC;
+    --color-border-light: #E5E8EB;
     /* Colores de acento */
     --color-accent-rgb: 52, 152, 219; /* mismo color base */
     --color-accent: #3498DB;
@@ -56,14 +68,6 @@
     --color-error: #E74C3C;
     --color-warning: #F1C40F;
     --color-secondary: #2C3E50;
-    /* Colores de texto */
-    --color-text: #2C3E50;
-    --color-text-light: #7F8C8D;
-    --color-text-muted: #95A5A6;
-    --color-text-inverse: #FFFFFF;
-    /* Colores de borde */
-    --color-border: #D5D8DC;
-    --color-border-light: #E5E8EB;
     /* Sombras */
     --shadow-color: rgba(0, 0, 0, 0.1);
     --shadow-light: rgba(0, 0, 0, 0.05);

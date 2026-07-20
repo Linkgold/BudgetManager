@@ -1,0 +1,65 @@
+﻿.page-title {
+    color: var(--color-text) !important;
+    font-weight: 600;
+}
+
+/* 🔥 Tarjeta de filtros */
+.filter-card {
+    background-color: var(--color-card) !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: 0 2px 10px var(--shadow-color) !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+    .filter-card .card-body {
+        background-color: var(--color-card) !important;
+    }
+
+/* 🔥 Tarjeta de la tabla */
+.table-card {
+    background-color: var(--color-card) !important;
+    border: 1px solid var(--color-border) !important;
+    box-shadow: 0 2px 10px var(--shadow-color) !important;
+    border-radius: 8px 8px 0 0 !important;
+    overflow: hidden !important;
+}
+
+    .table-card .card-body {
+        background-color: var(--color-card) !important;
+    }
+
+    .table-card .card-footer {
+        background-color: var(--color-surface-light) !important;
+        color: var(--color-text-muted) !important;
+        border-top: 1px solid var(--color-border) !important;
+        border-radius: 0 !important;
+    }
+
+/* 🔥 Contenedor que envuelve la tarjeta (con altura mínima) */
+.table-card-wrapper {
+    position: relative;
+    min-height: auto; /* ← Altura mínima para que el modal no se corte */
+    border-radius: 13px !important;
+    overflow: hidden !important;
+    transition: filter 0.3s ease;
+    /* Ajusta el valor según el tamaño de tu modal */
+}
+
+    /* 🔥 Cuando el modal está abierto, aumentar la altura */
+    .table-card-wrapper.modal-open {
+        min-height: 600px; /* ← Altura suficiente para el modal abierto */
+    }
+        /* 🔥 Cuando el modal está abierto, desenfocar el contenido */
+        .table-card-wrapper.modal-open .filter-card,
+        .table-card-wrapper.modal-open .table-card {
+            filter: blur(4px);
+            pointer-events: none; /* ← Evita que se pueda interactuar con los elementos */
+            user-select: none; /* ← Evita que se seleccione texto */
+        }
+
+        /* 🔥 El modal y su overlay NO deben desenfocarse */
+        .table-card-wrapper.modal-open .modal-overlay {
+            filter: none !important;
+            pointer-events: auto !important;
+        }

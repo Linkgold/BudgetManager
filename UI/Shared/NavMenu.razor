@@ -27,22 +27,22 @@
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="categorias" @onclick="CloseMenu">
+                    <NavLink class="nav-link" href="categories" @onclick="CloseMenu">
                         <span class="oi oi-tag" aria-hidden="true"></span> Categorías
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="gastos" @onclick="CloseMenu">
-                        <span class="oi oi-dollar" aria-hidden="true"></span> Gastos
+                    <NavLink class="nav-link" href="transactions" @onclick="CloseMenu">
+                        <span class="oi oi-dollar" aria-hidden="true"></span> Transacciones
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="presupuestos" @onclick="CloseMenu">
+                    <NavLink class="nav-link" href="budgets" @onclick="CloseMenu">
                         <span class="oi oi-graph" aria-hidden="true"></span> Presupuestos
                     </NavLink>
                 </div>
                 <div class="nav-item px-3">
-                    <NavLink class="nav-link" href="perfil" @onclick="CloseMenu">
+                    <NavLink class="nav-link" href="profile" @onclick="CloseMenu">
                         <span class="oi oi-person" aria-hidden="true"></span> Perfil
                     </NavLink>
                 </div>
@@ -65,28 +65,3 @@
         </div>
     }
 </div>
-
-@code {
-    private bool _collapseNavMenu = true;
-
-    private void ToggleNavMenu()
-    {
-        _collapseNavMenu = !_collapseNavMenu;
-    }
-
-    private void CloseMenu()
-    {
-        _collapseNavMenu = true;
-    }
-
-    private async Task Logout()
-    {
-        await AuthService.LogoutAsync();
-        NavigationManager.NavigateTo("/login", true);
-    }
-
-    private async Task ToggleTheme()
-    {
-        await ThemeService.ToggleTheme();
-    }
-}
