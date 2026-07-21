@@ -49,8 +49,8 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label">Año</label>
-                        <select class="form-control" @bind="budgetForm.Year">
-                            @foreach (var year in _years)
+                        <select class="form-control" @bind="budgetForm.Year" disabled="@budgetForm.IsDeleting">
+                            @foreach (int year in _years)
                             {
                                 <option value="@year">@year</option>
                             }
@@ -60,9 +60,9 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label">Categoría</label>
-                        <select class="form-control" @bind="budgetForm.CategoryId">
-                            <option value="0">Selecciona una categoría...</option>
-                            @foreach (var category in _allCategories)
+                        <select class="form-control" @bind="budgetForm.CategoryId" disabled="@budgetForm.IsDeleting">
+                            <option value="0">Categoria": "Selecciona una categoría...</option>
+                            @foreach (CategoryResponseDTO category in _allCategories)
                             {
                                 <option value="@category.Id">@category.Name</option>
                             }
@@ -72,27 +72,30 @@
             </div>
 
             <!-- 2. Importe por defecto y acción "Aplicar a todos" -->
-            <div class="row mt-2">
-                <div class="col-md-8">
-                    <div class="form-group">
-                        <label class="form-label">Importe (aplicar a todos)</label>
-                        <input type="number" class="form-control" @bind="budgetForm.Amount" step="0.01" min="0" placeholder="0.00" />
+            @if (!budgetForm.IsDeleting)
+            {
+                <div class="row mt-2">
+                    <div class="col-md-8">
+                        <div class="form-group">
+                            <label class="form-label">Importe (aplicar a todos)</label>
+                            <input type="number" class="form-control" @bind="budgetForm.DefaultAmount" step="0.01" min="0" placeholder="0.00" disabled="@budgetForm.IsDeleting" />
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-end">
+                        <button class="btn btn-outline-primary btn-sm w-100" @onclick="ApplyAmountToAllMonths" disabled="@budgetForm.IsDeleting">
+                            📋 Aplicar a todos los meses
+                        </button>
                     </div>
                 </div>
-                <div class="col-md-4 d-flex align-items-end">
-                    <button class="btn btn-outline-primary btn-sm w-100" @onclick="ApplyAmountToAllMonths">
-                        📋 Aplicar a todos los meses
-                    </button>
-                </div>
-            </div>
-
+            }
             <!-- 3. Tabla de meses (con scroll si es necesario) -->
-            <div class="mt-3" style="max-height: 300px; overflow-y: auto;">
-                <table class="table table-sm table-borderless budget-month-table mb-0">
+            <div class="mt-3 budget-month-table">
+                <table class="table table-sm table-borderless mb-0">
                     <thead>
                         <tr>
                             <th style="width: 30%;">Mes</th>
                             <th style="width: 70%;">Importe</th>
+                            <th style="width: 15%;" class="text-center">Acción</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -103,7 +106,26 @@
                                 <td>
                                     <input type="number" class="form-control form-control-sm"
                                             step="0.01" min="0" placeholder="0.00"
-                                            @bind="monthlyAmounts[month.Value]" />
+                                           @bind="budgetForm.MonthlyAmounts[month.Value]"
+                                           disabled="@budgetForm.IsDeleting" />
+                                </td>
+                                <td class="text-center">
+                                    @if (budgetForm.IsDeleting)
+                                    {
+                                        <button class="btn btn-outline-danger btn-sm"
+                                                @onclick="() => OpenDeleteConfirmation(month.Value)"
+                                                title="Eliminar este mes">
+                                            🗑️
+                                        </button>
+                                    }
+                                    else if (budgetForm.IsEditing)
+                                    {
+                                        <button class="btn btn-outline-primary btn-sm"
+                                                @onclick="() => UpdateSingleMonth(month.Value)"
+                                                title="Actualizar este mes">
+                                            💾
+                                        </button>
+                                    }
                                 </td>
                             </tr>
                         }
@@ -115,9 +137,7 @@
             <div class="mt-2 budget-total-label text-muted small">
                 Total presupuesto anual: <span class="fw-bold">@CalculateTotalAnnualBudget().ToString("C", new System.Globalization.CultureInfo("es-ES"))</span>
             </div>
-
         </Modal>
-
 
         <!-- Tabla de presupuestos (vista anual) -->
         <div class="card table-card">
@@ -152,7 +172,7 @@
                                             <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(category.Id, selectedYear)">
                                                 ✏️
                                             </button>
-                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteCategoryBudgets(category.Id, selectedYear)">
+                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteModal(category.Id, selectedYear)">
                                                 🗑️
                                             </button>
                                         </td>
@@ -188,3 +208,10 @@
         </div>
     </div>
 </div>
+
+<ConfirmModal IsVisible="@isConfirmModalOpen"
+              Title="Eliminar presupuesto"
+              Message="@($"¿Estás seguro de eliminar el presupuesto de {_monthToDelete}/{budgetForm.Year}?")"
+              ConfirmButtonText="Eliminar"
+              OnConfirm="@ConfirmDeleteMonth"
+              OnCancel="@CancelDeleteMonth" />

@@ -72,6 +72,12 @@
     color: var(--color-text) !important;
 }
 
+/* 🔥 El modal de confirmación usa los mismos estilos que el modal normal */
+/* Solo necesitas asegurar que el contenido esté centrado */
+.confirm-modal .modal-content {
+    max-width: 400px;
+}
+
 /* 🔥 Para que el modal tenga el mismo ancho que la tabla, ajusta el max-width */
 @media (min-width: 576px) {
     .modal-content {

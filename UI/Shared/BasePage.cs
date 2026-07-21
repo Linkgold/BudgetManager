@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Microsoft.JSInterop;
 using System.Net;
-using UI.Services;
 using UI.Services.Interfaces;
 
 namespace UI.Shared

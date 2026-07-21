@@ -211,12 +211,31 @@
         pointer-events: none;
     }
 
+/* 🔥 Contenedor de la tabla (con scroll) */
+.budget-month-table-wrapper {
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    border-radius: 8px;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-surface);
+}
+
 /* 🔥 Tabla de meses dentro del modal */
 .budget-month-table {
     background-color: var(--color-surface) !important;
     border-radius: 8px;
     border: 1px solid var(--color-border);
 }
+
+    .budget-month-table thead th {
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+        padding: 8px 10px !important;
+        font-weight: normal;
+        border-bottom: 2px solid var(--color-border) !important;
+        text-align: left;
+    }
 
     .budget-month-table table {
         background-color: var(--color-surface) !important;
@@ -234,4 +253,46 @@
         background-color: var(--color-surface-light) !important;
         color: var(--color-text) !important;
         border: 1px solid var(--color-border) !important;
+    }
+
+    .budget-month-table tbody td {
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
+        padding: 4px 8px !important;
+        border-bottom: 1px solid var(--color-border-light) !important;
+        vertical-align: middle;
+    }
+
+    /* 🔥 HOVER EN FILAS (más sutil) */
+    .budget-month-table tbody tr:hover td {
+        background-color: var(--color-table-hover) !important;
+    }
+
+    .budget-month-table .form-control {
+        background-color: var(--color-surface-light) !important;
+        color: var(--color-text) !important;
+        border: 1px solid var(--color-border) !important;
+        border-radius: 4px !important;
+        padding: 4px 6px !important;
+        font-size: 0.85rem !important;
+        width: 100%;
+        transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .budget-month-table .form-control:focus {
+            border-color: var(--color-accent) !important;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15) !important;
+            background-color: var(--color-surface-light) !important;
+            color: var(--color-text) !important;
+        }
+
+    .budget-month-table .action-column {
+        text-align: center;
+        min-width: 40px;
+        width: 40px;
+    }
+
+    .budget-month-table .btn-sm {
+        padding: 2px 6px;
+        font-size: 0.75rem;
     }

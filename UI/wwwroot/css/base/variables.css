@@ -6,12 +6,11 @@
     --color-background: #1E1E2E;
     --color-surface: #1E1E2E;
     --color-table-stripe: #2A2A3E;
-    --color-table-hover: #3A3A5E;
     --color-surface-light: #3A3A4E;
     --color-card: #2D2D3F;
     --color-card-header: #3A3A4E;
     --color-table-stripe: #2A2A3A;
-    --color-table-hover: #3A3A4E;
+    --color-table-hover: #4A4A5E;
     /* Colores de texto */
     --color-label: #D0D0D0;
     --color-text: #E0E0E0;
@@ -45,7 +44,6 @@
     --color-background: #ECF0F1;
     --color-surface: #FFFFFF;
     --color-table-stripe: #F2F3F4;
-    --color-table-hover: #E8F0FE;
     --color-surface-light: #F8F9FA;
     --color-card: #FFFFFF;
     --color-card-header: #2C3E50;
