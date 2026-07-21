@@ -11,7 +11,7 @@ namespace Domain.Interfaces
         // ==================== CONSULTAS ====================
         Task<Budget?> GetByIdAsync(int userId, int id);
         Task<IEnumerable<Budget>> GetAllAsync(int userId);
-        Task<Budget?> GetByCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period);
+        Task<Budget?> GetByCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period, bool withTracking = false);
         Task<IEnumerable<Budget>> GetByPeriodAsync(int userId, MonthlyPeriod periodm);
         Task<IEnumerable<Budget>> GetByCategoryIdAsync(int userId, int categoryId);
 

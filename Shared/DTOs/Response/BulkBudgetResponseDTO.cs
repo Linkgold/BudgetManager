@@ -4,7 +4,7 @@
     {
         public int CategoryId { get; set; }
         public int Year { get; set; }
-        public List<int> CreatedIds { get; set; } = new List<int>();
+        public List<int> AfectedIds { get; set; } = new List<int>();
         public int TotalCreated { get; set; }
     }
 }

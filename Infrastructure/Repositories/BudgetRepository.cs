@@ -71,20 +71,28 @@ namespace Infrastructure.Repositories
                 .ThenBy(budget => budget.Period.Month);
         }
 
-        public async Task<Budget?> GetByCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period)
+        public async Task<Budget?> GetByCategoryAndPeriodAsync(int userId, int categoryId, MonthlyPeriod period, bool withTracking = false)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
             if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
 
             ArgumentNullException.ThrowIfNull(period);
 
-            Budget? budget = await _dbSet
-                .AsNoTracking()
-                .Include(budget => budget.Category)
-                .Where(budget => budget.UserId == userId)
-                .FirstOrDefaultAsync(budget => budget.CategoryId == categoryId &&
-                                               budget.Period.Year == period.Year &&
-                                               budget.Period.Month == period.Month);
+            IQueryable<Budget> query = _dbSet.Include(budget => budget.Category);
+
+            // 🔥 Aplicar AsNoTracking solo si NO se pide tracking
+            if (!withTracking)
+            {
+                query = query.AsNoTracking();
+            }
+
+            Budget? budget = await query
+                .Where(budget =>
+                        budget.UserId == userId &&
+                        budget.CategoryId == categoryId &&
+                        budget.Period.Year == period.Year &&
+                        budget.Period.Month == period.Month)
+                .FirstOrDefaultAsync();
 
             return budget;
         }

@@ -354,7 +354,7 @@ namespace Tests.Application
             Assert.Equal(categoryId, result.CategoryId);
             Assert.Equal(year, result.Year);
             Assert.Equal(3, result.TotalCreated);
-            Assert.Equal(3, result.CreatedIds.Count);
+            Assert.Equal(3, result.AfectedIds.Count);
 
             _budgetRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Budget>()), Times.Exactly(3));
         }
@@ -415,7 +415,7 @@ namespace Tests.Application
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.TotalCreated); // Solo 2 creados (meses 1 y 3)
-            Assert.Equal(2, result.CreatedIds.Count);
+            Assert.Equal(2, result.AfectedIds.Count);
 
             _budgetRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Budget>()), Times.Exactly(2));
         }
@@ -630,6 +630,159 @@ namespace Tests.Application
             _budgetRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Budget>()), Times.Never);
         }
 
+        // ==================== TEST: UPDATE BULK ====================
+
+        [Fact]
+        public async Task UpdateBulkAsync_WithValidData_ShouldUpdateExistingBudgets()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            int year = 2026;
+
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(categoryId, user);
+
+            CreateBulkBudgetRequestDTO createRequest = new CreateBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = year,
+                MonthlyBudgets = new List<MonthlyBudgetDTO>
+                {
+                    new() { Month = 1, Amount = 500.00m },
+                    new() { Month = 2, Amount = 600.00m },
+                    new() { Month = 3, Amount = 700.00m }
+                }
+            };
+
+            // Simular que los presupuestos existen
+            List<Budget> existingBudgets = new List<Budget>
+            {
+                TestDataFactory.CreateBudget(1, user, category, 500.00m, 1, year),
+                TestDataFactory.CreateBudget(2, user, category, 600.00m, 2, year),
+                TestDataFactory.CreateBudget(3, user, category, 700.00m, 3, year)
+            };
+
+            UpdateBulkBudgetRequestDTO updateRequest = new UpdateBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = year,
+                MonthlyBudgets = new List<MonthlyBudgetDTO>
+                {
+                    new() { Month = 1, Amount = 550.00m },
+                    new() { Month = 2, Amount = 650.00m }
+                }
+            };
+
+            _currentUserServiceMock.Setup(service => service.UserId).Returns(userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(user);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
+                .ReturnsAsync(category);
+
+            _budgetRepositoryMock
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>(), It.IsAny<bool>()))
+                .ReturnsAsync((int u, int c, MonthlyPeriod p, bool b) => { return existingBudgets.FirstOrDefault(b => b.Period.Month == p.Month); });
+
+            _transactionManagerMock
+                .Setup(tm => tm.BeginTransactionAsync())
+                .Returns(Task.CompletedTask);
+
+            _transactionManagerMock
+                .Setup(tm => tm.CommitTransactionAsync())
+                .Returns(Task.CompletedTask);
+
+            // Act
+            BulkBudgetResponseDTO result = await _budgetService.UpdateBulkAsync(updateRequest);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(categoryId, result.CategoryId);
+            Assert.Equal(year, result.Year);
+            Assert.Equal(2, result.TotalCreated);
+            Assert.Equal(2, result.AfectedIds.Count);
+
+            _budgetRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Budget>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task UpdateBulkAsync_WithNoValidMonths_ShouldThrowArgumentException()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            int year = 2026;
+
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(categoryId, user);
+
+            UpdateBulkBudgetRequestDTO updateRequest = new UpdateBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = year,
+                MonthlyBudgets = new List<MonthlyBudgetDTO>
+                {
+                    new() { Month = 1, Amount = 0 },
+                    new() { Month = 2, Amount = 0 },
+                    new() { Month = 3, Amount = 0 }
+                }
+            };
+
+            _currentUserServiceMock.Setup(service => service.UserId).Returns(userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(user);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
+                .ReturnsAsync(category);
+
+            // Act & Assert
+            ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() => _budgetService.UpdateBulkAsync(updateRequest));
+
+            Assert.Contains("At least one month with amount > 0 is required", exception.Message);
+
+            _budgetRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Budget>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task UpdateBulkAsync_WithNonExistingCategory_ShouldThrowKeyNotFoundException()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 999;
+            int year = 2026;
+
+            User user = TestDataFactory.CreateUser(userId);
+
+            UpdateBulkBudgetRequestDTO updateRequest = new UpdateBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = year,
+                MonthlyBudgets = new List<MonthlyBudgetDTO> { new MonthlyBudgetDTO { Month = 1, Amount = 550.00m } }
+            };
+
+            _currentUserServiceMock.Setup(service => service.UserId).Returns(userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(user);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
+                .ReturnsAsync((Category?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.UpdateBulkAsync(updateRequest));
+
+            _budgetRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Budget>()), Times.Never);
+        }
+
         // ==================== TEST: UPDATE ====================
 
         [Fact]
@@ -677,6 +830,138 @@ namespace Tests.Application
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.UpdateAsync(budgetId, new UpdateBudgetRequestDTO { Amount = updatedAmount }));
 
             _budgetRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Budget>()), Times.Never);
+        }
+
+        // ==================== TEST: DELETE BULK ====================
+
+        [Fact]
+        public async Task DeleteBulkAsync_WithValidData_ShouldDeleteExistingBudgets()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            int year = 2026;
+
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(categoryId, user);
+
+            // Simular que los presupuestos existen
+            List<Budget> existingBudgets = new List<Budget>
+            {
+                TestDataFactory.CreateBudget(1, user, category, 500.00m, 1, year),
+                TestDataFactory.CreateBudget(2, user, category, 600.00m, 2, year),
+                TestDataFactory.CreateBudget(3, user, category, 700.00m, 3, year)
+            };
+
+            DeleteBulkBudgetRequestDTO deleteRequest = new DeleteBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = year,
+                MonthsToDelete = new List<int> { 1, 3 }
+            };
+
+            _currentUserServiceMock.Setup(service => service.UserId).Returns(userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(user);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
+                .ReturnsAsync(category);
+
+            _budgetRepositoryMock
+                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>(), It.IsAny<bool>()))
+                .ReturnsAsync((int u, int c, MonthlyPeriod p, bool b) => { return existingBudgets.FirstOrDefault(b => b.Period.Month == p.Month); });
+
+            _transactionManagerMock
+                .Setup(tm => tm.BeginTransactionAsync())
+                .Returns(Task.CompletedTask);
+
+            _transactionManagerMock
+                .Setup(tm => tm.CommitTransactionAsync())
+                .Returns(Task.CompletedTask);
+
+            // Act
+            BulkBudgetResponseDTO result = await _budgetService.DeleteBulkAsync(deleteRequest);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(categoryId, result.CategoryId);
+            Assert.Equal(year, result.Year);
+            Assert.Equal(2, result.TotalCreated);
+            Assert.Equal(2, result.AfectedIds.Count);
+
+            _budgetRepositoryMock.Verify(repo => repo.DeleteAsync(userId, It.IsAny<int>()), Times.Exactly(2));
+        }
+
+        [Fact]
+        public async Task DeleteBulkAsync_WithNoMonthsToDelete_ShouldThrowArgumentException()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            int year = 2026;
+
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(categoryId, user);
+
+            DeleteBulkBudgetRequestDTO deleteRequest = new DeleteBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = year,
+                MonthsToDelete = new List<int>()
+            };
+
+            _currentUserServiceMock.Setup(service => service.UserId).Returns(userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(user);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
+                .ReturnsAsync(category);
+
+            // Act & Assert
+            ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() => _budgetService.DeleteBulkAsync(deleteRequest));
+
+            Assert.Contains("At least one month to delete is required", exception.Message);
+
+            _budgetRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task DeleteBulkAsync_WithNonExistingCategory_ShouldThrowKeyNotFoundException()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 999;
+            int year = 2026;
+
+            User user = TestDataFactory.CreateUser(userId);
+
+            DeleteBulkBudgetRequestDTO deleteRequest = new DeleteBulkBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Year = year,
+                MonthsToDelete = new List<int> { 1, 3 }
+            };
+
+            _currentUserServiceMock.Setup(service => service.UserId).Returns(userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(user);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
+                .ReturnsAsync((Category?)null);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.DeleteBulkAsync(deleteRequest));
+
+            _budgetRepositoryMock.Verify(repo => repo.DeleteAsync(It.IsAny<int>(), It.IsAny<int>()), Times.Never);
         }
 
         // ==================== TEST: DELETE ====================

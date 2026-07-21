@@ -21,7 +21,9 @@ namespace Application.Interfaces
         // ==================== COMANDOS ====================
         Task<BulkBudgetResponseDTO> CreateBulkAsync(CreateBulkBudgetRequestDTO request);
         Task<BudgetResponseDTO> CreateAsync(CreateBudgetRequestDTO request);
+        Task<BulkBudgetResponseDTO> UpdateBulkAsync(UpdateBulkBudgetRequestDTO request);
         Task<BudgetResponseDTO> UpdateAsync(int id, UpdateBudgetRequestDTO request);
+        Task<BulkBudgetResponseDTO> DeleteBulkAsync(DeleteBulkBudgetRequestDTO request);
         Task DeleteAsync(int id);
 
         // ==================== VERIFICACIONES ====================

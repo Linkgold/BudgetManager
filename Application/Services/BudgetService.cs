@@ -151,25 +151,18 @@ namespace Application.Services
         /// </summary>
         public async Task<BulkBudgetResponseDTO> CreateBulkAsync(CreateBulkBudgetRequestDTO request)
         {
-            // Validar que el usuario está autenticado
+            // 1. Validar que el usuario está autenticado
             User? user = await GetAndValidateUserAuthenticatedAsync();
 
             ArgumentNullException.ThrowIfNull(request);
 
-            // Validar que la categoría existe
+            // 2. Validar que la categoría existe
             Category? category = await GatAndValidateCategoryExistsAsync(request.CategoryId);
 
-            // Validar que hay meses con importe > 0
-            List<MonthlyBudgetDTO> validMonths = request.MonthlyBudgets.Where(m => m.Amount > 0).ToList();
+            // 3. Validar que hay meses con importe > 0
+            List<MonthlyBudgetDTO> validMonths = GetAndValidateMonths(request.MonthlyBudgets);
 
-            if (validMonths.Count == 0) throw new ArgumentException("At least one month with amount > 0 is required");
-
-            // Validar que los meses son válidos (1-12)
-            foreach (MonthlyBudgetDTO month in validMonths)
-            {
-                if (month.Month < 1 || month.Month > 12) throw new ArgumentException($"Invalid month: {month.Month}");
-            }
-
+            // 4. Transacción
             await _transactionManager.BeginTransactionAsync();
 
             try
@@ -198,7 +191,7 @@ namespace Application.Services
                 {
                     CategoryId = request.CategoryId,
                     Year = request.Year,
-                    CreatedIds = createdIds,
+                    AfectedIds = createdIds,
                     TotalCreated = createdIds.Count
                 };
             }
@@ -236,6 +229,61 @@ namespace Application.Services
             return _mapper.Map<BudgetResponseDTO>(budget);
         }
 
+        /// <summary>
+        /// Actualiza múltiples presupuestos en bloque
+        /// </summary>
+        public async Task<BulkBudgetResponseDTO> UpdateBulkAsync(UpdateBulkBudgetRequestDTO request)
+        {
+            // 1. Validar que el usuario está autenticado
+            User? user = await GetAndValidateUserAuthenticatedAsync();
+
+            ArgumentNullException.ThrowIfNull(request);
+
+            // 2. Validar que la categoría existe
+            Category? category = await GatAndValidateCategoryExistsAsync(request.CategoryId);
+
+            // 3. Validar que hay meses con importe > 0
+            List<MonthlyBudgetDTO> validMonths = GetAndValidateMonths(request.MonthlyBudgets);
+
+            // 4. Transacción
+            await _transactionManager.BeginTransactionAsync();
+
+            try
+            {
+                List<int> updatedIds = new List<int>();
+
+                foreach (MonthlyBudgetDTO month in validMonths)
+                {
+                    MonthlyPeriod period = new MonthlyPeriod(month.Month, request.Year);
+                    Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(UserId, request.CategoryId, period, withTracking: true);
+
+                    if (budget != null)
+                    {
+                        // Actualizar existente
+                        Money newAmount = new Money(month.Amount);
+                        budget.UpdateAmount(newAmount);
+                        await _budgetRepository.UpdateAsync(budget);
+                        updatedIds.Add(budget.Id);
+                    }
+                }
+
+                await _transactionManager.CommitTransactionAsync();
+
+                return new BulkBudgetResponseDTO
+                {
+                    CategoryId = request.CategoryId,
+                    Year = request.Year,
+                    AfectedIds = updatedIds,
+                    TotalCreated = updatedIds.Count
+                };
+            }
+            catch (Exception)
+            {
+                await _transactionManager.RollbackTransactionAsync();
+                throw;
+            }
+        }
+
         public async Task<BudgetResponseDTO> UpdateAsync(int id, UpdateBudgetRequestDTO request)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
@@ -257,6 +305,60 @@ namespace Application.Services
 
             // Devolver DTO
             return _mapper.Map<BudgetResponseDTO>(budget);
+        }
+
+        /// <summary>
+        /// Elimina múltiples presupuestos en bloque
+        /// </summary>
+        public async Task<BulkBudgetResponseDTO> DeleteBulkAsync(DeleteBulkBudgetRequestDTO request)
+        {
+            // 1. Validar usuario autenticado
+            User? user = await GetAndValidateUserAuthenticatedAsync();
+
+            ArgumentNullException.ThrowIfNull(request);
+
+            // 2. Validar que la categoría existe
+            Category? category = await GatAndValidateCategoryExistsAsync(request.CategoryId);
+
+            // 3. Validar que hay meses a eliminar
+            List<int> monthsToDelete = request.MonthsToDelete.Where(m => m >= 1 && m <= 12).Distinct().ToList();
+
+            if (monthsToDelete.Count == 0) throw new ArgumentException("At least one month to delete is required");
+
+            // 4. Transacción
+            await _transactionManager.BeginTransactionAsync();
+
+            try
+            {
+                List<int> deletedIds = new List<int>();
+
+                foreach (int id in monthsToDelete)
+                {
+                    MonthlyPeriod period = new MonthlyPeriod(id, request.Year);
+                    Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(UserId, request.CategoryId, period);
+
+                    if (budget != null)
+                    {
+                        await _budgetRepository.DeleteAsync(UserId, budget.Id);
+                        deletedIds.Add(budget.Id);
+                    }
+                }
+
+                await _transactionManager.CommitTransactionAsync();
+
+                return new BulkBudgetResponseDTO
+                {
+                    CategoryId = request.CategoryId,
+                    Year = request.Year,
+                    AfectedIds = deletedIds,
+                    TotalCreated = deletedIds.Count
+                };
+            }
+            catch (Exception)
+            {
+                await _transactionManager.RollbackTransactionAsync();
+                throw;
+            }
         }
 
         public async Task DeleteAsync(int id)
@@ -306,6 +408,20 @@ namespace Application.Services
             if (category == null) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
 
             return category;
+        }
+
+        private List<MonthlyBudgetDTO> GetAndValidateMonths(List<MonthlyBudgetDTO> monthlyBudgets)
+        {
+            List<MonthlyBudgetDTO> validMonths = monthlyBudgets.Where(m => m.Amount > 0).ToList();
+
+            if (!validMonths.Any()) throw new ArgumentException("At least one month with amount > 0 is required");
+
+            foreach (MonthlyBudgetDTO month in validMonths)
+            {
+                if (month.Month is < 1 or > 12) throw new ArgumentException($"Invalid month: {month.Month}");
+            }
+
+            return validMonths;
         }
     }
 }

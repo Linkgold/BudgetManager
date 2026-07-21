@@ -168,7 +168,7 @@ namespace API.Controllers
 
             BulkBudgetResponseDTO createBulkBudget = await _budgetService.CreateBulkAsync(request);
             // 🔥 Usar el primer ID creado para la ubicación
-            int firstId = createBulkBudget.CreatedIds.FirstOrDefault();
+            int firstId = createBulkBudget.AfectedIds.FirstOrDefault();
             if (firstId == 0) return BadRequest("No budgets were created.");
 
             return CreatedAtAction(nameof(GetById), new { id = new { id = firstId } }, createBulkBudget);
@@ -193,6 +193,22 @@ namespace API.Controllers
         }
 
         /// <summary>
+        /// Actualiza múltiples presupuestos en bloque
+        /// </summary>
+        [HttpPut("bulk")]
+        [ProducesResponseType(typeof(BulkBudgetResponseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateBulk([FromBody] UpdateBulkBudgetRequestDTO request)
+        {
+            if (request == null) return BadRequest("Request cannot be null");
+
+            BulkBudgetResponseDTO result = await _budgetService.UpdateBulkAsync(request);
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Elimina un presupuesto
         /// </summary>
         [HttpDelete("{id}")]
@@ -206,6 +222,23 @@ namespace API.Controllers
             await _budgetService.DeleteAsync(id);
 
             return NoContent();
+        }
+
+        /// <summary>
+        /// Elimina múltiples presupuestos en bloque
+        /// </summary>
+        [HttpDelete("bulk")]
+        [ProducesResponseType(typeof(BulkBudgetResponseDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> DeleteBulk([FromBody] DeleteBulkBudgetRequestDTO request)
+        {
+            if (request == null)
+                return BadRequest("Request cannot be null");
+
+            BulkBudgetResponseDTO result = await _budgetService.DeleteBulkAsync(request);
+            return Ok(result);
         }
     }
 }
