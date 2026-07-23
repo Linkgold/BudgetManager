@@ -57,11 +57,19 @@
 /* 🔥 Contenedor que envuelve la tarjeta (con altura mínima) */
 .table-card-wrapper-budget {
     position: relative;
-    min-height: 635px; /* ← Altura mínima para que el modal no se corte */
+    min-height: 850px; /* ← Altura mínima para que el modal no se corte */
     border-radius: 13px !important;
     overflow: hidden !important;
     transition: filter 0.3s ease;
     /* Ajusta el valor según el tamaño de tu modal */
+}
+/* 🔥 Cuando el modal está abierto en modo edición/creación */
+.table-card-wrapper-budget.modal-open {
+    min-height: 850px; /* Altura suficiente para el modal abierto en modo edición */
+}
+/* 🔥 Cuando el modal está abierto en modo eliminación (menos contenido) */
+.table-card-wrapper-budget.modal-open-delete {
+    min-height: 772px; /* ← Altura reducida para el modo eliminación */
 }
 
 /* 🔥 Contenedor que envuelve la tarjeta (con altura mínima) */

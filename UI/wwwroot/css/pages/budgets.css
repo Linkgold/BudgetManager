@@ -223,8 +223,9 @@
 
 /* 🔥 Tabla de meses dentro del modal */
 .budget-month-table {
+    width: 100%;
+    border-collapse: collapse; /* Asegura que los bordes no se dupliquen */
     background-color: var(--color-surface) !important;
-    border-radius: 8px;
     border: 1px solid var(--color-border);
 }
 

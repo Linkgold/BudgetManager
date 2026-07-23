@@ -49,3 +49,37 @@ a:hover {
 * {
     scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
 }
+
+/* ==================== SELECTS (Desplegables) ==================== */
+
+/* 🔥 Reutilizar estilos de scrollbar del reset.css para el select */
+select.form-control::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+select.form-control::-webkit-scrollbar-track {
+    background: var(--color-scrollbar-track);
+    border-radius: 4px;
+}
+
+select.form-control::-webkit-scrollbar-thumb {
+    background: var(--color-scrollbar-thumb);
+    border-radius: 4px;
+}
+
+    select.form-control::-webkit-scrollbar-thumb:hover {
+        background: var(--color-scrollbar-thumb-hover);
+    }
+
+select.form-control::-webkit-scrollbar-button {
+    background: var(--color-scrollbar-track);
+    height: 12px;
+    width: 12px;
+    border-radius: 2px;
+}
+
+    /* 🔥 Firefox: reutilizar scrollbar-color */
+    select.form-control {
+        scrollbar-color: var(--color-scrollbar-thumb) var(--color-scrollbar-track);
+    }
