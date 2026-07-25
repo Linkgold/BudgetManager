@@ -90,6 +90,8 @@ namespace UI.Pages
         [Inject]
         private IToastService ToastService { get; set; } = default!;
 
+        private bool IsCurrentYearSelected => selectedYear == DateTime.Now.Year;
+
         private string searchTerm
         {
             get => _searchTerm;
@@ -229,15 +231,7 @@ namespace UI.Pages
 
         private void OpenCreateModal()
         {
-            // 🔥 Inicializar el formulario con el año seleccionado
-            budgetForm = new BudgetFormModel
-            {
-                CategoryId = 0,
-                Year = selectedYear,
-                MonthlyAmounts = _months.ToDictionary(month => month.Value, month => 0m),
-                IsEditing = false,
-                IsDeleting = false
-            };
+            ResetBudgetForm();
 
             // 🔥 Sincronizar la propiedad con el año del formulario
             BudgetYear = selectedYear;
@@ -507,8 +501,8 @@ namespace UI.Pages
 
         private void CloseModal()
         {
-            isModalOpen = false;
-            isDeleteMode = false;
+            ResetBudgetForm();
+
             StateHasChanged();
         }
 
@@ -600,6 +594,41 @@ namespace UI.Pages
             }
         }
 
+        private void ClearSearch()
+        {
+            searchTerm = string.Empty;
+            ApplyFilters();
+        }
+
+        private void SetCurrentYear()
+        {
+            selectedYear = DateTime.Now.Year;
+            ApplyFilters();
+        }
+
+        private void ResetBudgetForm()
+        {
+            // ✅ Resetear todo después de eliminar
+            isConfirmModalOpenDeleteAll = false;
+            isConfirmModalOpenDeleteOne = false;
+            isModalOpen = false;
+            isDeleteMode = false;
+            isEditing = false;
+
+            // ✅ Resetear el formulario
+            budgetForm = new BudgetFormModel
+            {
+                CategoryId = 0,
+                Year = selectedYear,
+                MonthlyAmounts = _months.ToDictionary(month => month.Value, month => 0m),
+                IsEditing = false,
+                IsDeleting = false,
+                DefaultAmount = 0
+            };
+        }
+
+
+
         // ================ MÉTODOS DEL MODAL CONFIRMATION ===============
 
         private void OpenDeleteConfirmation(int month)
@@ -648,6 +677,21 @@ namespace UI.Pages
             {
                 await LogService.LogErrorAsync($"Error en ConfirmDeleteMonth", ex);
                 ToastService.ShowError("Ocurrió un error inesperado.");
+            }
+            finally
+            {
+                ResetBudgetForm();
+
+                // ✅ Actualizar el formulario (eliminar el mes del diccionario)
+                budgetForm.MonthlyAmounts[_monthToDelete] = 0;
+
+                // ✅ Si no quedan meses con importe, resetear el modo eliminación
+                if (!budgetForm.MonthlyAmounts.Any(kvp => kvp.Value > 0))
+                {
+                    budgetForm.IsDeleting = false;
+                    isDeleteMode = false;
+                    isModalOpen = false;
+                }
             }
         }
 
@@ -722,8 +766,8 @@ namespace UI.Pages
             }
             finally
             {
-                isConfirmModalOpenDeleteAll = false;
-                isModalOpen = false;
+                ResetBudgetForm();
+
                 await LoadData();
                 ApplyFilters();
                 StateHasChanged();
@@ -735,5 +779,7 @@ namespace UI.Pages
             isConfirmModalOpenDeleteAll = false;
             StateHasChanged();
         }
+
+
     }
 }

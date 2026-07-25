@@ -5,16 +5,6 @@
     color: var(--color-text) !important;
 }
 
-.monthly-btn {
-    color: var(--color-accent) !important;
-    border-color: var(--color-accent) !important;
-}
-
-    .monthly-btn:hover {
-        background-color: var(--color-accent) !important;
-        color: var(--color-text-inverse) !important;
-    }
-
 .monthly-nav-btn {
     color: var(--color-text) !important;
     border-color: var(--color-border) !important;

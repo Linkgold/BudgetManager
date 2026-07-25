@@ -175,3 +175,29 @@
 .form-control-sm {
     padding-right: 30px !important;
 }
+
+/* ==================== BOTÓN OUTLINE CON COLOR DE ACENTO ==================== */
+/* 🔥 Estilo estándar para botones outline con color de acento */
+.btn-outline-accent {
+    color: var(--color-accent) !important;
+    border-color: var(--color-accent) !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease;
+}
+
+    .btn-outline-accent:hover {
+        background-color: var(--color-accent) !important;
+        color: var(--color-text-inverse) !important;
+        border-color: var(--color-accent) !important;
+    }
+
+    .btn-outline-accent:focus {
+        box-shadow: 0 0 0 0.2rem rgba(var(--color-accent-rgb), 0.25) !important;
+    }
+    
+    /* 🔥 Botón deshabilitado con estilo consistente */
+    .btn-outline-accent:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+    }

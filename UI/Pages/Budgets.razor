@@ -18,19 +18,30 @@
     <div class="table-card-wrapper-budget @(isModalOpen ? (budgetForm.IsDeleting ? "modal-open-delete" : "modal-open") : "")" ">
         <div class="card filter-card mb-3">
             <div class="card-body d-flex flex-wrap align-items-center gap-2">
-                <div class="flex-grow-1" style="min-width: 150px;">
-                    <input type="text" class="form-control form-control-sm"
+                <div style="flex: 1; min-width: 150px; position: relative;">
+                    <input type="text" class="form-control form-control-sm search-input-with-clear"
                            placeholder="🔍 Buscar categoría..."
                            @bind="searchTerm"
                            @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
+                    }
                 </div>
-                <div style="min-width: 100px;">
-                    <select class="form-control form-control-sm" @bind="selectedYear">
+                <div style="display: flex; align-items: center; gap: 4px; min-width: 150px;">
+                    <select class="form-control form-control-sm" @bind="selectedYear" style="flex: 1;">
                         @foreach (var year in _years)
                         {
                             <option value="@year">@year</option>
                         }
                     </select>
+                    <button class="btn btn-outline-accent btn-sm"
+                            @onclick="() => SetCurrentYear()"
+                            title="Ir al año actual"
+                            disabled="@(IsCurrentYearSelected)"
+                            style="white-space: nowrap; padding: 4px 8px;">
+                        📅 Actual
+                    </button>
                 </div>
             </div>
         </div>
@@ -46,13 +57,6 @@
 
             <!-- 1. Selección de Año y Categoría -->
             <div class="row">
-                <!-- <div class="form-group">
-                    <label class="form-label">Tipo</label>
-                    <select class="form-control" @bind="budgetForm.Type">
-                        <option value="@TransactionTypeEnum.Income">Ingreso</option>
-                        <option value="@TransactionTypeEnum.Expense">Gasto</option>
-                    </select>
-                </div> -->
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label">Año</label>

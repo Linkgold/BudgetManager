@@ -38,17 +38,6 @@
     min-width: 60px;
 }
 
-/* 🔥 Botones */
-.dashboard-btn {
-    color: var(--color-accent) !important;
-    border-color: var(--color-accent) !important;
-}
-
-    .dashboard-btn:hover {
-        background-color: var(--color-accent) !important;
-        color: var(--color-text-inverse) !important;
-    }
-
 /* 🔥 Responsive adicional */
 @media (max-width: 768px) {
     .dashboard-table thead th {
