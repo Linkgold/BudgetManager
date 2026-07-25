@@ -22,7 +22,6 @@ namespace Tests.API.Controllers
         {
             _fixture = fixture;
             _client = fixture.Client;
-            //_authenticatedClient = fixture.AuthenticatedClient;
         }
 
         public void Dispose()

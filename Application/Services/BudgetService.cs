@@ -219,7 +219,7 @@ namespace Application.Services
             if (exists) throw new ConflictException($"Budget already exists for category {request.CategoryId} in {request.Month}/{request.Year}");
 
             // Crear entidad de dominio
-            Money amount = new Money(request.Amount);
+            Money amount = new Money(request.Amount, request.Currency);
             Budget budget = new Budget(user, category, amount, period);
 
             // Guardar
@@ -261,7 +261,7 @@ namespace Application.Services
                     {
                         // Actualizar existente
                         Money newAmount = new Money(month.Amount);
-                        budget.UpdateAmount(newAmount);
+                        budget.Update(newAmount);
                         await _budgetRepository.UpdateAsync(budget);
                         updatedIds.Add(budget.Id);
                     }
@@ -297,8 +297,7 @@ namespace Application.Services
             if (budget == null) throw new KeyNotFoundException($"Budget with ID {id} not found");
 
             // Actualizar importe
-            Money newAmount = new Money(request.Amount);
-            budget.UpdateAmount(newAmount);
+            budget.Update(amount: request.Amount, currency: request.Currency);
 
             // Guardar
             await _budgetRepository.UpdateAsync(budget);

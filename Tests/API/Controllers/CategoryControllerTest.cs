@@ -1,4 +1,5 @@
-﻿using Shared.DTOs.Request;
+﻿using Contracts.Enums;
+using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using System.Net;
 using Tests.API.Fixtures;
@@ -45,7 +46,7 @@ namespace Tests.API.Controllers
                 Name = "TestCategory",
                 Description = "Test Description"
             };
-                        
+
             StringContent createContent = _fixture.SerializeRequest(request);
 
             HttpResponseMessage createResponse = await _client.PostAsync("/api/category", createContent);
@@ -97,7 +98,8 @@ namespace Tests.API.Controllers
             CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "NewCategory",
-                Description = "New Description"
+                Description = "New Description",
+                Nature = CategoryNatureEnum.Mixed
             };
 
             StringContent content = _fixture.SerializeRequest(request);
@@ -114,6 +116,7 @@ namespace Tests.API.Controllers
             Assert.NotNull(category);
             Assert.Equal("NewCategory", category.Name);
             Assert.Equal("New Description", category.Description);
+            Assert.Equal(CategoryNatureEnum.Mixed, category.Nature);
         }
 
         [Fact]
@@ -186,7 +189,7 @@ namespace Tests.API.Controllers
                 Name = "ToDelete",
                 Description = "To Delete"
             };
-;
+            
             StringContent createContent = _fixture.SerializeRequest(request);
 
             HttpResponseMessage createResponse = await _client.PostAsync("/api/category", createContent);

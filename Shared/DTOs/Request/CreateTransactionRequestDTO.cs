@@ -11,7 +11,7 @@ namespace Shared.DTOs.Request
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal Amount { get; set; }
-        public TransactionTypeEnum Type { get; set; }
+        public string Currency { get; set; } = "EUR";
         public DateTime Date { get; set; }
     }
 }

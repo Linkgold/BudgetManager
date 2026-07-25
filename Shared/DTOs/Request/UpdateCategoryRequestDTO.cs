@@ -1,4 +1,6 @@
-﻿namespace Shared.DTOs.Request
+﻿using Contracts.Enums;
+
+namespace Shared.DTOs.Request
 {
     /// <summary>
     /// DTO para actualizar una categoría existente
@@ -7,6 +9,6 @@
     {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
-        public bool Available { get; set; } = false;
+        public CategoryNatureEnum? Nature { get; set; } = CategoryNatureEnum.Expense;
     }
 }

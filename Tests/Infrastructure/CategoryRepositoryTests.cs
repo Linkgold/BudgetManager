@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Contracts.Enums;
+using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
@@ -42,6 +43,7 @@ namespace Tests.Infrastructure
             Assert.NotNull(retrieved);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, retrieved.Info.Name);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_DESCRIPTION, retrieved.Info.Description);
+            Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NATURE, retrieved.Nature);
             Assert.NotEqual(default, retrieved.CreatedAt);
         }
 
@@ -110,6 +112,7 @@ namespace Tests.Infrastructure
             Assert.NotNull(retrieved);
             Assert.Equal(category.Id, retrieved.Id);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, retrieved.Info.Name);
+            Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NATURE, retrieved.Nature);
         }
 
         [Fact]
@@ -131,10 +134,11 @@ namespace Tests.Infrastructure
             int userId = 1;
             string updatedName = "Modificado";
             string updatedDescription = "Nueva descripción";
+            CategoryNatureEnum updatedNature = CategoryNatureEnum.Income;
             Category category = await TestDataFactory.SeedCategoryAsync(_repository, 1, TestDataFactory.CreateUser());
 
             // Modificar la entidad
-            category.Update(TestDataFactory.CreateEntityInfo(updatedName, updatedDescription));
+            category.Update(TestDataFactory.CreateEntityInfo(updatedName, updatedDescription), updatedNature);
 
             // Act
             await _repository.UpdateAsync(category);
@@ -144,6 +148,7 @@ namespace Tests.Infrastructure
             Assert.NotNull(updated);
             Assert.Equal(updatedName, updated.Info.Name);
             Assert.Equal(updatedDescription, updated.Info.Description);
+            Assert.Equal(updatedNature, updated.Nature);
             Assert.NotNull(updated.UpdatedAt);
         }
 

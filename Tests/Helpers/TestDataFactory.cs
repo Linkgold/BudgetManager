@@ -1,10 +1,12 @@
-﻿using Shared.DTOs.Request;
-using Application.Interfaces;
-using Domain.Entities;
+﻿using Application.Interfaces;
 using Contracts.Enums;
+using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Moq;
+using Shared.DTOs.Request;
+using Shared.DTOs.Response;
+using Tests.API.Fixtures;
 
 namespace Tests.Helpers
 {
@@ -20,6 +22,7 @@ namespace Tests.Helpers
         public const string DEFAULT_PASSWORD = "Password123!";
         public const string DEFAULT_CATEGORY_NAME = "Alimentación";
         public const string DEFAULT_CATEGORY_DESCRIPTION = "Gastos de comida";
+        public const CategoryNatureEnum DEFAULT_CATEGORY_NATURE = CategoryNatureEnum.Expense;
         public const string DEFAULT_CATEGORIES_NAME = "Categoría";
         public const string DEFAULT_CATEGORIES_DESCRIPTION = "Descripción";
         public const string DEFAULT_FIXED_EXPENSE_NAME = "Netflix";
@@ -36,7 +39,8 @@ namespace Tests.Helpers
         public const string DEFAULT_ENTITY_INFO_NAME = "Comida";
         public const string DEFAULT_ENTITY_INFO_DESCRIPTION = "Gastos de supermercado";
         public const decimal DEFAULT_MONEY_AMOUNT = 100.00m;
-        public const string DEFAULT_MONEY_CURRENCY = "EUR";
+        public const string DEFAULT_CURRENCY = "EUR";
+
 
         // ==================== USUARIOS ====================
 
@@ -72,11 +76,11 @@ namespace Tests.Helpers
         /// <summary>
         /// Crea una categoría de prueba con usuario
         /// </summary>
-        public static Category CreateCategory(int id = 1, User user = null, string name = DEFAULT_CATEGORY_NAME, string description = DEFAULT_CATEGORY_DESCRIPTION)
+        public static Category CreateCategory(int id = 1, User user = null, string name = DEFAULT_CATEGORY_NAME, string description = DEFAULT_CATEGORY_DESCRIPTION, CategoryNatureEnum nature = DEFAULT_CATEGORY_NATURE)
         {
             user ??= CreateUser(1);
             EntityInfo info = CreateEntityInfo(name, description);
-            Category category = new Category(user, info);
+            Category category = new Category(user, info, nature);
             typeof(Category).GetProperty("Id")?.SetValue(category, id);
 
             return category;
@@ -109,6 +113,7 @@ namespace Tests.Helpers
             string name = DEFAULT_FIXED_EXPENSE_NAME,
             string description = DEFAULT_FIXED_EXPENSE_DESCRIPTION,
             decimal amount = DEFAULT_FIXED_EXPENSE_AMOUNT,
+            string currency = DEFAULT_CURRENCY,
             int month = DEFAULT_MONTHLY_MONTH,
             int year = DEFAULT_YEAR
         )
@@ -116,7 +121,7 @@ namespace Tests.Helpers
             user ??= CreateUser(1);
             category ??= CreateCategory(1, user);
             EntityInfo info = CreateEntityInfo(name, description);
-            Money money = CreateMoney(amount);
+            Money money = CreateMoney(amount, currency);
             MonthlyPeriod period = CreateMonthlyPeriod(month, year);
             FixedExpense fixedExpense = CreateFixedExpenseWithoutId(user, category, info, money, period);
             typeof(FixedExpense).GetProperty("Id")?.SetValue(fixedExpense, id);
@@ -143,16 +148,17 @@ namespace Tests.Helpers
         public static Budget CreateBudget
         (
             int id = 1,
-            User user = null,
-            Category category = null,
+            User? user = null,
+            Category? category = null,
             decimal monthlyAmount = DEFAULT_BUDGET_AMOUNT,
+            string currency = DEFAULT_CURRENCY,
             int month = DEFAULT_MONTHLY_MONTH,
             int year = DEFAULT_YEAR
         )
         {
             user ??= CreateUser(1);
             category ??= CreateCategory(1, user);
-            Money money = CreateMoney(monthlyAmount);
+            Money money = CreateMoney(monthlyAmount, currency);
             MonthlyPeriod period = CreateMonthlyPeriod(month, year);
             Budget budget = CreateBudgetWithoutId(user, category, money, period);
             typeof(Budget).GetProperty("Id")?.SetValue(budget, id);
@@ -160,7 +166,13 @@ namespace Tests.Helpers
             return budget;
         }
 
-        public static Budget CreateBudgetWithoutAutoCreation(User user, Category category, Money money, MonthlyPeriod monthlyPeriod) => new(user, category, money, monthlyPeriod);
+        public static Budget CreateBudgetWithoutAutoCreation
+        (
+            User user,
+            Category category,
+            Money money,
+            MonthlyPeriod monthlyPeriod
+        ) => new(user, category, money, monthlyPeriod);
 
         public static Budget CreateBudgetWithoutId
         (
@@ -183,7 +195,7 @@ namespace Tests.Helpers
             string name = DEFAULT_TRANSACTION_NAME,
             string description = DEFAULT_TRANSACTION_DESCRIPTION,
             decimal amount = DEFAULT_TRANSACTION_AMOUNT,
-            TransactionTypeEnum type = TransactionTypeEnum.Expense,
+            string currency = DEFAULT_CURRENCY,
             int day = DEFAULT_DAILY_DAY,
             int month = DEFAULT_DAILY_MONTH,
             int year = DEFAULT_YEAR
@@ -192,15 +204,15 @@ namespace Tests.Helpers
             user ??= CreateUser(1);
             category ??= CreateCategory(1, user);
             EntityInfo info = CreateEntityInfo(name, description);
-            Money money = CreateMoney(amount);
+            Money money = CreateMoney(amount, currency);
             DailyPeriod date = CreateDailyPeriod(day, month, year);
-            Transaction transaction = CreateTransactionWithoutId(user, category, info, money, type, date);
+            Transaction transaction = CreateTransactionWithoutId(user, category, info, money, date);
             typeof(Transaction).GetProperty("Id")?.SetValue(transaction, id);
 
             return transaction;
         }
 
-        public static Transaction CreateTransactionWithoutAutoCreation(User user, Category category, EntityInfo info, Money money, TransactionTypeEnum type, DailyPeriod date) => new(user, category, info, money, type, date);
+        public static Transaction CreateTransactionWithoutAutoCreation(User user, Category category, EntityInfo info, Money money, DailyPeriod date) => new(user, category, info, money, date);
 
         public static Transaction CreateTransactionWithoutId
         (
@@ -208,9 +220,8 @@ namespace Tests.Helpers
             Category? category = null,
             EntityInfo? info = null,
             Money? money = null,
-            TransactionTypeEnum? type = null,
             DailyPeriod? date = null
-        ) => new(user ?? CreateUser(), category ?? CreateCategory(), info ?? CreateEntityInfo(), money ?? CreateMoney(), type ?? TransactionTypeEnum.Expense, date ?? CreateDailyPeriod());
+        ) => new(user ?? CreateUser(), category ?? CreateCategory(), info ?? CreateEntityInfo(), money ?? CreateMoney(), date ?? CreateDailyPeriod());
 
         // ==================== VALUE OBJECTS ====================
 
@@ -237,7 +248,7 @@ namespace Tests.Helpers
         /// <summary>
         /// Crea un Money de prueba
         /// </summary>
-        public static Money CreateMoney(decimal value = DEFAULT_MONEY_AMOUNT, string currency = DEFAULT_MONEY_CURRENCY) => new Money(value, currency);
+        public static Money CreateMoney(decimal value = DEFAULT_MONEY_AMOUNT, string currency = DEFAULT_CURRENCY) => new Money(value, currency);
 
         // Seeds
 
@@ -258,14 +269,15 @@ namespace Tests.Helpers
 
         public static async Task<Category> SeedCategoryAsync
         (
-            ICategoryRepository repository, 
-            int id, 
-            User user, 
-            string name = DEFAULT_CATEGORY_NAME, 
-            string description = DEFAULT_CATEGORY_DESCRIPTION
+            ICategoryRepository repository,
+            int id,
+            User user,
+            string name = DEFAULT_CATEGORY_NAME,
+            string description = DEFAULT_CATEGORY_DESCRIPTION,
+            CategoryNatureEnum categoryNatureEnum = DEFAULT_CATEGORY_NATURE
         )
         {
-            Category category = CreateCategory(id, user, name, description);
+            Category category = CreateCategory(id, user, name, description, categoryNatureEnum);
 
             await repository.AddAsync(category);
 
@@ -280,11 +292,12 @@ namespace Tests.Helpers
             string name = DEFAULT_FIXED_EXPENSE_NAME,
             string description = DEFAULT_FIXED_EXPENSE_DESCRIPTION,
             decimal amount = DEFAULT_FIXED_EXPENSE_AMOUNT,
+            string currency = DEFAULT_CURRENCY,
             int month = DEFAULT_MONTHLY_MONTH,
             int year = DEFAULT_YEAR
         )
         {
-            FixedExpense fixedExpense = CreateFixedExpense(id, user, category, name, description, amount, month, year);
+            FixedExpense fixedExpense = CreateFixedExpense(id, user, category, name, description, amount, currency, month, year);
 
             await repository.AddAsync(fixedExpense);
 
@@ -298,11 +311,12 @@ namespace Tests.Helpers
             User user,
             Category category,
             decimal monthlyAmount = DEFAULT_BUDGET_AMOUNT,
+            string currency = DEFAULT_CURRENCY,
             int month = DEFAULT_MONTHLY_MONTH,
             int year = DEFAULT_YEAR
         )
         {
-            Budget budget = CreateBudget(id, user, category, monthlyAmount, month, year);
+            Budget budget = CreateBudget(id, user, category, monthlyAmount, currency, month, year);
 
             await repository.AddAsync(budget);
 
@@ -318,13 +332,13 @@ namespace Tests.Helpers
             string name = DEFAULT_TRANSACTION_NAME,
             string description = DEFAULT_TRANSACTION_DESCRIPTION,
             decimal amount = DEFAULT_TRANSACTION_AMOUNT,
-            TransactionTypeEnum type = TransactionTypeEnum.Expense,
+            string currency = DEFAULT_CURRENCY,
             int day = DEFAULT_DAILY_DAY,
             int month = DEFAULT_DAILY_MONTH,
             int year = DEFAULT_YEAR
         )
         {
-            Transaction transaction = CreateTransaction(id, user, category, name, description, amount, type, day, month, year);
+            Transaction transaction = CreateTransaction(id, user, category, name, description, amount, currency, day, month, year);
 
             await repository.AddAsync(transaction);
 
@@ -353,6 +367,115 @@ namespace Tests.Helpers
             mock.Setup(service => service.IsAuthenticated).Returns(false);
             mock.Setup(service => service.UserName).Returns((string)null);
             mock.Setup(service => service.Email).Returns((string)null);
+        }
+
+
+
+        // MÉTODOS PARA API
+
+        public static async Task<int> CreateCategoryAsync(ApiTestFixture fixture, string name, CategoryNatureEnum nature = CategoryNatureEnum.Expense)
+        {
+            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
+            {
+                Name = name,
+                Description = "Test Category",
+                Nature = nature
+            };
+
+            StringContent content = fixture.SerializeRequest(request);
+            HttpResponseMessage response = await fixture.Client.PostAsync("/api/category", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            CategoryResponseDTO? category = fixture.DeserializeResponse<CategoryResponseDTO>(responseContent);
+
+            return category?.Id ?? -1;
+        }
+
+        public static async Task<int> CreateBudgetAsync
+        (
+            ApiTestFixture fixture,
+            int categoryId,
+            decimal amount,
+            string currency,
+            int month,
+            int year
+        )
+        {
+            CreateBudgetRequestDTO request = new CreateBudgetRequestDTO
+            {
+                CategoryId = categoryId,
+                Amount = amount,
+                Currency = currency,
+                Month = month,
+                Year = year
+            };
+
+            StringContent content = fixture.SerializeRequest(request);
+            HttpResponseMessage response = await fixture.Client.PostAsync("/api/budget", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            BudgetResponseDTO? budget = fixture.DeserializeResponse<BudgetResponseDTO>(responseContent);
+
+            return budget?.Id ?? -1;
+        }
+
+        public static async Task<int> CreateFixedExpenseAsync
+        (
+            ApiTestFixture fixture, 
+            int categoryId, 
+            string name, 
+            decimal amount,
+            string currency,
+            int year, 
+            int month
+        )
+        {
+            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO
+            {
+                CategoryId = categoryId,
+                Name = name,
+                Description = "Test Fixed Expense",
+                Amount = amount,
+                Currency = currency,
+                Year = year,
+                Month = month
+            };
+
+            StringContent content = fixture.SerializeRequest(request);
+
+            HttpResponseMessage response = await fixture.Client.PostAsync("/api/fixedexpense", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            FixedExpenseResponseDTO? fixedExpense = fixture.DeserializeResponse<FixedExpenseResponseDTO>(responseContent);
+
+            return fixedExpense?.Id ?? -1;
+        }
+
+        public static async Task<int> CreateTransactionAsync
+        (
+            ApiTestFixture fixture,
+            int categoryId,
+            string name,
+            decimal amount,
+            string currency,
+            int day,
+            int month,
+            int year
+        )
+        {
+            CreateTransactionRequestDTO request = new CreateTransactionRequestDTO
+            {
+                CategoryId = categoryId,
+                Name = name,
+                Description = "Test Transaction",
+                Amount = amount,
+                Currency = currency,
+                Date = new DateTime(year, month, day)
+            };
+
+            StringContent content = fixture.SerializeRequest(request);
+            HttpResponseMessage response = await fixture.Client.PostAsync("/api/transaction", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            TransactionResponseDTO? transaction = fixture.DeserializeResponse<TransactionResponseDTO?>(responseContent);
+
+            return transaction?.Id ?? -1;
         }
     }
 }

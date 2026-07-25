@@ -5,9 +5,12 @@
         public decimal Value { get; private set; }
         public string Currency { get; private set; }
 
-        public Money(decimal value, string currency = "EUR")
+        // 🔥 Constructor privado SOLO para EF Core
+        private Money() { }
+
+        public Money(decimal value, string currency = "EUR", bool allowNegative = false)
         {
-            if (value < 0) throw new ArgumentException("Amount cannot be negative", nameof(value));
+            if (!allowNegative && value < 0) throw new ArgumentException("Amount cannot be negative", nameof(value));
 
             if (string.IsNullOrWhiteSpace(currency)) throw new ArgumentException("Currency cannot be empty", nameof(currency));
 

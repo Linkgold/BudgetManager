@@ -1,8 +1,10 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Contracts.Enums;
+using Microsoft.AspNetCore.Http;
 using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using System.Net;
 using Tests.API.Fixtures;
+using Tests.Helpers;
 
 namespace Tests.API.Controllers
 {
@@ -26,49 +28,13 @@ namespace Tests.API.Controllers
             _fixture.ClearDatabase();
         }
 
-        // ==================== HELPERS ====================
-
-        private async Task<int> CreateCategoryAsync(string name)
-        {
-            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
-            {
-                Name = name,
-                Description = "Test Category"
-            };
-
-            StringContent content = _fixture.SerializeRequest(request);
-            HttpResponseMessage response = await _client.PostAsync("/api/category", content);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            CategoryResponseDTO? category = _fixture.DeserializeResponse<CategoryResponseDTO>(responseContent);
-
-            return category?.Id ?? -1;
-        }
-
-        private async Task<int> CreateBudgetAsync(int categoryId, decimal amount, int month, int year)
-        {
-            CreateBudgetRequestDTO request = new CreateBudgetRequestDTO
-            {
-                CategoryId = categoryId,
-                Amount = amount,
-                Month = month,
-                Year = year
-            };
-
-            StringContent content = _fixture.SerializeRequest(request);
-            HttpResponseMessage response = await _client.PostAsync("/api/budget", content);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            BudgetResponseDTO? budget = _fixture.DeserializeResponse<BudgetResponseDTO>(responseContent);
-
-            return budget?.Id ?? -1;
-        }
-
         // ==================== TEST: CREATE BULK ====================
 
         [Fact]
         public async Task CreateBulk_WithValidData_ReturnsCreated()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             CreateBulkBudgetRequestDTO request = new CreateBulkBudgetRequestDTO
             {
@@ -103,7 +69,7 @@ namespace Tests.API.Controllers
         public async Task CreateBulk_WithInvalidData_ReturnsBadRequest()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             CreateBulkBudgetRequestDTO request = new CreateBulkBudgetRequestDTO
             {
@@ -147,12 +113,13 @@ namespace Tests.API.Controllers
         public async Task Create_WithValidData_ReturnsCreatedBudget()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             CreateBudgetRequestDTO request = new CreateBudgetRequestDTO
             {
                 CategoryId = categoryId,
                 Amount = 500.00m,
+                Currency = "EUR",
                 Month = 1,
                 Year = 2024
             };
@@ -171,6 +138,7 @@ namespace Tests.API.Controllers
             Assert.NotNull(budget);
             Assert.Equal(categoryId, budget.CategoryId);
             Assert.Equal(500.00m, budget.Amount);
+            Assert.Equal("EUR", budget.Currency);
             Assert.Equal(2024, budget.Year);
             Assert.Equal(1, budget.Month);
             Assert.Equal("Alimentación", budget.CategoryName);
@@ -180,8 +148,8 @@ namespace Tests.API.Controllers
         public async Task Create_WithDuplicateBudget_ReturnsConflict()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
-            await CreateBudgetAsync(categoryId, 500.00m, 1, 2024);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
 
             CreateBudgetRequestDTO request = new CreateBudgetRequestDTO
             {
@@ -227,8 +195,8 @@ namespace Tests.API.Controllers
         public async Task GetById_WithExistingId_ReturnsBudget()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
-            int budgetId = await CreateBudgetAsync(categoryId, 500.00m, 1, 2024);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            int budgetId = await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/budget/{budgetId}");
@@ -261,8 +229,8 @@ namespace Tests.API.Controllers
         public async Task GetAll_ReturnsOkWithBudgets()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
-            await CreateBudgetAsync(categoryId, 500.00m, 1, 2024);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync("/api/budget");
@@ -283,12 +251,12 @@ namespace Tests.API.Controllers
         public async Task GetByCategory_WithExistingCategory_ReturnsBudgets()
         {
             // Arrange
-            int categoryId1 = await CreateCategoryAsync("Alimentación");
-            int categoryId2 = await CreateCategoryAsync("Transporte");
+            int categoryId1 = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            int categoryId2 = await TestDataFactory.CreateCategoryAsync(_fixture, "Transporte");
 
-            await CreateBudgetAsync(categoryId1, 500.00m, 1, 2024);
-            await CreateBudgetAsync(categoryId1, 300.00m, 2, 2024);
-            await CreateBudgetAsync(categoryId2, 200.00m, 1, 2024);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId1, 500.00m, "EUR", 1, 2024);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId1, 300.00m, "EUR", 2, 2024);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId2, 200.00m, "EUR", 1, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/budget/by-category/{categoryId1}");
@@ -320,9 +288,9 @@ namespace Tests.API.Controllers
         public async Task GetByPeriod_ReturnsBudgetsForPeriod()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
-            await CreateBudgetAsync(categoryId, 500.00m, 1, 2024);
-            await CreateBudgetAsync(categoryId, 300.00m, 2, 2024);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 300.00m, "EUR", 2, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync("/api/budget/by-period?month=1&year=2024");
@@ -344,8 +312,8 @@ namespace Tests.API.Controllers
         public async Task GetByCategoryAndPeriod_WithExistingBudget_ReturnsBudget()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
-            await CreateBudgetAsync(categoryId, 500.00m, 1, 2024);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/budget/by-category-period?categoryId={categoryId}&month=1&year=2024");
@@ -365,7 +333,7 @@ namespace Tests.API.Controllers
         public async Task GetByCategoryAndPeriod_WithNonExistingBudget_ReturnsNotFound()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/budget/by-category-period?categoryId={categoryId}&month=1&year=2024");
@@ -380,8 +348,8 @@ namespace Tests.API.Controllers
         public async Task GetSummary_WithExistingBudget_ReturnsSummary()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
-            await CreateBudgetAsync(categoryId, 500.00m, 1,2024);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/budget/summary?categoryId={categoryId}&month=1&year=2024");
@@ -402,7 +370,7 @@ namespace Tests.API.Controllers
         public async Task GetSummary_WithNonExistingBudget_ReturnsNotFound()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/budget/summary?categoryId={categoryId}&month=1&year=2024");
@@ -417,11 +385,11 @@ namespace Tests.API.Controllers
         public async Task UpdateBulk_WithValidData_ReturnsOk()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             // Crear presupuestos iniciales para el mes 1 y 2
-            await CreateBudgetAsync(categoryId, 500.00m, 1, 2026);
-            await CreateBudgetAsync(categoryId, 600.00m, 2, 2026);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2026);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 600.00m, "EUR", 2, 2026);
 
             UpdateBulkBudgetRequestDTO request = new UpdateBulkBudgetRequestDTO
             {
@@ -455,7 +423,7 @@ namespace Tests.API.Controllers
         public async Task UpdateBulk_WithInvalidData_ReturnsBadRequest()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             UpdateBulkBudgetRequestDTO request = new UpdateBulkBudgetRequestDTO
             {
@@ -499,10 +467,10 @@ namespace Tests.API.Controllers
         public async Task Update_WithValidData_ReturnsUpdatedBudget()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
-            int budgetId = await CreateBudgetAsync(categoryId, 500.00m, 1, 2024);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            int budgetId = await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
 
-            UpdateBudgetRequestDTO request = new UpdateBudgetRequestDTO { Amount = 600.00m };
+            UpdateBudgetRequestDTO request = new UpdateBudgetRequestDTO { Amount = 600.00m, Currency = "CNY" };
 
             StringContent content = _fixture.SerializeRequest(request);
 
@@ -518,6 +486,7 @@ namespace Tests.API.Controllers
             Assert.NotNull(budget);
             Assert.Equal(budgetId, budget.Id);
             Assert.Equal(600.00m, budget.Amount);
+            Assert.Equal("CNY", budget.Currency);
         }
 
         [Fact]
@@ -541,12 +510,12 @@ namespace Tests.API.Controllers
         public async Task DeleteBulk_WithValidData_ReturnsOk()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             // Crear presupuestos para los meses 1, 2 y 3
-            await CreateBudgetAsync(categoryId, 500.00m, 1, 2026);
-            await CreateBudgetAsync(categoryId, 600.00m, 2, 2026);
-            await CreateBudgetAsync(categoryId, 700.00m, 3, 2026);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2026);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 600.00m, "EUR", 2, 2026);
+            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 700.00m, "EUR", 3, 2026);
 
             DeleteBulkBudgetRequestDTO request = new DeleteBulkBudgetRequestDTO
             {
@@ -583,7 +552,7 @@ namespace Tests.API.Controllers
         public async Task DeleteBulk_WithNoMonthsToDelete_ReturnsBadRequest()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
 
             DeleteBulkBudgetRequestDTO request = new DeleteBulkBudgetRequestDTO
             {
@@ -641,8 +610,8 @@ namespace Tests.API.Controllers
         public async Task Delete_WithExistingId_ReturnsNoContent()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Alimentación");
-            int budgetId = await CreateBudgetAsync(categoryId, 500.00m, 1, 2024);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            int budgetId = await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
 
             // Act
             HttpResponseMessage response = await _client.DeleteAsync($"/api/budget/{budgetId}");

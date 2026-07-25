@@ -44,12 +44,33 @@ namespace Tests.Infrastructure
             Assert.NotNull(retrieved);
             Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_NAME, retrieved.Info.Name);
             Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, retrieved.Amount.Value);
-            Assert.Equal(TransactionTypeEnum.Expense, retrieved.Type);
+            Assert.Equal(TestDataFactory.DEFAULT_CURRENCY, retrieved.Amount.Currency);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_DAY, retrieved.Date.Day);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, retrieved.Date.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.Date.Year);
             Assert.Equal(category.Id, retrieved.CategoryId);
             Assert.NotEqual(default, retrieved.CreatedAt);
+        }
+
+        [Fact]
+        public async Task AddAsync_ShouldAddTransactionWithCNYCurrency()
+        {
+            // Arrange
+            string customCurrency = "CNY";
+
+            Transaction transaction = TestDataFactory.CreateTransaction(currency: customCurrency);
+
+            // Act
+            await _repository.AddAsync(transaction);
+
+            // Assert
+            Transaction? retrieved = await _dbContext.Transactions
+                .Include(t => t.Category)
+                .FirstOrDefaultAsync(t => t.Id == transaction.Id);
+
+            Assert.NotNull(retrieved);
+            Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, retrieved.Amount.Value);
+            Assert.Equal(customCurrency, retrieved.Amount.Currency);
         }
 
         // ==================== TEST: GET BY ID ====================
@@ -69,7 +90,6 @@ namespace Tests.Infrastructure
             Assert.NotNull(retrieved);
             Assert.Equal(transaction.Id, retrieved.Id);
             Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, retrieved.Amount.Value);
-            Assert.Equal(TransactionTypeEnum.Expense, retrieved.Type);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_DAY, retrieved.Date.Day);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, retrieved.Date.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.Date.Year);
@@ -390,7 +410,6 @@ namespace Tests.Infrastructure
             int userId = 1;
             EntityInfo updatedEntityInfo = TestDataFactory.CreateEntityInfo("Compra actualizada", "Nueva descripción");
             Money updatedAmount = TestDataFactory.CreateMoney(50.00m);
-            TransactionTypeEnum updatedTransaction = TransactionTypeEnum.Income;
             DailyPeriod updatedDate = TestDataFactory.CreateDailyPeriod(20);
 
             Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
@@ -400,7 +419,6 @@ namespace Tests.Infrastructure
             (
                 updatedEntityInfo,
                 updatedAmount,
-                updatedTransaction,
                 updatedDate
             );
 
@@ -413,7 +431,6 @@ namespace Tests.Infrastructure
             Assert.Equal(updatedEntityInfo.Name, updated.Info.Name);
             Assert.Equal(updatedEntityInfo.Description, updated.Info.Description);
             Assert.Equal(updatedAmount.Value, updated.Amount.Value);
-            Assert.Equal(updatedTransaction, updated.Type);
             Assert.Equal(updatedDate.Day, updated.Date.Day);
             Assert.Equal(updatedDate.Month, updated.Date.Month);
             Assert.Equal(updatedDate.Year, updated.Date.Year);

@@ -1,14 +1,15 @@
-﻿using Shared.DTOs.Request;
-using Shared.DTOs.Response;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
 using AutoMapper;
+using Contracts.Enums;
 using Domain.Entities;
 using Domain.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 using Tests.Helpers;
 
 namespace Tests.Application
@@ -170,7 +171,8 @@ namespace Tests.Application
             CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
             {
                 Name = "Nueva Categoría",
-                Description = "Descripción de la nueva categoría"
+                Description = "Descripción de la nueva categoría",
+                Nature = CategoryNatureEnum.Expense
             };
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
@@ -197,6 +199,7 @@ namespace Tests.Application
             result.Should().NotBeNull();
             result.Name.Should().Be(request.Name);
             result.Description.Should().Be(request.Description);
+            result.Nature.Should().Be(result.Nature);
 
             _mockRepository.Verify(repo => repo.ExistsByNameAsync(userId, request.Name), Times.Once);
             _mockRepository.Verify(repo => repo.AddAsync(It.IsAny<Category>()), Times.Once);
@@ -238,12 +241,20 @@ namespace Tests.Application
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
-            Category existingCategory = TestDataFactory.CreateCategory(1, TestDataFactory.CreateUser(), TestDataFactory.CreateEntityInfo("Nombre Antiguo", "Descripción Antigua"));
+            Category existingCategory = TestDataFactory.CreateCategory
+            (
+                1, 
+                TestDataFactory.CreateUser(), 
+                "Nombre Antiguo", 
+                "Descripción Antigua",
+                CategoryNatureEnum.Expense 
+            );
 
             UpdateCategoryRequestDTO request = new UpdateCategoryRequestDTO
             {
                 Name = "Nuevo Nombre",
-                Description = "Nueva Descripción"
+                Description = "Nueva Descripción",
+                Nature = CategoryNatureEnum.Income
             };
 
             _mockRepository
@@ -261,6 +272,7 @@ namespace Tests.Application
             result.Should().NotBeNull();
             result.Name.Should().Be(request.Name);
             result.Description.Should().Be(request.Description);
+            result.Nature.Should().Be(result.Nature);
 
             _mockRepository.Verify(repo => repo.GetByIdAsync(userId, categoryId), Times.Once);
             _mockRepository.Verify(repo => repo.GetByNameAsync(userId, request.Name), Times.Once);

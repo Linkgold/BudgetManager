@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Contracts.Enums;
+using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
@@ -50,11 +51,31 @@ namespace Tests.Infrastructure
             Assert.NotNull(retrieved);
             Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME, retrieved.Info.Name);
             Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, retrieved.Amount.Value);
+            Assert.Equal(TestDataFactory.DEFAULT_CURRENCY, retrieved.Amount.Currency);
             Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, retrieved.ChargePeriod.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.ChargePeriod.Year);
             Assert.Equal(user.Id, retrieved.UserId);
             Assert.Equal(category.Id, retrieved.CategoryId);
             Assert.NotEqual(default, retrieved.CreatedAt);
+        }
+
+        [Fact]
+        public async Task AddAsync_ShouldAddFixedExpenseWithCNYCurrency()
+        {
+            // Arrange
+            string customCurrency = "CNY";
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(currency: customCurrency);
+
+            // Act
+            await _repository.AddAsync(fixedExpense);
+
+            // Assert
+            FixedExpense? retrieved = await _dbContext.FixedExpenses
+                .Include(f => f.Category)
+                .FirstOrDefaultAsync(f => f.Id == fixedExpense.Id);
+
+            Assert.NotNull(retrieved);
+            Assert.Equal(customCurrency, retrieved.Amount.Currency);
         }
 
         // ==================== TEST: GET BY ID ====================

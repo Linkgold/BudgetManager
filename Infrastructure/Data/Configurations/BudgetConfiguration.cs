@@ -17,19 +17,25 @@ namespace Infrastructure.Data.Configurations
                 .ValueGeneratedOnAdd();
 
             // ==================== CONFIGURACIÓN DE MONEY ====================
-            builder.OwnsOne(budget => budget.MonthlyAmount, amount =>
-            {
-                amount.Property(m => m.Value)
-                    .HasColumnName("MonthlyAmount")
-                    .IsRequired()
-                    .HasPrecision(18, 2);
+            builder.OwnsOne
+            (
+                budget => budget.MonthlyAmount, amount =>
+                {
+                    // ✅ Forzar el uso de campos (para que EF Core use el constructor privado)
+                    amount.UsePropertyAccessMode(PropertyAccessMode.Field);
 
-                amount.Property(m => m.Currency)
-                    .HasColumnName("Currency")
-                    .IsRequired()
-                    .HasMaxLength(3)
-                    .HasDefaultValue("EUR");
-            });
+                    amount.Property(m => m.Value)
+                        .HasColumnName("MonthlyAmount")
+                        .IsRequired()
+                        .HasPrecision(18, 2);
+
+                    amount.Property(m => m.Currency)
+                        .HasColumnName("Currency")
+                        .IsRequired()
+                        .HasMaxLength(3)
+                        .HasDefaultValue("EUR");
+                }
+            );
 
             // ==================== CONFIGURACIÓN DE PERIOD ====================
             // 1. Definir Shadow Properties para el período (para usarlas en índices compuestos)
@@ -42,20 +48,23 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired();
 
             // 2. Configurar el Value Object para que use las Shadow Properties
-            builder.OwnsOne(budget => budget.Period, period =>
-            {
-                period.Property(p => p.Month)
-                    .HasColumnName("Month")
-                    .IsRequired();
+            builder.OwnsOne
+            (
+                budget => budget.Period, period =>
+                {
+                    period.Property(p => p.Month)
+                        .HasColumnName("Month")
+                        .IsRequired();
 
-                period.Property(p => p.Year)
-                    .HasColumnName("Year")
-                    .IsRequired();
+                    period.Property(p => p.Year)
+                        .HasColumnName("Year")
+                        .IsRequired();
 
-                // Índice simple para el período
-                period.HasIndex(p => new { p.Month, p.Year  })
-                    .HasDatabaseName("IX_Budgets_Period");
-            });
+                    // Índice simple para el período
+                    period.HasIndex(p => new { p.Month, p.Year  })
+                        .HasDatabaseName("IX_Budgets_Period");
+                }
+            );
 
             // ==================== PROPIEDADES SIMPLES ====================
             builder.Property(budget => budget.CreatedAt)
@@ -73,14 +82,14 @@ namespace Infrastructure.Data.Configurations
                 .HasForeignKey(budget => budget.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            builder.HasOne(budget => budget.User)
+                .WithMany(user => user.Budgets)
+                .HasForeignKey(budget => budget.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             // ==================== ÍNDICES ====================
             builder.HasIndex(budget => budget.CategoryId)
                 .HasDatabaseName("IX_Budgets_CategoryId");
-
-            /*// Índice único: Una categoría solo puede tener un presupuesto por período
-            builder.HasIndex(budget => new { budget.CategoryId, budget.Period.Year, budget.Period.Month })
-                .IsUnique()
-                .HasDatabaseName("IX_Budgets_Category_Period");*/
 
             // ✅ ÍNDICE ÚNICO USANDO NOMBRES DE COLUMNA (NO con propiedades anidadas)
             builder.HasIndex("CategoryId", "Year", "Month")

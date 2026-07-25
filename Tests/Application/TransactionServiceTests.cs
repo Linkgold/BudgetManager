@@ -69,7 +69,6 @@ namespace Tests.Application
             Assert.NotNull(result);
             Assert.Equal(transactionId, result.Id);
             Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, result.Amount);
-            Assert.Equal(TransactionTypeEnum.Expense, result.Type);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_DAY, result.Date.Day);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, result.Date.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, result.Date.Year);
@@ -388,7 +387,6 @@ namespace Tests.Application
                     Name = TestDataFactory.DEFAULT_TRANSACTION_NAME,
                     Description = TestDataFactory.DEFAULT_TRANSACTION_DESCRIPTION,
                     Amount = TestDataFactory.DEFAULT_TRANSACTION_AMOUNT,
-                    Type = TransactionTypeEnum.Expense,
                     Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
                 }
             );
@@ -396,13 +394,88 @@ namespace Tests.Application
             // Assert
             Assert.NotNull(result);
             Assert.Equal(TestDataFactory.DEFAULT_TRANSACTION_AMOUNT, result.Amount);
-            Assert.Equal(TransactionTypeEnum.Expense, result.Type);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_DAY, result.Date.Day);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, result.Date.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, result.Date.Year);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, result.CategoryName);
 
             _transactionRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Transaction>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithMixedCategoryAndNegativeAmount_ShouldSucceed()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            decimal incomingValue = -150.00m;
+            string incomingCurrency = "CNY";
+            Category category = TestDataFactory.CreateCategory(categoryId, nature: CategoryNatureEnum.Mixed);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(TestDataFactory.CreateUser());
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
+                .ReturnsAsync(category);
+
+            // Act
+            TransactionResponseDTO result = await _transactionService.CreateAsync
+            (
+                new CreateTransactionRequestDTO
+                {
+                    CategoryId = categoryId,
+                    Name = "Ingreso Extra",
+                    Description = "Venta de segunda mano",
+                    Amount = incomingValue,
+                    Currency = incomingCurrency,
+                    Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
+                }
+            );
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(incomingValue, result.Amount);
+            Assert.Equal(incomingCurrency, result.Currency);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithIncomeCategoryAndNegativeAmount_ShouldThrowException()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            Category category = TestDataFactory.CreateCategory(categoryId, nature: CategoryNatureEnum.Income);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(TestDataFactory.CreateUser());
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
+                .ReturnsAsync(category);
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>
+            (
+                () =>
+                _transactionService.CreateAsync
+                (
+                    new CreateTransactionRequestDTO
+                    {
+                        CategoryId = categoryId,
+                        Name = "Ingreso Incorrecto",
+                        Amount = -100.00m,
+                        Currency = "EUR",
+                        Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
+                    }
+                )
+            );
         }
 
         [Fact]
@@ -428,7 +501,6 @@ namespace Tests.Application
                         CategoryId = categoryId,
                         Name = TestDataFactory.DEFAULT_TRANSACTION_NAME,
                         Amount = TestDataFactory.DEFAULT_TRANSACTION_AMOUNT,
-                        Type = TransactionTypeEnum.Expense,
                         Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
                     }
                 )
@@ -465,7 +537,6 @@ namespace Tests.Application
                     Name = updatedName,
                     Description = updatedDescription,
                     Amount = updatedAmount,
-                    Type = TransactionTypeEnum.Income,
                     Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, updatedDay)
                 }
             );
@@ -476,7 +547,6 @@ namespace Tests.Application
             Assert.Equal(updatedAmount, result.Amount);
             Assert.Equal(updatedName, result.Name);
             Assert.Equal(updatedDescription, result.Description);
-            Assert.Equal(TransactionTypeEnum.Income, result.Type);
             Assert.Equal(updatedDay, result.Date.Day);
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, result.Date.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, result.Date.Year);
@@ -507,7 +577,6 @@ namespace Tests.Application
                     {
                         Name = "Compra supermercado",
                         Amount = 50.00m,
-                        Type = TransactionTypeEnum.Expense,
                         Date = new DateTime(2024, 6, 20)
                     }
                 )

@@ -11,7 +11,6 @@ namespace Domain.Entities
         public int Id { get; private set; }
         public EntityInfo Info { get; private set; }
         public Money Amount { get; private set; }
-        public TransactionTypeEnum Type { get; private set; }
         public DailyPeriod Date { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
@@ -28,13 +27,9 @@ namespace Domain.Entities
         // Navigation property
         public Category Category { get; private set; }
 
-        // 🔥 Propiedades de solo lectura para consultas rápidas
-        public bool IsIncome => Type == TransactionTypeEnum.Income;
-        public bool IsExpense => Type == TransactionTypeEnum.Expense;
-
         private Transaction() { }
 
-        public Transaction(User user, Category category, EntityInfo info, Money amount, TransactionTypeEnum type, DailyPeriod date)
+        public Transaction(User user, Category category, EntityInfo info, Money amount, DailyPeriod date)
         {
             ArgumentNullException.ThrowIfNull(user);
             ArgumentNullException.ThrowIfNull(category);
@@ -42,26 +37,30 @@ namespace Domain.Entities
             ArgumentNullException.ThrowIfNull(amount);
             ArgumentNullException.ThrowIfNull(date);
 
+            // ✅ Validar según la naturaleza de la categoría
+            ValidateAmountByNature(category.Nature, amount);
+
             User = user;
             UserId = user.Id;
             Category = category;
             CategoryId = category.Id;
             Info = info;
             Amount = amount;
-            Type = type;
             Date = date;
             CreatedAt = DateTime.UtcNow;
         }
 
-        public void Update(EntityInfo info, Money amount, TransactionTypeEnum type, DailyPeriod date)
+        public void Update(EntityInfo info, Money amount, DailyPeriod date)
         {
             ArgumentNullException.ThrowIfNull(info);
             ArgumentNullException.ThrowIfNull(amount);
             ArgumentNullException.ThrowIfNull(date);
 
+            // ✅ Validar según la naturaleza de la categoría
+            ValidateAmountByNature(Category.Nature, amount);
+
             Info = info;
             Amount = amount;
-            Type = type;
             Date = date;
             UpdatedAt = DateTime.UtcNow;
         }
@@ -69,6 +68,9 @@ namespace Domain.Entities
         public void UpdateAmount(Money amount)
         {
             ArgumentNullException.ThrowIfNull(amount);
+
+            // ✅ Validar según la naturaleza de la categoría
+            ValidateAmountByNature(Category.Nature, amount);
 
             Amount = amount;
             UpdatedAt = DateTime.UtcNow;
@@ -90,14 +92,29 @@ namespace Domain.Entities
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public MonthlyPeriod GetMonthlyPeriod()
+        public MonthlyPeriod GetMonthlyPeriod() => Date.ToMonthlyPeriod();
+
+        // ✅ VALIDACIÓN POR NATURALEZA
+        private void ValidateAmountByNature(CategoryNatureEnum nature, Money amount)
         {
-            return Date.ToMonthlyPeriod();
+            switch (nature)
+            {
+                case CategoryNatureEnum.Income:
+                case CategoryNatureEnum.Expense:
+                    if (amount.Value <= 0)
+                        throw new ArgumentException($"Transactions in {nature} categories must have a positive amount");
+                    break;
+
+                case CategoryNatureEnum.Mixed:
+                    if (amount.Value == 0)
+                        throw new ArgumentException("Mixed transactions cannot have a zero amount");
+                    break;
+
+                default:
+                    throw new InvalidOperationException($"Unknown category nature: {nature}");
+            }
         }
 
-        public override string ToString()
-        {
-            return $"Type [{Type}] - {Info.Name}: {Amount.Value:F2} {Amount.Currency} ({Date})";
-        }
+        public override string ToString() => $"{(Amount.Value >= 0 ? "+" : "-")}{Math.Abs(Amount.Value):F2} {Amount.Currency} - {Info.Name} ({Date})";
     }
 }

@@ -83,14 +83,14 @@ namespace Tests.Domain.Entities
         }
 
         [Fact]
-        public void UpdateAmount_WithValidValue_ShouldUpdateAmount()
+        public void Update_WithValidAmount_ShouldUpdateAmount()
         {
             // Arrange
             decimal updatedAmount = 600.00m;
             Budget budget = TestDataFactory.CreateBudgetWithoutId();
 
             // Act
-            budget.UpdateAmount(TestDataFactory.CreateMoney(updatedAmount));
+            budget.Update(amount: updatedAmount);
 
             // Assert
             Assert.Equal(updatedAmount, budget.MonthlyAmount.Value);
@@ -98,15 +98,49 @@ namespace Tests.Domain.Entities
         }
 
         [Fact]
-        public void UpdateAmount_WithNullAmount_ShouldThrowArgumentNullException()
+        public void Update_WithValidCurrency_ShouldUpdateCurrency()
         {
             // Arrange
-            Budget budget = TestDataFactory.CreateBudgetWithoutId();
+            string updatedCurrency = "CNY";
+            Budget budget = TestDataFactory.CreateBudget();
+
+            // Act
+            budget.Update(currency: updatedCurrency);
+
+            // Assert
+            Assert.Equal(updatedCurrency, budget.MonthlyAmount.Currency);
+            Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, budget.MonthlyAmount.Value);
+            Assert.NotNull(budget.UpdatedAt);
+        }
+
+        [Fact]
+        public void Update_WithAmountAndCurrency_ShouldUpdateBoth()
+        {
+            // Arrange
+            decimal updatedAmount = 600.00m;
+            string updatedCurrency = "CNY";
+            Budget budget = TestDataFactory.CreateBudget();
+
+            // Act
+            budget.Update(amount: updatedAmount, currency: updatedCurrency);
+
+            // Assert
+            Assert.Equal(updatedAmount, budget.MonthlyAmount.Value);
+            Assert.Equal(updatedCurrency, budget.MonthlyAmount.Currency);
+            Assert.NotNull(budget.UpdatedAt);
+        }
+
+        [Fact]
+        public void Update_WithNegativeAmount_ShouldThrowArgumentException()
+        {
+            // Arrange
+            decimal invalidAmount = -100.00m;
+            Budget budget = TestDataFactory.CreateBudget();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => budget.UpdateAmount(null));
+            ArgumentException exception = Assert.Throws<ArgumentException>(() => budget.Update(amount: invalidAmount));
 
-            Assert.Equal("amount", exception.ParamName);
+            Assert.Contains("Amount cannot be negative", exception.Message);
         }
 
         [Fact]
@@ -235,7 +269,7 @@ namespace Tests.Domain.Entities
 
             // Assert
             Assert.Equal(30.00m, remaining.Value);
-            Assert.Equal(TestDataFactory.DEFAULT_MONEY_CURRENCY, remaining.Currency);
+            Assert.Equal(TestDataFactory.DEFAULT_CURRENCY, remaining.Currency);
         }
 
         [Fact]
@@ -301,7 +335,7 @@ namespace Tests.Domain.Entities
 
             // Assert
             Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_NAME, result);
-            Assert.Contains($"{TestDataFactory.DEFAULT_MONEY_AMOUNT} {TestDataFactory.DEFAULT_MONEY_CURRENCY}", result);
+            Assert.Contains($"{TestDataFactory.DEFAULT_MONEY_AMOUNT} {TestDataFactory.DEFAULT_CURRENCY}", result);
             Assert.Contains($"{TestDataFactory.DEFAULT_MONTHLY_MONTH}-{TestDataFactory.DEFAULT_YEAR}", result);
         }
     }

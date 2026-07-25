@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Contracts.Enums;
+using Domain.Entities;
 using Domain.ValueObjects;
 using Tests.Helpers;
 
@@ -29,7 +30,7 @@ namespace Tests.Domain.Entities
             EntityInfo info = TestDataFactory.CreateEntityInfo();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(null, info));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(null, info, Contracts.Enums.CategoryNatureEnum.Expense));
 
             Assert.Equal("user", exception.ParamName);
         }
@@ -41,7 +42,7 @@ namespace Tests.Domain.Entities
             User user = TestDataFactory.CreateUser();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(user, null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(user, null, Contracts.Enums.CategoryNatureEnum.Expense));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -55,11 +56,48 @@ namespace Tests.Domain.Entities
             Category category = TestDataFactory.CreateCategory();
 
             // Act
-            category.Update(TestDataFactory.CreateEntityInfo());
+            category.Update(TestDataFactory.CreateEntityInfo(), CategoryNatureEnum.Income);
 
             // Assert
             Assert.Equal(TestDataFactory.DEFAULT_ENTITY_INFO_NAME, category.Info.Name);
             Assert.Equal(TestDataFactory.DEFAULT_ENTITY_INFO_DESCRIPTION, category.Info.Description);
+            Assert.Equal(CategoryNatureEnum.Income, category.Nature);
+            Assert.NotNull(category.UpdatedAt);
+        }
+
+        [Fact]
+        public void Update_WithOnlyInfo_ShouldNotChangeNature()
+        {
+            // Arrange
+            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Expense);
+
+            // Act
+            category.Update(TestDataFactory.CreateEntityInfo("Nuevo Nombre", "Nueva Descripción"));
+
+            // Assert
+            Assert.Equal("Nuevo Nombre", category.Info.Name);
+            Assert.Equal("Nueva Descripción", category.Info.Description);
+            Assert.Equal(CategoryNatureEnum.Expense, category.Nature);
+            Assert.NotNull(category.UpdatedAt);
+        }
+
+        [Fact]
+        public void Update_WithOnlyNature_ShouldNotChangeInfo()
+        {
+            // Arrange
+            Category category = TestDataFactory.CreateCategory(
+                name: "Nombre Original",
+                description: "Descripción Original",
+                nature: CategoryNatureEnum.Expense
+            );
+
+            // Act
+            category.Update(category.Info, CategoryNatureEnum.Income);
+
+            // Assert
+            Assert.Equal("Nombre Original", category.Info.Name);
+            Assert.Equal("Descripción Original", category.Info.Description);
+            Assert.Equal(CategoryNatureEnum.Income, category.Nature);
             Assert.NotNull(category.UpdatedAt);
         }
 
@@ -89,6 +127,7 @@ namespace Tests.Domain.Entities
             // Assert
             Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_NAME, result);
             Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_DESCRIPTION, result);
+            Assert.Contains("Expense", result);
         }
 
         // ==================== EQUALITY (opcional) ====================

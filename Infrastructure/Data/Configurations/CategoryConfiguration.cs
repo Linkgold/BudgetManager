@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Contracts.Enums;
+using Domain.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -16,6 +17,7 @@ namespace Infrastructure.Data.Configurations
             builder.Property(category => category.Id)
                 .ValueGeneratedOnAdd();
 
+            // ==================== CONFIGURACIÓN DE ENTITYINFO ====================
             builder.OwnsOne
             (
                 category => category.Info, 
@@ -37,6 +39,12 @@ namespace Infrastructure.Data.Configurations
                 }
             );
 
+            // ==================== PROPIEDADES SIMPLES ====================
+            builder.Property(category => category.Nature)
+                .HasColumnName("Nature")
+                .IsRequired()
+                .HasDefaultValue(CategoryNatureEnum.Expense); // ✅ Valor por defecto en BD
+
             builder.Property(category => category.CreatedAt)
                 .HasColumnName("CreatedAt")
                 .IsRequired()
@@ -45,6 +53,12 @@ namespace Infrastructure.Data.Configurations
             builder.Property(category => category.UpdatedAt)
                 .HasColumnName("UpdatedAt")
                 .IsRequired(false);
+
+            // ==================== RELACIONES ====================
+            builder.HasOne(category => category.User)
+                .WithMany(user => user.Categories)
+                .HasForeignKey(category => category.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

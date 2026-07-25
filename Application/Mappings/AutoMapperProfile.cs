@@ -17,13 +17,22 @@ namespace Application.Mappings
 
             // Domain → Response DTO
             CreateMap<Category, CategoryResponseDTO>()
-                .ForMember(dest => dest.Name,                    opt => opt.MapFrom(src => src.Info.Name))
-                .ForMember(dest => dest.Description,                    opt => opt.MapFrom(src => src.Info.Description))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Info.Name))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Info.Description))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
+                .ForMember(dest => dest.Nature, opt => opt.MapFrom(src => src.Nature));
 
             // Request DTO → Domain (solo para el constructor)
             CreateMap<CreateCategoryRequestDTO, Category>()
-                 .ConstructUsing(src => new Category(null!, new EntityInfo(src.Name, src.Description)));
+                 .ConstructUsing
+                 (
+                    src => new Category
+                    (
+                        null!, 
+                        new EntityInfo(src.Name, src.Description), 
+                        src.Nature
+                    )
+                );
 
             /*// Esto no es necesario porque Update usa métodos de la entidad
             // pero lo dejamos por si se necesita en otros casos
@@ -34,21 +43,14 @@ namespace Application.Mappings
 
             // Domain → Response DTO
             CreateMap<FixedExpense, FixedExpenseResponseDTO>()
-                .ForMember(dest => dest.Name,
-                    opt => opt.MapFrom(src => src.Info.Name))
-                .ForMember(dest => dest.Description,
-                    opt => opt.MapFrom(src => src.Info.Description))
-                .ForMember(dest => dest.Amount,
-                    opt => opt.MapFrom(src => src.Amount.Value))
-                .ForMember(dest => dest.Currency,
-                    opt => opt.MapFrom(src => src.Amount.Currency))
-                .ForMember(dest => dest.Year,
-                    opt => opt.MapFrom(src => src.ChargePeriod.Year))
-                .ForMember(dest => dest.Month,
-                    opt => opt.MapFrom(src => src.ChargePeriod.Month))
-                .ForMember(dest => dest.CategoryName,
-                    opt => opt.MapFrom(src => src.Category != null ? src.Category.Info.Name : string.Empty))
-                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
+                .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Info.Name))
+                .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Info.Description))
+                .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.Value))
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Amount.Currency))
+                .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.ChargePeriod.Year))
+                .ForMember(dest => dest.Month, opt => opt.MapFrom(src => src.ChargePeriod.Month))
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Info.Name : string.Empty))
+                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
 
             // Request DTO → Domain
             CreateMap<CreateFixedExpenseRequestDTO, FixedExpense>()
@@ -59,7 +61,7 @@ namespace Application.Mappings
                         null!, // User se asigna en el servicio
                         null!, // Category se asigna después
                         new EntityInfo(src.Name, src.Description),
-                        new Money(src.Amount),
+                        new Money(src.Amount, src.Currency ?? "EUR"),
                         new MonthlyPeriod(src.Month, src.Year)
                     )
                 );
@@ -83,9 +85,8 @@ namespace Application.Mappings
                     (
                         null!, // User se asigna en el servicio
                         null!, // Category se asigna en el servicio
-                        new Money(src.Amount),
-                        new MonthlyPeriod(src.Month, src.Year
-                        )
+                        new Money(src.Amount, src.Currency ?? "EUR"),
+                        new MonthlyPeriod(src.Month, src.Year)
                     )
                 );
 
@@ -102,7 +103,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Amount.Currency))
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToDateTime()))
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
-                
+
 
             // Request → Domain
             CreateMap<CreateTransactionRequestDTO, Transaction>()
@@ -113,8 +114,7 @@ namespace Application.Mappings
                         null!, // User se asigna en el servicio
                         null!, // Category se asigna en el servicio
                         new EntityInfo(src.Name, src.Description),
-                        new Money(src.Amount),
-                        src.Type,
+                        new Money(src.Amount, src.Currency ?? "EUR", true),
                         new DailyPeriod(src.Date.Day, src.Date.Month, src.Date.Year)
                     )
                 );

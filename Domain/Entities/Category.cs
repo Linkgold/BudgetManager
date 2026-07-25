@@ -1,4 +1,5 @@
-﻿using Domain.ValueObjects;
+﻿using Contracts.Enums;
+using Domain.ValueObjects;
 
 namespace Domain.Entities
 {
@@ -6,6 +7,7 @@ namespace Domain.Entities
     {
         public int Id { get; private set; }
         public EntityInfo Info { get; private set; }
+        public CategoryNatureEnum Nature { get; private set; }
         public DateTime CreatedAt { get; private set; }
         public DateTime? UpdatedAt { get; private set; }
 
@@ -17,7 +19,7 @@ namespace Domain.Entities
 
         private Category() { } // For EF Core
 
-        public Category(User user, EntityInfo info)
+        public Category(User user, EntityInfo info, CategoryNatureEnum nature)
         {
             ArgumentNullException.ThrowIfNull(user);
             ArgumentNullException.ThrowIfNull(info);
@@ -25,6 +27,7 @@ namespace Domain.Entities
             User = user;
             UserId = user.Id;
             Info = info;
+            Nature = nature;
             CreatedAt = DateTime.UtcNow;
 
             // Inicialización de colecciones (cuando se descomenten)
@@ -33,14 +36,20 @@ namespace Domain.Entities
             // Budgets = new List<Budget>();
         }
 
-        public void Update(EntityInfo info)
+        public void Update(EntityInfo info, CategoryNatureEnum? nature = null)
         {
             ArgumentNullException.ThrowIfNull(info);
 
             Info = info;
+
+            if (nature.HasValue)
+            {
+                Nature = nature.Value;
+            }
+
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public override string ToString() => $"Category: {Info.Name} (Description: {Info.Description})";
+        public override string ToString() => $"Category: {Info.Name} (Description: {Info.Description}) [Nature:{Nature}]";
     }
 }

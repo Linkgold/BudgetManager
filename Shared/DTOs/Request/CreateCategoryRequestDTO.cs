@@ -1,4 +1,6 @@
-﻿namespace Shared.DTOs.Request
+﻿using Contracts.Enums;
+
+namespace Shared.DTOs.Request
 {
     /// <summary>
     /// DTO para crear una nueva categoría
@@ -7,5 +9,6 @@
     {
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
+        public CategoryNatureEnum Nature { get; set; } = CategoryNatureEnum.Expense;
     }
 }

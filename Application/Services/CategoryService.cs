@@ -81,7 +81,7 @@ namespace Application.Services
             if (user == null) throw new KeyNotFoundException($"User with ID {UserId} not found");
 
             // Crear entidad de dominio
-            Category category = new Category(user, new EntityInfo(request.Name, request.Description));
+            Category category = new Category(user, new EntityInfo(request.Name, request.Description), request.Nature);
 
             // Guardar
             await _categoryRepository.AddAsync(category);
@@ -94,16 +94,14 @@ namespace Application.Services
         {
             // Obtener categoría existente
             Category? category = await _categoryRepository.GetByIdAsync(UserId, id);
-
             if (category == null) throw new KeyNotFoundException($"Category with ID {id} not found");
 
             // Validar que el nuevo nombre no esté siendo usado por otra categoría
             Category? existingCategory = await _categoryRepository.GetByNameAsync(UserId, request.Name);
-
             if (existingCategory != null && existingCategory.Id != id) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
 
             // Actualizar entidad de dominio
-            category.Update(new EntityInfo(request.Name, request.Description));
+            category.Update(new EntityInfo(request.Name, request.Description), request.Nature);
 
             // Guardar
             await _categoryRepository.UpdateAsync(category);

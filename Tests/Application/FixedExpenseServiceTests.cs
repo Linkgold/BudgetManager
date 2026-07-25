@@ -211,6 +211,7 @@ namespace Tests.Application
             int userId = 1;
             int categoryId = 1;
             string customCatogoryName = "Suscripciones";
+            string customCurrency = "CNY";
 
             User user = TestDataFactory.CreateUser(userId);
             Category category = TestDataFactory.CreateCategory(categoryId, user, customCatogoryName);
@@ -234,6 +235,7 @@ namespace Tests.Application
                     Name = TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME,
                     Description = TestDataFactory.DEFAULT_FIXED_EXPENSE_DESCRIPTION,
                     Amount = TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT,
+                    Currency = customCurrency,
                     Month = TestDataFactory.DEFAULT_MONTHLY_MONTH,
                     Year = TestDataFactory.DEFAULT_YEAR
                 }
@@ -245,6 +247,7 @@ namespace Tests.Application
             Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, result.Amount);
             Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, result.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, result.Year);
+            Assert.Equal(customCurrency, result.Currency);
             Assert.Equal(customCatogoryName, result.CategoryName);
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<FixedExpense>()), Times.Once);
@@ -285,8 +288,12 @@ namespace Tests.Application
                 .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
                 .ReturnsAsync(category);
 
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(user);
+
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _fixedExpenseService.CreateAsync(new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Amount = -15.99m }));
+            await Assert.ThrowsAsync<ArgumentException>(() => _fixedExpenseService.CreateAsync(new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Amount = -15.99m, Name = "Test" }));
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<FixedExpense>()), Times.Never);
         }

@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Contracts.Enums;
+using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
@@ -35,7 +36,6 @@ namespace Tests.Infrastructure
         public async Task AddAsync_ShouldAddBudgetToDatabase()
         {
             // Arrange
-
             Budget budget = TestDataFactory.CreateBudget();
 
             // Act
@@ -48,9 +48,29 @@ namespace Tests.Infrastructure
 
             Assert.NotNull(retrieved);
             Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, retrieved.MonthlyAmount.Value);
+            Assert.Equal(TestDataFactory.DEFAULT_CURRENCY, retrieved.MonthlyAmount.Currency);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, retrieved.Period.Year);
             Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, retrieved.Period.Month);
             Assert.NotEqual(default, retrieved.CreatedAt);
+        }
+
+        [Fact]
+        public async Task AddAsync_ShouldAddBudgetWithCNYCurrency()
+        {
+            // Arrange
+            string customCurrency = "CNY";
+            Budget budget = TestDataFactory.CreateBudget(currency: customCurrency);
+
+            // Act
+            await _repository.AddAsync(budget);
+
+            // Assert
+            Budget? retrieved = await _dbContext.Budgets
+                .Include(b => b.Category)
+                .FirstOrDefaultAsync(b => b.Id == budget.Id);
+
+            Assert.NotNull(retrieved);
+            Assert.Equal(customCurrency, retrieved.MonthlyAmount.Currency);
         }
 
         // ==================== TEST: GET BY ID ====================
@@ -349,7 +369,7 @@ namespace Tests.Infrastructure
             Budget budget = await TestDataFactory.SeedBudgetAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
 
             // Modificar la entidad
-            budget.UpdateAmount(TestDataFactory.CreateMoney(updatedAmount));
+            budget.Update(TestDataFactory.CreateMoney(updatedAmount));
 
             // Act
             await _repository.UpdateAsync(budget);

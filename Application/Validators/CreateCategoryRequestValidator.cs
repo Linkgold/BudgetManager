@@ -15,6 +15,9 @@ namespace Application.Validators
             RuleFor(x => x.Description)
                 .MaximumLength(200).WithMessage("Description cannot exceed 200 characters")
                 .When(x => x.Description != null);
+
+            RuleFor(x => x.Nature)
+                .IsInEnum().WithMessage("Invalid category nature");
         }
     }
 }

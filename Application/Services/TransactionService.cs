@@ -134,17 +134,17 @@ namespace Application.Services
 
             if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
 
-            // Crear Value Objects
-            EntityInfo info = new EntityInfo(request.Name, request.Description);
-            Money amount = new Money(request.Amount);
-            DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
-
             // 🔥 Obtener el User completo
             User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
             if (user == null) throw new KeyNotFoundException($"User with ID {UserId} not found");
 
+            // Crear Value Objects
+            EntityInfo info = new EntityInfo(request.Name, request.Description);
+            Money amount = new Money(request.Amount, request.Currency ?? "EUR", allowNegative: true);
+            DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
+
             // Crear entidad de dominio
-            Transaction transaction = new Transaction(user, category, info, amount, request.Type, date);
+            Transaction transaction = new Transaction(user, category, info, amount, date);
 
             // Guardar
             await _transactionRepository.AddAsync(transaction);
@@ -166,11 +166,11 @@ namespace Application.Services
 
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
-            Money amount = new Money(request.Amount);
+            Money amount = new Money(request.Amount, request.Currency ?? transaction.Amount.Currency, allowNegative: true);
             DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
 
             // Actualizar entidad de dominio
-            transaction.Update(info, amount, request.Type, date);
+            transaction.Update(info, amount, date);
 
             // Guardar
             await _transactionRepository.UpdateAsync(transaction);

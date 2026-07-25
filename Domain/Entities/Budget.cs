@@ -55,13 +55,31 @@ namespace Domain.Entities
         /// <summary>
         /// Actualiza el importe mensual del presupuesto
         /// </summary>
-        public void UpdateAmount(Money amount)
+        public void Update(decimal? amount = null, string? currency = null)
         {
-            ArgumentNullException.ThrowIfNull(amount);
+            bool hasChanges = false;
 
-            MonthlyAmount = amount;
-            UpdatedAt = DateTime.UtcNow;
+            if (amount.HasValue)
+            {
+                if (amount.Value < 0) throw new ArgumentException("Amount cannot be negative", nameof(amount));
+
+                string finalCurrency = currency ?? MonthlyAmount.Currency;
+                MonthlyAmount = new Money(amount.Value, finalCurrency);
+                hasChanges = true;
+            }
+            else if (currency != null)
+            {
+                // Solo cambiar moneda
+                MonthlyAmount = new Money(MonthlyAmount.Value, currency);
+                hasChanges = true;
+            }
+
+            if (hasChanges)
+            {
+                UpdatedAt = DateTime.UtcNow;
+            }
         }
+
         /// <summary>
         /// Calcula el estado del presupuesto basado en el gasto total
         /// </summary>

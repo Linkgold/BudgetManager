@@ -15,7 +15,6 @@ namespace Shared.DTOs.Response
         public string Description { get; set; } = string.Empty;
         public decimal Amount { get; set; }
         public string Currency { get; set; } = string.Empty;
-        public TransactionTypeEnum Type { get; set; }
         public DateTime Date { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }

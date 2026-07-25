@@ -155,5 +155,37 @@ namespace Tests.Domain.ValueObjects
             // Assert
             Assert.Equal("100,50 EUR", result);
         }
+
+        [Fact]
+        public void Constructor_WithAllowNegativeTrue_ShouldAllowNegativeValues()
+        {
+            // Act
+            Money money = new Money(-100.50m, "EUR", allowNegative: true);
+
+            // Assert
+            Assert.Equal(-100.50m, money.Value);
+            Assert.Equal("EUR", money.Currency);
+        }
+
+        [Fact]
+        public void Constructor_WithAllowNegativeFalseAndNegativeValue_ShouldThrowArgumentException()
+        {
+            // Act & Assert
+            ArgumentException exception = Assert.Throws<ArgumentException>(() => new Money(-100.50m, "EUR", allowNegative: false));
+
+            Assert.Contains("Amount cannot be negative", exception.Message);
+        }
+
+        [Fact]
+        public void Constructor_WithAllowNegativeTrueAndZeroValue_ShouldAllowZero()
+        {
+            // Act
+            Money money = new Money(0m, "EUR", allowNegative: true);
+
+            // Assert
+            Assert.Equal(0m, money.Value);
+            Assert.Equal("EUR", money.Currency);
+        }
+
     }
 }

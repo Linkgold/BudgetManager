@@ -569,11 +569,81 @@ namespace Tests.Application
             // Assert
             Assert.NotNull(result);
             Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, result.Amount);
+            Assert.Equal(TestDataFactory.DEFAULT_CURRENCY, result.Currency);
             Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, result.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, result.Year);
             Assert.Equal(TestDataFactory.DEFAULT_CATEGORY_NAME, result.CategoryName);
 
             _budgetRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Budget>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithCurrency_ShouldCreateBudgetWithCurrency()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            string customCurrency = "CNY";
+            Category category = TestDataFactory.CreateCategory(categoryId, nature: CategoryNatureEnum.Expense);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
+                .ReturnsAsync(category);
+
+            _budgetRepositoryMock
+                .Setup(repo => repo.ExistsForCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
+                .ReturnsAsync(false);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(TestDataFactory.CreateUser(userId));
+
+            // Act
+            BudgetResponseDTO result = await _budgetService.CreateAsync
+            (
+                new CreateBudgetRequestDTO
+                {
+                    CategoryId = categoryId,
+                    Amount = 500.00m,
+                    Currency = customCurrency,
+                    Month = TestDataFactory.DEFAULT_MONTHLY_MONTH,
+                    Year = TestDataFactory.DEFAULT_YEAR
+                }
+            );
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(customCurrency, result.Currency);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WithCurrency_ShouldUpdateCurrency()
+        {
+            // Arrange
+            int userId = 1;
+            int budgetId = 1;
+            string updatedCurrency = "CNY";
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            Budget budget = TestDataFactory.CreateBudget(id: budgetId);
+
+            _budgetRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, budgetId))
+                .ReturnsAsync(budget);
+
+            // Act
+            BudgetResponseDTO result = await _budgetService.UpdateAsync
+            (
+                budgetId,
+                new UpdateBudgetRequestDTO { Currency = updatedCurrency }
+            );
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(updatedCurrency, result.Currency);
+            _budgetRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<Budget>()), Times.Once);
         }
 
         [Fact]
@@ -658,9 +728,9 @@ namespace Tests.Application
             // Simular que los presupuestos existen
             List<Budget> existingBudgets = new List<Budget>
             {
-                TestDataFactory.CreateBudget(1, user, category, 500.00m, 1, year),
-                TestDataFactory.CreateBudget(2, user, category, 600.00m, 2, year),
-                TestDataFactory.CreateBudget(3, user, category, 700.00m, 3, year)
+                TestDataFactory.CreateBudget(1, user, category, 500.00m, month: 1, year: year),
+                TestDataFactory.CreateBudget(2, user, category, 600.00m, month: 2, year: year),
+                TestDataFactory.CreateBudget(3, user, category, 700.00m, month: 3, year: year)
             };
 
             UpdateBulkBudgetRequestDTO updateRequest = new UpdateBulkBudgetRequestDTO
@@ -848,9 +918,9 @@ namespace Tests.Application
             // Simular que los presupuestos existen
             List<Budget> existingBudgets = new List<Budget>
             {
-                TestDataFactory.CreateBudget(1, user, category, 500.00m, 1, year),
-                TestDataFactory.CreateBudget(2, user, category, 600.00m, 2, year),
-                TestDataFactory.CreateBudget(3, user, category, 700.00m, 3, year)
+                TestDataFactory.CreateBudget(1, user, category, 500.00m, month: 1, year: year),
+                TestDataFactory.CreateBudget(2, user, category, 600.00m, month: 2, year: year),
+                TestDataFactory.CreateBudget(3, user, category, 700.00m, month: 3, year: year)
             };
 
             DeleteBulkBudgetRequestDTO deleteRequest = new DeleteBulkBudgetRequestDTO

@@ -113,15 +113,15 @@ namespace Application.Services
             // Nota: Esto es opcional, pero ayuda a evitar duplicados
             // Podrías añadir un método en el repositorio para verificar por nombre y categoría
 
-            // Crear Value Objects
-            EntityInfo info = new EntityInfo(request.Name, request.Description);
-            Money amount = new Money(request.Amount);
-            MonthlyPeriod chargePeriod = new MonthlyPeriod(request.Month, request.Year);
-
             // 🔥 Obtener el User completo
             User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
             if (user == null) throw new KeyNotFoundException($"User with ID {UserId} not found");
 
+            // Crear Value Objects
+            EntityInfo info = new EntityInfo(request.Name, request.Description);
+            Money amount = new Money(request.Amount, request.Currency ?? "EUR");
+            MonthlyPeriod chargePeriod = new MonthlyPeriod(request.Month, request.Year);
+            
             // Crear entidad de dominio
             FixedExpense fixedExpense = new FixedExpense(user, category, info, amount, chargePeriod);
 
@@ -147,7 +147,7 @@ namespace Application.Services
 
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
-            Money amount = new Money(request.Amount);
+            Money amount = new Money(request.Amount, request.Currency ?? "EUR");
             MonthlyPeriod chargePeriod = new MonthlyPeriod(request.Month, request.Year);
 
             // Actualizar entidad de dominio

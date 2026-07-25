@@ -31,17 +31,11 @@ namespace Infrastructure.Data
         /// <summary>
         /// Método para asegurar que la base de datos está creada
         /// </summary>
-        public void EnsureDatabaseCreated()
-        {
-            this.Database.EnsureCreated();
-        }
+        public void EnsureDatabaseCreated() => Database.EnsureCreated();
 
         /// <summary>
         /// Método para aplicar migraciones pendientes
         /// </summary>
-        public void MigrateDatabase()
-        {
-            this.Database.Migrate();
-        }
+        public void MigrateDatabase() => Database.Migrate();
     }
 }

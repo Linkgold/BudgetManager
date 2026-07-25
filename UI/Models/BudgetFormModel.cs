@@ -1,4 +1,6 @@
-﻿namespace UI.Models
+﻿using Contracts.Enums;
+
+namespace UI.Models
 {
     public class BudgetFormModel
     {

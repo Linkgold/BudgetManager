@@ -2,6 +2,7 @@
 using Shared.DTOs.Response;
 using System.Net;
 using Tests.API.Fixtures;
+using Tests.Helpers;
 
 namespace Tests.API.Controllers
 {
@@ -17,53 +18,13 @@ namespace Tests.API.Controllers
             _client = fixture.Client;
         }
 
-        // ==================== HELPERS ====================
-
-        private async Task<int> CreateCategoryAsync(string name)
-        {
-            CreateCategoryRequestDTO request = new CreateCategoryRequestDTO
-            {
-                Name = name,
-                Description = "Test Category"
-            };
-            
-            StringContent content = _fixture.SerializeRequest(request);
-
-            HttpResponseMessage response = await _client.PostAsync("/api/category", content);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            CategoryResponseDTO? category = _fixture.DeserializeResponse<CategoryResponseDTO>(responseContent);
-
-            return category?.Id ?? -1;
-        }
-
-        private async Task<int> CreateFixedExpenseAsync(int categoryId, string name, decimal amount, int year, int month)
-        {
-            CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO
-            {
-                CategoryId = categoryId,
-                Name = name,
-                Description = "Test Fixed Expense",
-                Amount = amount,
-                Year = year,
-                Month = month
-            };
-
-            StringContent content = _fixture.SerializeRequest(request);
-
-            HttpResponseMessage response = await _client.PostAsync("/api/fixedexpense", content);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            FixedExpenseResponseDTO? fixedExpense = _fixture.DeserializeResponse<FixedExpenseResponseDTO>(responseContent);
-
-            return fixedExpense?.Id ?? -1;
-        }
-
         // ==================== TEST: CREATE ====================
 
         [Fact]
         public async Task Create_WithValidData_ReturnsCreatedFixedExpense()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Suscripciones");
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripciones");
 
             CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO
             {
@@ -71,6 +32,7 @@ namespace Tests.API.Controllers
                 Name = "Netflix",
                 Description = "Suscripción mensual",
                 Amount = 15.99m,
+                Currency = "EUR",
                 Year = 2024,
                 Month = 1
             };
@@ -89,6 +51,7 @@ namespace Tests.API.Controllers
             Assert.NotNull(fixedExpense);
             Assert.Equal("Netflix", fixedExpense.Name);
             Assert.Equal(15.99m, fixedExpense.Amount);
+            Assert.Equal("EUR", fixedExpense.Currency);
             Assert.Equal(1, fixedExpense.Month);
             Assert.Equal(2024, fixedExpense.Year);
         }
@@ -121,8 +84,8 @@ namespace Tests.API.Controllers
         public async Task GetById_WithExistingId_ReturnsFixedExpense()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Suscripciones");
-            int fixedExpenseId = await CreateFixedExpenseAsync(categoryId, "Spotify", 9.99m, 2024, 1);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripciones");
+            int fixedExpenseId = await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Spotify", 9.99m, "EUR", 2024, 1);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/fixedexpense/{fixedExpenseId}");
@@ -172,9 +135,9 @@ namespace Tests.API.Controllers
         public async Task GetActiveForPeriod_ReturnsOkWithFixedExpenses()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Suscripciones");
-            await CreateFixedExpenseAsync(categoryId, "Netflix", 15.99m, 2024, 1);
-            await CreateFixedExpenseAsync(categoryId, "Spotify", 9.99m, 2024, 3);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripciones");
+            await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Netflix", 15.99m, "EUR", 2024, 1);
+            await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Spotify", 9.99m, "EUR", 2024, 3);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync("/api/fixedexpense/active/period?year=2024&month=2");
@@ -197,8 +160,8 @@ namespace Tests.API.Controllers
         public async Task Delete_WithExistingId_ReturnsNoContent()
         {
             // Arrange
-            int categoryId = await CreateCategoryAsync("Suscripciones");
-            int fixedExpenseId = await CreateFixedExpenseAsync(categoryId, "ToDelete", 10.00m, 2024, 1);
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripciones");
+            int fixedExpenseId = await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "ToDelete", 10.00m, "EUR", 2024, 1);
 
             // Act
             HttpResponseMessage response = await _client.DeleteAsync($"/api/fixedexpense/{fixedExpenseId}");

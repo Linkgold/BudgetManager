@@ -8,6 +8,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="API\IntegrationTests\**" />
+    <EmbeddedResource Remove="API\IntegrationTests\**" />
+    <None Remove="API\IntegrationTests\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Remove="Domain\CategoryNameTests.cs" />
     <Compile Remove="Domain\CategoryTests.cs" />
   </ItemGroup>

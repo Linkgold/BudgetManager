@@ -18,7 +18,6 @@ namespace Infrastructure.Data.Configurations
                 .ValueGeneratedOnAdd();
 
             // ==================== CONFIGURACIÓN DE ENTITYINFO ====================
-
             builder.OwnsOne
             (
                 transaction => transaction.Info, info =>
@@ -36,11 +35,13 @@ namespace Infrastructure.Data.Configurations
             );
 
             // ==================== CONFIGURACIÓN DE MONEY ====================
-
             builder.OwnsOne
             (
                 transaction => transaction.Amount, amount =>
                 {
+                    // ✅ Forzar el uso de campos (para que EF Core use el constructor privado)
+                    amount.UsePropertyAccessMode(PropertyAccessMode.Field);
+
                     amount.Property(m => m.Value)
                         .HasColumnName("Amount")
                         .IsRequired()
@@ -55,7 +56,6 @@ namespace Infrastructure.Data.Configurations
             );
 
             // ==================== CONFIGURACIÓN DE DAILYPERIOD ====================
-
             builder.OwnsOne
             (
                 transaction => transaction.Date, date =>
@@ -82,11 +82,6 @@ namespace Infrastructure.Data.Configurations
             );
 
             // ==================== PROPIEDADES SIMPLES ====================
-
-            builder.Property(transaction => transaction.Type)
-                .HasColumnName("Type")
-                .IsRequired();
-
             builder.Property(transaction => transaction.CreatedAt)
                 .HasColumnName("CreatedAt")
                 .IsRequired()
@@ -97,19 +92,19 @@ namespace Infrastructure.Data.Configurations
                 .IsRequired(false);
 
             // ==================== RELACIONES ====================
-
             builder.HasOne(transaction => transaction.Category)
                 .WithMany()
                 .HasForeignKey(transaction => transaction.CategoryId)
                 .OnDelete(DeleteBehavior.Restrict); // No permitir eliminar una categoría con transacciones
 
-            // ==================== ÍNDICES ====================
+            builder.HasOne(transaction => transaction.User)
+                .WithMany(user => user.Transactions)
+                .HasForeignKey(transaction => transaction.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
 
+            // ==================== ÍNDICES ====================
             builder.HasIndex(transaction => transaction.CategoryId)
                 .HasDatabaseName("IX_Transactions_CategoryId");
-
-            builder.HasIndex(transaction => new { transaction.CategoryId, transaction.Type })
-                .HasDatabaseName("IX_Transactions_CategoryId_Type");
         }
     }
 }
