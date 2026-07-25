@@ -1,4 +1,5 @@
 ﻿@page "/categories"
+@using Contracts.Enums
 @attribute [Authorize]
 @inherits BasePage
 
@@ -16,8 +17,20 @@
         <!-- 🔹 Filtros y búsqueda -->
         <div class="card filter-card mb-3">
             <div class="card-body d-flex flex-wrap align-items-center gap-2">
-                <div class="flex-grow-1" style="min-width: 200px;">
-                    <input type="text" class="form-control form-control-sm" placeholder="🔍 Buscar categoría..." @bind="searchTerm" @bind:event="oninput" />
+                <div style="flex: 1; min-width: 200px; position: relative;">
+                    <input type="text" class="form-control form-control-sm search-input-with-clear" placeholder="🔍 Buscar categoría..." @bind="searchTerm" @bind:event="oninput" />
+                    @if (!string.IsNullOrEmpty(searchTerm))
+                    {
+                        <span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
+                    }
+                </div>
+                <div style="min-width: 130px; flex-shrink: 0;">
+                    <select class="form-control form-control-sm" @bind="selectedNatureFilter">
+                        <option value="">Todas</option>
+                        <option value="@CategoryNatureEnum.Expense">💳 Gasto</option>
+                        <option value="@CategoryNatureEnum.Income">💰 Ingreso</option>
+                        <option value="@CategoryNatureEnum.Mixed">🔄 Mixto</option>
+                    </select>
                 </div>
             </div>
         </div>
@@ -29,13 +42,37 @@
                OnClose="@CloseModal"
                SaveButtonText="@GetSaveButtonText()"
                SaveButtonClass="@GetSaveButtonClass()">
-            <div class="form-group">
-                <label class="form-label">Nombre</label>
-                <input type="text" class="form-control" @bind="categoryForm.Name" disabled="@isDeleteMode" placeholder="Ej. Alimentación" />
+
+            <div class="row">
+                <!-- Columna izquierda: Nombre -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Nombre</label>
+                        <input type="text" class="form-control" @bind="categoryForm.Name" disabled="@isDeleteMode" placeholder="Ej. Alimentación" />
+                    </div>
+                </div>
+
+                <!-- Columna derecha: Naturaleza -->
+                <div class="col-md-6">
+                    <div class="form-group">
+                        <label class="form-label">Naturaleza</label>
+                        <select class="form-control" @bind="categoryForm.Nature" disabled="@isDeleteMode">
+                            <option value="@CategoryNatureEnum.Expense">💳 Gasto</option>
+                            <option value="@CategoryNatureEnum.Income">💰 Ingreso</option>
+                            <option value="@CategoryNatureEnum.Mixed">🔄 Mixto</option>
+                        </select>
+                    </div>
+                </div>
             </div>
-            <div class="form-group mt-2">
-                <label class="form-label">Descripción</label>
-                <input type="text" class="form-control" @bind="categoryForm.Description" disabled="@isDeleteMode" placeholder="Ej. Gastos de comida" />
+
+            <!-- Fila completa: Descripción -->
+            <div class="row mt-2">
+                <div class="col-12">
+                    <div class="form-group">
+                        <label class="form-label">Descripción</label>
+                        <input type="text" class="form-control" @bind="categoryForm.Description" disabled="@isDeleteMode" placeholder="Ej. Gastos de comida" />
+                    </div>
+                </div>
             </div>
         </Modal>
     
@@ -48,6 +85,7 @@
                             <tr>
                                 <th class="text-start">Nombre</th>
                                 <th class="text-start">Descripción</th>
+                                <th class="text-center">Naturaleza</th>
                                 <th class="text-end" style="width: 120px;">Acciones</th>
                             </tr>
                         </thead>
@@ -59,6 +97,11 @@
                                     <tr>
                                         <td class="text-start">@category.Name</td>
                                         <td class="text-start">@category.Description</td>
+                                        <td class="text-center">
+                                            <span class="badge @GetNatureBadgeClass(category.Nature)">
+                                                @GetNatureDisplayName(category.Nature)
+                                            </span>
+                                        </td>
                                         <td class="text-end">
                                             <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(category)">
                                                 ✏️

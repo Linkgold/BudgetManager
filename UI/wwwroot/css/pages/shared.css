@@ -3,6 +3,16 @@
     font-weight: 600;
 }
 
+/* 🔥 Tabla de categorías - cursor estándar en las filas */
+.data-table tbody tr:hover {
+    cursor: default !important; /* ✅ Estándar */
+}
+
+    /* 🔥 Solo los botones de acción tienen cursor pointer */
+.data-table tbody tr:hover .btn {
+    cursor: pointer !important;
+}
+
 /* 🔥 Tarjeta de filtros */
 .filter-card {
     background-color: var(--color-card) !important;
@@ -96,4 +106,72 @@
     .table-card-wrapper.modal-open .modal-overlay {
         filter: none !important;
         pointer-events: auto !important;
-    }  
+    }
+
+/* ==================== BADGES (NATURE) ==================== */
+.badge-nature {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 50px;
+    text-align: center;
+    white-space: nowrap;
+    background-color: var(--color-surface-light);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+    .badge-nature.income {
+        background-color: var(--color-success);
+        color: var(--color-text-inverse);
+    }
+
+    .badge-nature.expense {
+        background-color: var(--color-error);
+        color: var(--color-text-inverse);
+    }
+
+    .badge-nature.mixed {
+        background-color: var(--color-warning);
+        color: var(--color-text);
+    }
+
+/* ==================== BOTÓN LIMPIAR BÚSQUEDA ==================== */
+.search-input-with-clear {
+    padding-right: 30px !important;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    line-height: 1.4;
+    user-select: none;
+    background-color: transparent;
+    z-index: 5;
+}
+
+    .search-clear-btn:hover {
+        color: var(--color-text);
+        background-color: var(--color-surface-light);
+    }
+
+.search-input-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+/* 🔥 Ajustar padding del input para que el texto no se solape con el aspa */
+.form-control-sm {
+    padding-right: 30px !important;
+}

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Contracts.Enums;
 using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using System.Net.Http.Json;
@@ -16,6 +17,7 @@ namespace UI.Pages
         private List<CategoryResponseDTO> filteredCategories = [];
 
         private string _searchTerm = string.Empty;
+        private CategoryNatureEnum? _selectedNatureFilter = null;
         private bool isModalOpen = false;
         private bool isEditing = false;
         private bool isDeleteMode = false;
@@ -29,7 +31,19 @@ namespace UI.Pages
                 if (_searchTerm != value)
                 {
                     _searchTerm = value;
+                    ApplyFilters();
+                }
+            }
+        }
 
+        private CategoryNatureEnum? selectedNatureFilter
+        {
+            get => _selectedNatureFilter;
+            set
+            {
+                if (_selectedNatureFilter != value)
+                {
+                    _selectedNatureFilter = value;
                     ApplyFilters();
                 }
             }
@@ -92,7 +106,8 @@ namespace UI.Pages
                     UpdateCategoryRequestDTO request = new()
                     {
                         Name = categoryForm.Name,
-                        Description = categoryForm.Description
+                        Description = categoryForm.Description,
+                        Nature = categoryForm.Nature
                     };
 
                     HttpResponseMessage updateResponse = await Http.PutAsJsonAsync($"/api/category/{categoryForm.Id}", request);
@@ -111,7 +126,8 @@ namespace UI.Pages
                     CreateCategoryRequestDTO request = new()
                     {
                         Name = categoryForm.Name,
-                        Description = categoryForm.Description
+                        Description = categoryForm.Description,
+                        Nature = categoryForm.Nature
                     };
 
                     HttpResponseMessage createResponse = await Http.PostAsJsonAsync("/api/category", request);
@@ -144,20 +160,14 @@ namespace UI.Pages
             return isEditing ? "✏️ Editar Categoría" : "➕ Nueva Categoría";
         }
 
-        private string GetSaveButtonClass()
-        {
-            return isDeleteMode ? "btn-danger" : "btn-primary";
-        }
+        private string GetSaveButtonClass() => isDeleteMode ? "btn-danger" : "btn-primary";
 
-        private string GetSaveButtonText()
-        {
-            return isDeleteMode ? "Eliminar" : "Guardar";
-        }
+        private string GetSaveButtonText() => isDeleteMode ? "Eliminar" : "Guardar";
 
         private void OpenCreateModal()
         {
             isEditing = false;
-            categoryForm = new CategoryResponseDTO { };
+            categoryForm = new CategoryResponseDTO { Nature = CategoryNatureEnum.Expense }; // ✅ Valor por defecto (Gasto)
             isModalOpen = true;
             InvokeAsync(StateHasChanged);
         }
@@ -171,6 +181,7 @@ namespace UI.Pages
                 Id = category.Id,
                 Name = category.Name,
                 Description = category.Description,
+                Nature = category.Nature
             };
             isModalOpen = true;
             InvokeAsync(StateHasChanged);
@@ -188,6 +199,7 @@ namespace UI.Pages
                     Id = categoryToDelete.Id,
                     Name = categoryToDelete.Name,
                     Description = categoryToDelete.Description,
+                    Nature = categoryToDelete.Nature
                 };
                 isModalOpen = true;
                 StateHasChanged();
@@ -207,8 +219,37 @@ namespace UI.Pages
                 .Where(c => string.IsNullOrEmpty(searchTerm) ||
                              c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                              (c.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
+                .Where(c => !selectedNatureFilter.HasValue || c.Nature == selectedNatureFilter.Value)
                 .OrderBy(c => c.Id)
                 .ToList();
+        }
+
+        private void ClearSearch()
+        {
+            searchTerm = string.Empty;
+            ApplyFilters();
+        }
+
+        private string GetNatureBadgeClass(CategoryNatureEnum nature)
+        {
+            return nature switch
+            {
+                CategoryNatureEnum.Income => "bg-success",
+                CategoryNatureEnum.Expense => "bg-danger",
+                CategoryNatureEnum.Mixed => "bg-warning text-dark",
+                _ => "bg-secondary"
+            };
+        }
+
+        private string GetNatureDisplayName(CategoryNatureEnum nature)
+        {
+            return nature switch
+            {
+                CategoryNatureEnum.Income => "Ingreso",
+                CategoryNatureEnum.Expense => "Gasto",
+                CategoryNatureEnum.Mixed => "Mixto",
+                _ => "Desconocido"
+            };
         }
     }
 }
