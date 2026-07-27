@@ -1,4 +1,10 @@
-﻿<CascadingAuthenticationState>
+﻿@inject IThemeService ThemeService
+
+<CascadingAuthenticationState>
+    <MudThemeProvider @ref="_mudThemeProvider" IsDarkMode="@ThemeService.IsDark" />
+    <MudPopoverProvider />
+    <MudDialogProvider />
+    <MudSnackbarProvider />
     <Router AppAssembly="@typeof(App).Assembly">
         <Found Context="routeData">
             <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
@@ -15,3 +21,24 @@
         </NotFound>
     </Router>
 </CascadingAuthenticationState>
+
+@code {
+    private MudThemeProvider? _mudThemeProvider;
+    private bool _isDark = true;
+
+    protected override void OnInitialized()
+    {
+        // ✅ Obtener el estado inicial
+        _isDark = ThemeService.IsDark;
+
+        // ✅ Suscribirse al cambio de tema
+        ThemeService.ThemeChanged += OnThemeChanged;
+    }
+
+    private void OnThemeChanged()
+    {
+        _isDark = ThemeService.IsDark;
+
+        StateHasChanged();
+    }
+}

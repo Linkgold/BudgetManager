@@ -24,11 +24,12 @@
 
     .filter-card .card-body {
         background-color: var(--color-card) !important;
+        padding: 0.75rem 1rem !important;
+        border-radius: 8px !important;
     }
 
     .filter-card .form-control {
         background-color: var(--color-surface) !important;
-        color: var(--color-text) !important;
         border: 1px solid var(--color-border) !important;
     }
 
@@ -68,7 +69,7 @@
 .table-card-wrapper-budget {
     position: relative;
     min-height: 850px; /* ← Altura mínima para que el modal no se corte */
-    border-radius: 13px !important;
+    border-radius: 8px !important;
     overflow: hidden !important;
     transition: filter 0.3s ease;
     /* Ajusta el valor según el tamaño de tu modal */
@@ -86,8 +87,6 @@
 .table-card-wrapper {
     position: relative;
     min-height: 288px; /* ← Altura mínima para que el modal no se corte */
-    border-radius: 13px !important;
-    overflow: hidden !important;
     transition: filter 0.3s ease;
     /* Ajusta el valor según el tamaño de tu modal */
 }
@@ -201,3 +200,81 @@
         cursor: not-allowed;
         pointer-events: none;
     }
+
+/* ==================== CAMPO DESHABILITADO CON MISMO FONDO ==================== */
+/* 🔥 Para campos que están deshabilitados pero queremos que mantengan el mismo estilo visual */
+.input-disabled {
+    background-color: var(--color-card) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+    cursor: default;
+    opacity: 1 !important;
+    font-weight: 500;
+}
+
+    .input-disabled:focus {
+        box-shadow: none !important;
+        border-color: var(--color-border) !important;
+    }
+
+/* 🔥 Variante para selects deshabilitados */
+select.input-disabled {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: none !important;
+}
+
+/* ==================== MUDBLAZOR DATEPICKER ==================== */
+/* 🔥 Eliminar borde blanco y alinear con el tema */
+
+.mud-date-picker-custom {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+    .mud-date-picker-custom .mud-input-control {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .mud-date-picker-custom .mud-input {
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
+        border: 1px solid var(--color-border) !important;
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+        font-size: 15px !important;
+        height: 44px !important; /* ✅ Altura fija para alinear */
+        line-height: 1.5 !important;
+    }
+
+    .mud-date-picker-custom .mud-input:focus {
+        border-color: var(--color-accent) !important;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15) !important;
+    }
+
+    /* 🔥 Eliminar el borde blanco que aparece en el foco */
+    .mud-date-picker-custom .mud-input:focus-visible {
+        outline: none !important;
+    }
+
+/* 🔥 Eliminar el borde del campo de texto */
+.mud-date-picker-custom .mud-input-outlined {
+    border-color: var(--color-border) !important;
+}
+
+    .mud-date-picker-custom .mud-input-outlined:focus {
+        border-color: var(--color-accent) !important;
+    }
+
+/* 🔥 Para el popup del calendario en modo oscuro */
+.mud-picker-container .mud-picker {
+    background-color: var(--color-card) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+/* 🔥 Forzar eliminación de la línea inferior */
+.mud-date-picker-custom .mud-input-underline:before {
+    content: none !important;
+}

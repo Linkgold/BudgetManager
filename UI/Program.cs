@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+using MudBlazor.Services;
 using UI.Services;
 using UI.Services.Interfaces;
 
@@ -39,6 +40,10 @@ namespace UI
 
             builder.Services.AddScoped<IToastService, ToastService>();
             builder.Services.AddScoped<IThemeService, ThemeService>();
+
+            builder.Services.AddScoped<APIService>();
+
+            builder.Services.AddMudServices();
 
             await builder.Build().RunAsync();
         }

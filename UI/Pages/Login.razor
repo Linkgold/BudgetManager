@@ -14,13 +14,13 @@
                 }
 
                 <div class="form-group">
-                    <label class="form-label">Email</label>
-                    <input @bind="_email" type="email" class="form-control" placeholder="usuario@email.com" />
+                    <label class="form-label" for="loginEmail">Email</label>
+                    <input id="loginEmail" @bind="_email" type="email" class="form-control" placeholder="usuario@email.com" />
                 </div>
 
                 <div class="form-group">
-                    <label class="form-label">Contraseña</label>
-                    <input @bind="_password" type="password" class="form-control" placeholder="********" />
+                    <label class="form-label" for="loginPassword">Contraseña</label>
+                    <input id="loginPassword" @bind="_password" type="password" class="form-control" placeholder="********" />
                 </div>
 
                 <div class="form-group" style="margin-top: 24px;">
@@ -43,7 +43,3 @@
         </div>
     </div>
 </div>
-
-@code {
-    
-}

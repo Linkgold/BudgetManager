@@ -18,7 +18,7 @@
         <div class="card filter-card mb-3">
             <div class="card-body d-flex flex-wrap align-items-center gap-2">
                 <div style="flex: 1; min-width: 200px; position: relative;">
-                    <input type="text" class="form-control form-control-sm search-input-with-clear" placeholder="🔍 Buscar categoría..." @bind="searchTerm" @bind:event="oninput" />
+                    <input type="text" class="form-control form-control-sm search-input-with-clear" placeholder="🔍 Buscar categoría/descripción..." @bind="searchTerm" @bind:event="oninput" />
                     @if (!string.IsNullOrEmpty(searchTerm))
                     {
                         <span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
@@ -35,28 +35,28 @@
             </div>
         </div>
         <!-- Modal para crear/editar/eliminar categoría -->
-        <Modal Title="@GetModalTitle()"
-               IsVisible="@isModalOpen"
-               IsDeleteMode="@isDeleteMode"
+        <Modal Title="@categoryForm.CurrentMode.GetModalTitle("Categoría")"
+               IsVisible="@categoryForm.IsModalOpen"
+               IsDeleteMode="@categoryForm.IsDeleting"
                OnSave="@SaveCategory"
                OnClose="@CloseModal"
-               SaveButtonText="@GetSaveButtonText()"
-               SaveButtonClass="@GetSaveButtonClass()">
+               SaveButtonText="@categoryForm.SaveButtonText"
+               SaveButtonClass="@categoryForm.SaveButtonClass">
 
             <div class="row">
                 <!-- Columna izquierda: Nombre -->
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="form-label">Nombre</label>
-                        <input type="text" class="form-control" @bind="categoryForm.Name" disabled="@isDeleteMode" placeholder="Ej. Alimentación" />
+                        <label class="form-label" for="categoryName">Nombre</label>
+                        <input type="text" id="categoryName" class="form-control" @bind="categoryForm.Name" disabled="@categoryForm.IsDeleting" placeholder="Ej. Alimentación" />
                     </div>
                 </div>
 
                 <!-- Columna derecha: Naturaleza -->
                 <div class="col-md-6">
                     <div class="form-group">
-                        <label class="form-label">Naturaleza</label>
-                        <select class="form-control" @bind="categoryForm.Nature" disabled="@isDeleteMode">
+                        <label class="form-label" for="categoryNature">Naturaleza</label>
+                        <select id="categoryNature" class="form-control" @bind="categoryForm.Nature" disabled="@categoryForm.IsDeleting">
                             <option value="@CategoryNatureEnum.Expense">💳 Gasto</option>
                             <option value="@CategoryNatureEnum.Income">💰 Ingreso</option>
                             <option value="@CategoryNatureEnum.Mixed">🔄 Mixto</option>
@@ -69,13 +69,13 @@
             <div class="row mt-2">
                 <div class="col-12">
                     <div class="form-group">
-                        <label class="form-label">Descripción</label>
-                        <input type="text" class="form-control" @bind="categoryForm.Description" disabled="@isDeleteMode" placeholder="Ej. Gastos de comida" />
+                        <label class="form-label" for="categoryDescription">Descripción</label>
+                        <input type="text" id="categoryDescription" class="form-control" @bind="categoryForm.Description" disabled="@categoryForm.IsDeleting" placeholder="Ej. Gastos de comida" />
                     </div>
                 </div>
             </div>
         </Modal>
-    
+
         <!-- 🔹 Tabla de categorías -->
         <div class="card table-card">
             <div class="card-body p-0">
@@ -98,15 +98,16 @@
                                         <td class="text-start">@category.Name</td>
                                         <td class="text-start">@category.Description</td>
                                         <td class="text-center">
-                                            <span class="badge @GetNatureBadgeClass(category.Nature)">
-                                                @GetNatureDisplayName(category.Nature)
+                                            <span class="badge @category.Nature.GetBadgeClass()">
+                                                <span class="nature-icon">@category.Nature.GetIcon()</span>
+                                                @category.Nature.GetDisplayName()
                                             </span>
                                         </td>
                                         <td class="text-end">
                                             <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(category)">
                                                 ✏️
                                             </button>
-                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => DeleteCategory(category.Id)">
+                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteModal(category)">
                                                 🗑️
                                             </button>
                                         </td>

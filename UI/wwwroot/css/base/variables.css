@@ -35,6 +35,7 @@
     --color-scrollbar-track: #2D2D3F;
     --color-scrollbar-thumb: #4A4A5A;
     --color-scrollbar-thumb-hover: #5A5A6A;
+    --color-datepicker: invert(0.8);
 }
 
 /* Tema claro */
@@ -73,4 +74,5 @@
     --color-scrollbar-track: #FFFFFF;
     --color-scrollbar-thumb: #C0C0C0;
     --color-scrollbar-thumb-hover: #A0A0A0;
+    --color-datepicker: invert(0.0);
 }

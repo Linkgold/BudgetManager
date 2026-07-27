@@ -1,96 +1,49 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Request;
 using Shared.DTOs.Response;
-using System.Net.Http.Json;
-using System.Text;
-using System.Text.Json;
+using UI.Extensions;
+using UI.Helpers;
 using UI.Models;
+using UI.Services;
 using UI.Services.Interfaces;
 using UI.Shared;
 
 namespace UI.Pages
 {
-    public partial class Budgets: BasePage
+    public partial class Budgets : BasePage
     {
-        private int _budgetYear;
-        private int BudgetYear
-        {
-            get => _budgetYear;
-            set
-            {
-                if (_budgetYear != value)
-                {
-                    _budgetYear = value;
-                    budgetForm.Year = value; // Sincronizar con el modelo
-
-                    // 🔥 EJECUTAR LÓGICA DE NEGOCIO sólo en el caso de creación (aquí tienes acceso a _allBudgets, _allCategories)
-                    if (!budgetForm.IsEditing && !budgetForm.IsDeleting)
-                    {
-                        UpdateAvailableCategoriesForCreate();
-                        budgetForm.MonthlyAmounts = _months.ToDictionary(month => month.Value, month => 0m);
-
-                        if (_availableCategoriesForCreate.Any())
-                        {
-                            budgetForm.CategoryId = _availableCategoriesForCreate.First().Id;
-                        }
-                        else
-                        {
-                            budgetForm.CategoryId = 0;
-                        }
-
-                        StateHasChanged();
-                    }
-                }
-            }
-        }
-
-        private int _selectedCategoryId;
-        private int SelectedCategoryId
-        {
-            get => _selectedCategoryId;
-            set
-            {
-                if (_selectedCategoryId != value)
-                {
-                    _selectedCategoryId = value;
-                    budgetForm.CategoryId = value;
-
-                    // 🔥 Solo ejecutar lógica en modo creación
-                    if (!budgetForm.IsEditing && !budgetForm.IsDeleting)
-                    {
-                        // Reiniciar meses al cambiar de categoría
-                        budgetForm.MonthlyAmounts = _months.ToDictionary(month => month.Value, month => 0m);
-                        StateHasChanged();
-                    }
-                }
-            }
-        }
-
-        // ==================== DATOS ====================
-        private List<CategoryResponseDTO> _allCategories = new();
-        private List<CategoryResponseDTO> filteredCategories = new();
-        private List<BudgetResponseDTO> _allBudgets = new();
-        private List<CategoryResponseDTO> _availableCategoriesForCreate = new();
-
-        private List<MonthModel> _months = new();
-        private List<int> _years = new();
-
-        private string _searchTerm = string.Empty;
-        private int selectedYear = DateTime.Now.Year;
-
-        private bool isModalOpen = false;
-        private bool isEditing = false;
-        private bool isDeleteMode = false;
-        private BudgetFormModel budgetForm = new();
-
-        private bool isConfirmModalOpenDeleteAll = false;
-        private bool isConfirmModalOpenDeleteOne = false;
-        private int _monthToDelete;
+        // ================================================================
+        // 1. INYECCIONES DE DEPENDENCIAS
+        // ================================================================
 
         [Inject]
         private IToastService ToastService { get; set; } = default!;
 
-        private bool IsCurrentYearSelected => selectedYear == DateTime.Now.Year;
+        [Inject]
+        private APIService APIService { get; set; } = default!;
+
+        // ================================================================
+        // 2. MODELOS Y ESTADO
+        // ================================================================
+
+        private List<BudgetModel> _allBudgets = new();
+        private List<CategoryModel> _allCategories = new();
+        private List<CategoryModel> _filteredCategories = new();
+        private List<CategoryModel> _availableCategoriesForCreate = new();
+        private List<int> _years = new();
+        private BudgetFormModel _budgetForm = new() { MonthlyAmounts = MonthHelper.Months.ToDictionary(m => m.Value, m => 0m) };
+
+        // ================================================================
+        // 3. FILTROS Y PROPIEDADES CON SETTER
+        // ================================================================
+
+        private string _searchTerm = string.Empty;
+        private int _selectedYear = DateTime.Now.Year;
+        private int _budgetYear;
+        private int _selectedCategoryId = 0;
+        private int _monthToDelete = 0;
+        private bool _isConfirmModalOpenDeleteAll = false;
+        private bool _isConfirmModalOpenDeleteOne = false;
 
         private string searchTerm
         {
@@ -105,72 +58,125 @@ namespace UI.Pages
             }
         }
 
+        private int selectedYear
+        {
+            get => _selectedYear;
+            set
+            {
+                if (_selectedYear != value)
+                {
+                    _selectedYear = value;
+                    ApplyFilters();
+                }
+            }
+        }
+
+        private int budgetYear
+        {
+            get => _budgetYear;
+            set
+            {
+                if (_budgetYear != value)
+                {
+                    _budgetYear = value;
+                    _budgetForm.Year = value; // Sincronizar con el modelo
+
+                    // 🔥 EJECUTAR LÓGICA DE NEGOCIO sólo en el caso de creación (aquí tienes acceso a _allBudgets, _allCategories)
+                    if (!_budgetForm.IsEditing && !_budgetForm.IsDeleting)
+                    {
+                        UpdateAvailableCategoriesForCreate();
+
+                        if (_availableCategoriesForCreate.Any())
+                        {
+                            _budgetForm.CategoryId = _availableCategoriesForCreate.First().Id;
+                        }
+                        else
+                        {
+                            _budgetForm.CategoryId = 0;
+                        }
+
+                        StateHasChanged();
+                    }
+                }
+            }
+        }
+
+        private int selectedCategoryId
+        {
+            get => _selectedCategoryId;
+            set
+            {
+                if (_selectedCategoryId != value)
+                {
+                    _selectedCategoryId = value;
+                    _budgetForm.CategoryId = value;
+
+                    // 🔥 Solo ejecutar lógica en modo creación
+                    if (!_budgetForm.IsEditing && !_budgetForm.IsDeleting)
+                    {
+                        StateHasChanged();
+                    }
+                }
+            }
+        }
+
+        private bool IsCurrentYearSelected => _selectedYear == DateTime.Now.Year;
+
+        // ================================================================
+        // 4. CICLO DE VIDA
+        // ================================================================
+
         protected override async Task OnInitializedAsync()
         {
-            // 🔥 Datos de meses
-            _months = new List<MonthModel>
-            {
-                new() { Value = 1, Name = "Enero", ShortName = "Ene" },
-                new() { Value = 2, Name = "Febrero", ShortName = "Feb" },
-                new() { Value = 3, Name = "Marzo", ShortName = "Mar" },
-                new() { Value = 4, Name = "Abril", ShortName = "Abr" },
-                new() { Value = 5, Name = "Mayo", ShortName = "May" },
-                new() { Value = 6, Name = "Junio", ShortName = "Jun" },
-                new() { Value = 7, Name = "Julio", ShortName = "Jul" },
-                new() { Value = 8, Name = "Agosto", ShortName = "Ago" },
-                new() { Value = 9, Name = "Septiembre", ShortName = "Sep" },
-                new() { Value = 10, Name = "Octubre", ShortName = "Oct" },
-                new() { Value = 11, Name = "Noviembre", ShortName = "Nov" },
-                new() { Value = 12, Name = "Diciembre", ShortName = "Dic" }
-            };
-
-            // 🔥 Inicializar el diccionario del formulario con todos los meses
-            budgetForm = new BudgetFormModel { MonthlyAmounts = _months.ToDictionary(m => m.Value, m => 0m) };
+            /*// 🔥 Inicializar el diccionario del formulario con todos los meses
+            budgetForm = new BudgetFormModel { MonthlyAmounts = MonthHelper.Months.ToDictionary(m => m.Value, m => 0m) };
 
             // 🔥 Años (desde 2020 hasta 2030)
             _years = new List<int>();
             for (int year = 2020; year <= 2050; year++)
             {
                 _years.Add(year);
-            }
+            }*/
 
             await LoadData();
         }
+
+        // ================================================================
+        // 5. CARGA DE DATOS
+        // ================================================================
 
         private async Task LoadData()
         {
             try
             {
-                // 🔥 Cargar categorías reales
-                HttpResponseMessage categoriesResponse = await SendAuthenticatedRequestAsync(() => Http.GetAsync("/api/category"));
-                if (categoriesResponse.IsSuccessStatusCode)
+                // Cargar categorías
+                List<CategoryResponseDTO>? categoryDtos = await APIService.GetCategoriesAsync();
+                _allCategories = categoryDtos?.ToCategoryModelList() ?? new List<CategoryModel>();
+
+                // Cargar presupuestos
+                List<BudgetResponseDTO>? budgetDtos = await APIService.GetBudgetsAsync();
+                _allBudgets = budgetDtos?.ToBudgetModelList() ?? new List<BudgetModel>();
+
+                // Inicializar años (2020-2050)
+                _years = new List<int>();
+                for (int year = 2020; year <= 2050; year++)
                 {
-                    List<CategoryResponseDTO>? categories = await categoriesResponse.Content.ReadFromJsonAsync<List<CategoryResponseDTO>>();
-                    _allCategories = categories ?? new List<CategoryResponseDTO>();
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Error al cargar categorías: {categoriesResponse.StatusCode}");
+                    _years.Add(year);
                 }
 
-                // 🔥 Cargar presupuestos reales para el año seleccionado
-                HttpResponseMessage budgetsResponse = await SendAuthenticatedRequestAsync(() => Http.GetAsync("/api/budget"));
-                if (budgetsResponse.IsSuccessStatusCode)
-                {
-                    List<BudgetResponseDTO>? budgets = await budgetsResponse.Content.ReadFromJsonAsync<List<BudgetResponseDTO>>();
-                    _allBudgets = budgets ?? new List<BudgetResponseDTO>();
-                }
-                else
-                {
-                    throw new InvalidOperationException($"Error al cargar presupuestos: {budgetsResponse.StatusCode}");
-                }
+                // Inicializar formulario con los meses.
+                _budgetForm.MonthlyAmounts = MonthHelper.GetMonthsWithShortName().ToDictionary(m => m.Value, m => 0m);
+
+                UpdateAvailableCategoriesForCreate();
             }
             catch (Exception ex)
             {
                 await LogService.LogErrorAsync($"Error al cargar datos de presupuestos", ex);
+
                 ToastService.ShowError("Error al cargar los datos de presupuestos.");
-                _allCategories = new List<CategoryResponseDTO>();
-                _allBudgets = new List<BudgetResponseDTO>();
+
+                _allCategories = new List<CategoryModel>();
+                _allBudgets = new List<BudgetModel>();
             }
             finally
             {
@@ -178,18 +184,20 @@ namespace UI.Pages
             }
         }
 
+        // ================================================================
+        // 6. FILTRADO
+        // ================================================================
+
         private void ApplyFilters()
         {
             // Filtrar presupuestos por año
-            List<BudgetResponseDTO> budgetsForYear = _allBudgets
-                .Where(b => b.Year == selectedYear)
-                .ToList();
+            List<BudgetModel> budgetsForYear = _allBudgets.Where(b => b.Year == _selectedYear).ToList();
 
             // Obtener categorías con presupuestos para ese año
             List<int> categoryIds = budgetsForYear.Select(b => b.CategoryId).Distinct().ToList();
 
             // Obtener todas las categorías que tienen presupuestos en ese año
-            filteredCategories = _allCategories
+            _filteredCategories = _allCategories
                 .Where(c => categoryIds.Contains(c.Id))
                 .Where(c => string.IsNullOrEmpty(searchTerm) ||
                              c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
@@ -197,13 +205,479 @@ namespace UI.Pages
                 .ToList();
         }
 
-        // ==================== MÉTODOS DE CÁLCULO ====================
+        private void ClearSearch()
+        {
+            searchTerm = string.Empty;
 
+            ApplyFilters();
+        }
+
+        private void SetCurrentYear()
+        {
+            _selectedYear = DateTime.Now.Year;
+
+            ApplyFilters();
+        }
+
+        private void UpdateAvailableCategoriesForCreate()
+        {
+            int currentYear = _budgetForm.Year > 0 ? _budgetForm.Year : selectedYear;
+
+            // 🔥 Obtener IDs de categorías que YA TIENEN presupuesto para el año seleccionado en el formulario
+            List<int> categoriesWithBudget = _allBudgets
+                .Where(b => b.Year == _budgetForm.Year)
+                .Select(b => b.CategoryId)
+                .Distinct()
+                .ToList();
+
+            // 🔥 Filtrar categorías: solo las que NO tienen presupuesto para ese año
+            _availableCategoriesForCreate = _allCategories
+                .Where(c => !categoriesWithBudget.Contains(c.Id))
+                .OrderBy(c => c.Name)
+                .ToList();
+
+            // 🔥 Si la categoría seleccionada actualmente ya no está disponible, resetearla
+            if (!_availableCategoriesForCreate.Any(c => c.Id == _budgetForm.CategoryId))
+            {
+                _budgetForm.CategoryId = _availableCategoriesForCreate.Any() ? _availableCategoriesForCreate.First().Id : 0;
+            }
+        }
+
+        // ================================================================
+        // 7. OPERACIONES CRUD (SAVE)
+        // ================================================================
+
+        private async Task SaveBudget()
+        {
+            try
+            {
+                if (_budgetForm.IsDeleting)
+                {
+                    // 🔥 Abrir confirmación antes de eliminar
+                    OpenDeleteAllConfirmation();
+
+                    return; // Salir del método, la confirmación continuará
+                }
+                else if (_budgetForm.IsEditing)
+                {
+                    await UpdateBulkBudgetAsync();
+                }
+                else
+                {
+                    await CreateBulkBudgetAsync();
+                }
+
+                _budgetForm.IsModalOpen = false;
+                _budgetForm.IsEditing = false;
+                _budgetForm.IsDeleting = false;
+
+                await LoadData();
+
+                ApplyFilters();
+
+                await InvokeAsync(StateHasChanged);
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync($"Error en SaveBudget", ex);
+                ToastService.ShowError("Ocurrió un error inesperado.");
+            }
+        }
+
+        private async Task CreateBulkBudgetAsync()
+        {
+            List<KeyValuePair<int, decimal>> monthsToCreate = _budgetForm.MonthlyAmounts
+                .Where(kvp => kvp.Value > 0)
+                .ToList();
+
+            if (monthsToCreate.Count == 0)
+            {
+                ToastService.ShowError("Debes asignar al menos un importe para crear un presupuesto.");
+                return;
+            }
+
+            CreateBulkBudgetRequestDTO request = new()
+            {
+                CategoryId = _budgetForm.CategoryId,
+                Year = _budgetForm.Year,
+                MonthlyBudgets = monthsToCreate.Select
+                (
+                    kvp => new MonthlyBudgetDTO
+                    {
+                        Month = kvp.Key,
+                        Amount = kvp.Value
+                    }
+                ).ToList()
+            };
+
+            BulkBudgetResponseDTO? result = await APIService.CreateBulkBudgetAsync(request);
+
+            if (result == null)
+            {
+                ToastService.ShowError("Error al crear los presupuestos.");
+
+                return;
+            }
+
+            ToastService.ShowSuccess($"Presupuestos creados correctamente para {_budgetForm.Year}.");
+        }
+
+        private async Task UpdateBulkBudgetAsync()
+        {
+            List<KeyValuePair<int, decimal>> monthsToUpdate = _budgetForm.MonthlyAmounts.Where(kvp => kvp.Value > 0).ToList();
+
+            if (!monthsToUpdate.Any())
+            {
+                ToastService.ShowError("Debes asignar al menos un importe para actualizar un presupuesto.");
+
+                return;
+            }
+
+            UpdateBulkBudgetRequestDTO request = new()
+            {
+                CategoryId = _budgetForm.CategoryId,
+                Year = _budgetForm.Year,
+                MonthlyBudgets = monthsToUpdate.Select
+                (
+                    kvp => new MonthlyBudgetDTO
+                    {
+                        Month = kvp.Key,
+                        Amount = kvp.Value
+                    }
+                ).ToList()
+            };
+
+            BulkBudgetResponseDTO? result = await APIService.UpdateBulkBudgetAsync(request);
+
+            if (result == null)
+            {
+                ToastService.ShowError("Error al actualizar los presupuestos.");
+
+                return;
+            }
+
+            ToastService.ShowSuccess($"Presupuestos actualizados correctamente para {_budgetForm.Year}.");
+        }
+
+        private async Task UpdateSingleMonthAsync(int month)
+        {
+            try
+            {
+                bool success = await UpdateMonthAmountAsync(month, _budgetForm.MonthlyAmounts[month]);
+
+                if (success)
+                {
+                    ToastService.ShowSuccess($"Presupuesto de {month}/{_budgetForm.Year} actualizado correctamente.");
+                    
+                    // ✅ Actualizar el valor original para este mes
+                    _budgetForm.OriginalMonthlyAmounts[month] = _budgetForm.MonthlyAmounts[month];
+
+                    ApplyFilters();
+                    StateHasChanged();
+                }
+                else
+                {
+                    ToastService.ShowError($"Error al actualizar el mes {month}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync($"Error en UpdateSingleMonth", ex);
+
+                ToastService.ShowError("Ocurrió un error inesperado.");
+            }
+        }
+
+        private async Task DeleteBulkBudgetAsync()
+        {
+            List<int> monthsWithBudget = _allBudgets
+                .Where(b => b.CategoryId == _budgetForm.CategoryId && b.Year == _budgetForm.Year)
+                .Select(b => b.Month)
+                .Distinct()
+                .ToList();
+
+            if (monthsWithBudget.Count == 0)
+            {
+                ToastService.ShowError("No hay presupuestos para eliminar.");
+
+                return;
+            }
+
+            DeleteBulkBudgetRequestDTO deleteRequest = new()
+            {
+                CategoryId = _budgetForm.CategoryId,
+                Year = _budgetForm.Year,
+                MonthsToDelete = monthsWithBudget
+            };
+
+            BulkBudgetResponseDTO? result = await APIService.DeleteBulkBudgetAsync(deleteRequest);
+
+            if (result == null)
+            {
+                ToastService.ShowError("Error al eliminar los presupuestos.");
+
+                return;
+            }
+
+            ToastService.ShowSuccess($"Presupuestos de {_budgetForm.CategoryName} para {_budgetForm.Year} eliminados correctamente.");
+        }
+
+        private async Task DeleteSingleMonthAsync(int month)
+        {
+            try
+            {
+                bool success = await UpdateMonthAmountAsync(month, 0m);
+
+                if (success)
+                {
+                    ToastService.ShowSuccess($"Presupuesto de {month}/{_budgetForm.Year} eliminado correctamente.");
+
+                    ApplyFilters();
+                    StateHasChanged();
+                }
+                else
+                {
+                    ToastService.ShowError($"Error al eliminar el mes {month}.");
+                }
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync($"Error en DeleteSingleMonth", ex);
+
+                ToastService.ShowError("Ocurrió un error inesperado.");
+            }
+        }
+
+        private async Task<bool> UpdateMonthAmountAsync(int month, decimal newAmount)
+        {
+            BudgetModel? existingBudget = FindBudget(_budgetForm.CategoryId, month, _budgetForm.Year);
+
+            if (existingBudget == null)
+            {
+                return false;
+            }
+
+            UpdateBudgetRequestDTO request = new() { Amount = newAmount };
+
+            BudgetResponseDTO? result = await APIService.UpdateBudgetAsync(existingBudget.Id, request);
+            if (result == null)
+            {
+                return false;
+            }
+
+            _budgetForm.MonthlyAmounts[month] = newAmount;
+
+            return true;
+        }
+
+        private BudgetModel? FindBudget(int categoryId, int month, int year)
+        {
+            return _allBudgets.FirstOrDefault(b => b.CategoryId == categoryId && b.Month == month && b.Year == year);
+        }
+
+        // ================================================================
+        // 8. APERTURA DE MODALES
+        // ================================================================
+
+        private void OpenCreateModal()
+        {
+            FillFormFromModel
+            (
+                new BudgetModel
+                {
+                    Year = selectedYear,
+                    CategoryId = _availableCategoriesForCreate.FirstOrDefault()?.Id ?? 0
+                },
+                FormMode.Create
+            );
+
+            StateHasChanged();
+        }
+
+        private void OpenEditModal(int categoryId, int year)
+        {
+            BudgetModel? model = BuildBudgetModelFromExisting(categoryId, year);
+
+            if (model != null)
+            {
+                FillFormFromModel(model, FormMode.Edit);
+                InvokeAsync(StateHasChanged);
+            }
+
+            StateHasChanged();
+        }
+
+        private void OpenDeleteModal(int categoryId, int year)
+        {
+            BudgetModel? model = BuildBudgetModelFromExisting(categoryId, year);
+
+            if (model != null)
+            {
+                FillFormFromModel(model, FormMode.Delete);
+                StateHasChanged();
+            }
+        }
+
+        private BudgetModel? BuildBudgetModelFromExisting(int categoryId, int year)
+        {
+            List<BudgetModel> existingBudgets = _allBudgets.Where(b => b.CategoryId == categoryId && b.Year == year).ToList();
+
+            if (!existingBudgets.Any())
+            {
+                return null;
+            }
+
+            Dictionary<int, decimal> monthlyAmounts = MonthHelper.Months.ToDictionary
+            (
+                month => month.Value,
+                month => existingBudgets.FirstOrDefault(b => b.Month == month.Value)?.Amount ?? 0
+            );
+
+            return new BudgetModel
+            {
+                CategoryId = categoryId,
+                CategoryName = _allCategories.FirstOrDefault(c => c.Id == categoryId)?.Name ?? string.Empty,
+                Year = year,
+                Amount = monthlyAmounts.Values.FirstOrDefault(),
+                Month = 0
+            };
+        }
+
+        private void FillFormFromModel(BudgetModel model, FormMode mode)
+        {
+            Dictionary<int, decimal> monthlyAmounts;
+
+            // 🔥 Actualizar las categorías disponibles para el año seleccionado
+            UpdateAvailableCategoriesForCreate();
+
+            if (mode == FormMode.Create)
+            {
+                monthlyAmounts = MonthHelper.Months.ToDictionary(month => month.Value, month => 0m);
+            }
+            else
+            {
+                // Cargar los presupuestos existentes para esa categoría y año
+                List<BudgetModel> existingBudgets = _allBudgets.Where(b => b.CategoryId == model.CategoryId && b.Year == model.Year).ToList();
+
+                monthlyAmounts = MonthHelper.Months.ToDictionary
+                (
+                    month => month.Value,
+                    month => existingBudgets.FirstOrDefault(b => b.Month == month.Value)?.Amount ?? 0
+                );
+            }
+
+            _budgetForm = new BudgetFormModel
+            {
+                CategoryId = model.CategoryId,
+                CategoryName = _allCategories.FirstOrDefault(c => c.Id == model.CategoryId)?.Name ?? string.Empty,
+                Year = model.Year,
+                DefaultAmount = monthlyAmounts.Values.FirstOrDefault(),
+                MonthlyAmounts = monthlyAmounts,
+                OriginalMonthlyAmounts = new Dictionary<int, decimal>(monthlyAmounts),
+                IsModalOpen = true,
+                IsEditing = mode == FormMode.Edit,
+                IsDeleting = mode == FormMode.Delete
+            };
+
+            _budgetYear = model.Year;
+            _selectedCategoryId = model.CategoryId;
+        }
+
+        private async Task CloseModal()
+        {
+            _budgetForm = new BudgetFormModel
+            {
+                CategoryId = 0,
+                CategoryName = string.Empty,
+                Year = selectedYear,
+                MonthlyAmounts = MonthHelper.Months.ToDictionary(month => month.Value, month => 0m),
+                OriginalMonthlyAmounts = new Dictionary<int, decimal>(),
+                IsModalOpen = false,
+                IsEditing = false,
+                IsDeleting = false,
+                DefaultAmount = 0,
+            };
+
+            await LoadData();
+
+            StateHasChanged();
+        }
+
+        // ================================================================
+        // 9. CONFIRMACIONES DE ELIMINACIÓN
+        // ================================================================
+
+        private void OpenDeleteConfirmation(int month)
+        {
+            _monthToDelete = month;
+            _isConfirmModalOpenDeleteOne = true;
+
+            StateHasChanged();
+        }
+
+        private async Task ConfirmDeleteMonth()
+        {
+            await DeleteSingleMonthAsync(_monthToDelete);
+
+            _isConfirmModalOpenDeleteOne = false;
+            _monthToDelete = 0;
+
+            StateHasChanged();
+        }
+
+        private void CancelDeleteMonth()
+        {
+            _monthToDelete = 0;
+            _isConfirmModalOpenDeleteOne = false;
+
+            StateHasChanged();
+        }
+
+        private void OpenDeleteAllConfirmation()
+        {
+            if (string.IsNullOrEmpty(_budgetForm.CategoryName))
+            {
+                ToastService.ShowError("No se puede eliminar: categoría no especificada.");
+
+                return;
+            }
+
+            _isConfirmModalOpenDeleteAll = true;
+
+            StateHasChanged();
+        }
+
+        private async Task ConfirmDeleteAll()
+        {
+            await DeleteBulkBudgetAsync();
+
+            _budgetForm.IsModalOpen = false;
+            _budgetForm.IsDeleting = false;
+            _isConfirmModalOpenDeleteAll = false;
+
+            await LoadData();
+
+            ApplyFilters();
+            StateHasChanged();
+        }
+
+        private void CancelDeleteAll()
+        {
+            _isConfirmModalOpenDeleteAll = false;
+
+            StateHasChanged();
+        }
+
+        // ================================================================
+        // 10. MÉTODOS AUXILIARES
+        // ================================================================
         private decimal GetBudgetAmount(int categoryId, int month, int year)
         {
-            BudgetResponseDTO? budget = _allBudgets.FirstOrDefault(b => b.CategoryId == categoryId && b.Month == month && b.Year == year);
+            BudgetModel? budget = FindBudget(categoryId, month, year);
 
             return budget?.Amount ?? 0;
+
+            //return FindBudget(_budgetForm.CategoryId, month, _budgetForm.Year)?.Amount ?? 0;
         }
 
         private decimal GetCategoryTotal(int categoryId, int year)
@@ -227,354 +701,25 @@ namespace UI.Pages
                 .Sum(b => b.Amount);
         }
 
-        // ==================== MÉTODOS DEL MODAL ====================
-
-        private void OpenCreateModal()
-        {
-            ResetBudgetForm();
-
-            // 🔥 Sincronizar la propiedad con el año del formulario
-            BudgetYear = selectedYear;
-
-            // 🔥 Actualizar las categorías disponibles para el año seleccionado
-            UpdateAvailableCategoriesForCreate();
-
-            // 🔥 Si hay categorías disponibles, seleccionar la primera
-            if (_availableCategoriesForCreate.Any())
-            {
-                SelectedCategoryId = _availableCategoriesForCreate.First().Id;
-            }
-            else
-            {
-                SelectedCategoryId = 0;
-            }
-
-            isModalOpen = true;
-            StateHasChanged();
-        }
-
-        private void OpenEditModal(int categoryId, int year)
-        {
-            // Cargar los presupuestos existentes para esa categoría y año
-            List<BudgetResponseDTO> existingBudgets = _allBudgets
-                .Where(budget => budget.CategoryId == categoryId && budget.Year == year)
-                .ToList();
-
-            if (!existingBudgets.Any())
-                return;
-
-            Dictionary<int, decimal> monthlyAmounts = _months.ToDictionary
-            (
-                month => month.Value,
-                month => existingBudgets.FirstOrDefault(budget => budget.Month == month.Value)?.Amount ?? 0
-            );
-
-            budgetForm = new BudgetFormModel
-            {
-                CategoryId = categoryId,
-                CategoryName = _allCategories.FirstOrDefault(c => c.Id == categoryId)?.Name ?? string.Empty,
-                Year = year,
-                DefaultAmount = GetDefaultAmount(monthlyAmounts),  // Asignamos el valor calculado
-                MonthlyAmounts = monthlyAmounts,
-                IsEditing = true,
-                IsDeleting = false
-            };
-
-            // 🔥 Sincronizar la propiedad con el año y con la categoría
-            BudgetYear = year;
-            SelectedCategoryId = categoryId;
-
-            isModalOpen = true;
-
-            StateHasChanged();
-        }
-
-        private void OpenDeleteModal(int categoryId, int year)
-        {
-            // 🔥 Cargar los presupuestos existentes para esa categoría y año
-            List<BudgetResponseDTO> existingBudgets = _allBudgets
-                .Where(b => b.CategoryId == categoryId && b.Year == year)
-                .ToList();
-
-            if (!existingBudgets.Any())
-                return;
-
-            Dictionary<int, decimal> monthlyAmounts = _months.ToDictionary
-            (
-                month => month.Value,
-                month => existingBudgets.FirstOrDefault(budget => budget.Month == month.Value)?.Amount ?? 0
-            );
-
-            budgetForm = new BudgetFormModel
-            {
-                CategoryId = categoryId,
-                CategoryName = _allCategories.FirstOrDefault(c => c.Id == categoryId)?.Name ?? string.Empty,
-                Year = year,
-                DefaultAmount = GetDefaultAmount(monthlyAmounts),  // Asignamos el valor calculado
-                MonthlyAmounts = monthlyAmounts,
-                IsEditing = false,
-                IsDeleting = true
-            };
-
-            // 🔥 Sincronizar la propiedad con el año y con la categoría
-            BudgetYear = year;
-            SelectedCategoryId = categoryId;
-
-            isModalOpen = true;
-
-            StateHasChanged();
-        }
-
-        private void ApplyAmountToAllMonths()
-        {
-            // Aplicar el importe del campo "budgetForm.Amount" a todos los meses
-            foreach (MonthModel month in _months)
-            {
-                budgetForm.MonthlyAmounts[month.Value] = budgetForm.DefaultAmount;
-            }
-            StateHasChanged();
-        }
-
-        private decimal CalculateTotalAnnualBudget()
-        {
-            decimal total = 0m;
-
-            foreach (KeyValuePair<int, decimal> kvp in budgetForm.MonthlyAmounts)
-            {
-                total += kvp.Value;
-            }
-
-            return total;
-        }
-
-        private async Task SaveBudget()
-        {
-            try
-            {
-                if (budgetForm.IsDeleting)
-                {
-                    // 🔥 Abrir confirmación antes de eliminar
-                    OpenDeleteAllConfirmation();
-                    return; // Salir del método, la confirmación continuará
-                }
-                else if (budgetForm.IsEditing)
-                {
-                    // 🔥 ========== MODO ACTUALIZACIÓN ========== //
-
-                    // 1. Obtener los meses que tienen un importe > 0
-                    List<KeyValuePair<int, decimal>> monthsToUpdate = budgetForm.MonthlyAmounts.Where(kvp => kvp.Value > 0).ToList();
-
-                    if (!monthsToUpdate.Any())
-                    {
-                        ToastService.ShowError("Debes asignar al menos un importe para actualizar un presupuesto.");
-                        return;
-                    }
-
-                    // 2. Crear el DTO para la actualización en bloque
-                    UpdateBulkBudgetRequestDTO updateRequest = new UpdateBulkBudgetRequestDTO
-                    {
-                        CategoryId = budgetForm.CategoryId,
-                        Year = budgetForm.Year,
-                        MonthlyBudgets = monthsToUpdate.Select(kvp => new MonthlyBudgetDTO
-                        {
-                            Month = kvp.Key,
-                            Amount = kvp.Value
-                        }).ToList()
-                    };
-
-                    // 3. Llamar a la API para actualizar en bloque
-                    HttpResponseMessage updateResponse = await SendAuthenticatedRequestAsync(() => Http.PutAsJsonAsync("/api/budget/bulk", updateRequest));
-
-                    if (!updateResponse.IsSuccessStatusCode)
-                    {
-                        string errorContent = await updateResponse.Content.ReadAsStringAsync();
-                        await LogService.LogErrorAsync($"Error al actualizar presupuestos en bloque", new Exception(errorContent));
-                        ToastService.ShowError("Error al actualizar los presupuestos.");
-
-                        return;
-                    }
-
-                    ToastService.ShowSuccess($"Presupuestos actualizados correctamente para {budgetForm.Year}.");
-                }
-                else
-                {
-                    // 1. Obtener los meses que tienen un importe > 0
-                    List<KeyValuePair<int, decimal>> monthsToCreate = budgetForm.MonthlyAmounts.Where(kvp => kvp.Value > 0).ToList();
-
-                    if (!monthsToCreate.Any())
-                    {
-                        ToastService.ShowError("Debes asignar al menos un importe para crear un presupuesto.");
-                        return;
-                    }
-
-                    // 2. Crear el DTO para la llamada en bloque
-                    CreateBulkBudgetRequestDTO request = new CreateBulkBudgetRequestDTO
-                    {
-                        CategoryId = budgetForm.CategoryId,
-                        Year = budgetForm.Year,
-                        MonthlyBudgets = monthsToCreate.Select(kvp => new MonthlyBudgetDTO
-                        {
-                            Month = kvp.Key,
-                            Amount = kvp.Value
-                        }).ToList()
-                    };
-
-                    // 3. Llamar a la API para crear/actualizar en bloque
-                    HttpResponseMessage response = await SendAuthenticatedRequestAsync(() => Http.PostAsJsonAsync("/api/budget/bulk", request));
-
-                    if (!response.IsSuccessStatusCode)
-                    {
-                        string errorContent = await response.Content.ReadAsStringAsync();
-                        await LogService.LogErrorAsync($"Error al crear/actualizar presupuestos en bloque", new Exception(errorContent));
-                        ToastService.ShowError("Error al guardar los presupuestos.");
-                        return;
-                    }
-
-                    ToastService.ShowSuccess($"Presupuestos creados/actualizados correctamente para {budgetForm.Year}.");
-                }
-
-                isModalOpen = false;
-
-                await LoadData(); // Recargar datos actualizados
-
-                ApplyFilters();
-
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                await LogService.LogErrorAsync($"Error en SaveBudget", ex);
-                ToastService.ShowError("Ocurrió un error inesperado.");
-            }
-        }
-
-        private async Task UpdateSingleMonth(int month)
-        {
-            try
-            {
-                BudgetResponseDTO? existingBudget = _allBudgets
-                    .FirstOrDefault(b => b.CategoryId == budgetForm.CategoryId &&
-                                         b.Month == month &&
-                                         b.Year == budgetForm.Year);
-
-                if (existingBudget == null)
-                {
-                    ToastService.ShowError($"No hay presupuesto para {month}/{budgetForm.Year}");
-                    return;
-                }
-
-                decimal newAmount = budgetForm.MonthlyAmounts[month];
-
-                UpdateBudgetRequestDTO request = new UpdateBudgetRequestDTO { Amount = newAmount };
-
-                HttpResponseMessage response = await SendAuthenticatedRequestAsync(() => Http.PutAsJsonAsync($"/api/budget/{existingBudget.Id}", request));
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    string errorContent = await response.Content.ReadAsStringAsync();
-
-                    await LogService.LogErrorAsync($"Error al actualizar presupuesto ID {existingBudget.Id}", new Exception(errorContent));
-                    ToastService.ShowError($"Error al actualizar el mes {month}.");
-
-                    return;
-                }
-
-                // ✅ Actualizar lista local
-                BudgetResponseDTO? localBudget = _allBudgets.FirstOrDefault(b => b.Id == existingBudget.Id);
-
-                if (localBudget != null)
-                {
-                    localBudget.Amount = newAmount;
-                }
-
-                ToastService.ShowSuccess($"Presupuesto de {month}/{budgetForm.Year} actualizado correctamente.");
-
-                ApplyFilters();
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                await LogService.LogErrorAsync($"Error en UpdateSingleMonth", ex);
-                ToastService.ShowError("Ocurrió un error inesperado.");
-            }
-        }
-
-        private void CloseModal()
-        {
-            ResetBudgetForm();
-
-            StateHasChanged();
-        }
-
-        private string GetModalTitle()
-        {
-            if (budgetForm.IsDeleting)
-            {
-                return $"🗑️ Eliminar presupuestos de {budgetForm.CategoryName} ({budgetForm.Year})";
-            }
-            return isEditing ? "✏️ Editar Presupuesto" : "➕ Nuevo Presupuesto";
-        }
-
-        private string GetSaveButtonText()
-        {
-            return budgetForm.IsDeleting ? "Eliminar todos" : "Guardar";
-        }
-
-        private string GetSaveButtonClass()
-        {
-            return budgetForm.IsDeleting ? "btn-danger" : "btn-primary";
-        }
-
-        private decimal GetDefaultAmount(Dictionary<int, decimal> monthlyAmounts)
-        {
-            if (monthlyAmounts == null || monthlyAmounts.Count == 0) return 0m;
-
-            decimal firstValue = monthlyAmounts.Values.First();
-            bool allSame = monthlyAmounts.Values.All(v => v == firstValue);
-            return allSame ? firstValue : 0m;
-        }
-
-        private void UpdateAvailableCategoriesForCreate()
-        {
-            // 🔥 Obtener IDs de categorías que YA TIENEN presupuesto para el año seleccionado en el formulario
-            List<int> categoriesWithBudget = _allBudgets
-                .Where(b => b.Year == budgetForm.Year)
-                .Select(b => b.CategoryId)
-                .Distinct()
-                .ToList();
-
-            // 🔥 Filtrar categorías: solo las que NO tienen presupuesto para ese año
-            _availableCategoriesForCreate = _allCategories
-                .Where(c => !categoriesWithBudget.Contains(c.Id))
-                .ToList();
-
-            // 🔥 Si la categoría seleccionada actualmente ya no está disponible, resetearla
-            if (!_availableCategoriesForCreate.Any(c => c.Id == budgetForm.CategoryId))
-            {
-                budgetForm.CategoryId = _availableCategoriesForCreate.Any()
-                    ? _availableCategoriesForCreate.First().Id
-                    : 0;
-            }
-        }
-
         private void OnYearChanged(ChangeEventArgs e)
         {
             if (e.Value != null && int.TryParse(e.Value.ToString(), out int newYear))
             {
-                BudgetYear = newYear;
+                budgetYear = newYear;
 
-                if (!budgetForm.IsEditing && !budgetForm.IsDeleting)
+                if (!_budgetForm.IsEditing && !_budgetForm.IsDeleting)
                 {
                     UpdateAvailableCategoriesForCreate();
-                    budgetForm.MonthlyAmounts = _months.ToDictionary(month => month.Value, month => 0m);
+
+                    _budgetForm.MonthlyAmounts = MonthHelper.Months.ToDictionary(month => month.Value, month => 0m);
 
                     if (_availableCategoriesForCreate.Any())
                     {
-                        budgetForm.CategoryId = _availableCategoriesForCreate.First().Id;
+                        _budgetForm.CategoryId = _availableCategoriesForCreate.First().Id;
                     }
                     else
                     {
-                        budgetForm.CategoryId = 0;
+                        _budgetForm.CategoryId = 0;
                     }
 
                     StateHasChanged();
@@ -586,200 +731,15 @@ namespace UI.Pages
         {
             if (e.Value != null && int.TryParse(e.Value.ToString(), out int newCategoryId))
             {
-                SelectedCategoryId = newCategoryId;
+                selectedCategoryId = newCategoryId;
 
-                // 🔥 Reiniciar los meses cuando cambia la categoría
-                budgetForm.MonthlyAmounts = _months.ToDictionary(month => month.Value, month => 0m);
+                if (_budgetForm.IsEditing)
+                {
+                    _budgetForm.OriginalMonthlyAmounts = new Dictionary<int, decimal>(_budgetForm.MonthlyAmounts);
+                }
+
                 StateHasChanged();
             }
         }
-
-        private void ClearSearch()
-        {
-            searchTerm = string.Empty;
-            ApplyFilters();
-        }
-
-        private void SetCurrentYear()
-        {
-            selectedYear = DateTime.Now.Year;
-            ApplyFilters();
-        }
-
-        private void ResetBudgetForm()
-        {
-            // ✅ Resetear todo después de eliminar
-            isConfirmModalOpenDeleteAll = false;
-            isConfirmModalOpenDeleteOne = false;
-            isModalOpen = false;
-            isDeleteMode = false;
-            isEditing = false;
-
-            // ✅ Resetear el formulario
-            budgetForm = new BudgetFormModel
-            {
-                CategoryId = 0,
-                Year = selectedYear,
-                MonthlyAmounts = _months.ToDictionary(month => month.Value, month => 0m),
-                IsEditing = false,
-                IsDeleting = false,
-                DefaultAmount = 0
-            };
-        }
-
-
-
-        // ================ MÉTODOS DEL MODAL CONFIRMATION ===============
-
-        private void OpenDeleteConfirmation(int month)
-        {
-            _monthToDelete = month;
-            isConfirmModalOpenDeleteOne = true;
-
-            StateHasChanged();
-        }
-
-        private async Task ConfirmDeleteMonth()
-        {
-            try
-            {
-                BudgetResponseDTO? existingBudget = _allBudgets
-                    .FirstOrDefault(b => b.CategoryId == budgetForm.CategoryId &&
-                                         b.Month == _monthToDelete &&
-                                         b.Year == budgetForm.Year);
-
-                if (existingBudget == null)
-                {
-                    ToastService.ShowError($"No hay presupuesto para {_monthToDelete}/{budgetForm.Year}");
-                    return;
-                }
-
-                HttpResponseMessage response = await SendAuthenticatedRequestAsync(() => Http.DeleteAsync($"/api/budget/{existingBudget.Id}"));
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    string errorContent = await response.Content.ReadAsStringAsync();
-                    await LogService.LogErrorAsync($"Error al eliminar presupuesto ID {existingBudget.Id}", new Exception(errorContent));
-                    ToastService.ShowError($"Error al eliminar el mes {_monthToDelete}.");
-                    return;
-                }
-
-                // ✅ Actualizar lista local
-                _allBudgets.RemoveAll(b => b.Id == existingBudget.Id);
-                budgetForm.MonthlyAmounts[_monthToDelete] = 0;
-
-                ToastService.ShowSuccess($"Presupuesto de {_monthToDelete}/{budgetForm.Year} eliminado correctamente.");
-
-                ApplyFilters();
-                StateHasChanged();
-            }
-            catch (Exception ex)
-            {
-                await LogService.LogErrorAsync($"Error en ConfirmDeleteMonth", ex);
-                ToastService.ShowError("Ocurrió un error inesperado.");
-            }
-            finally
-            {
-                ResetBudgetForm();
-
-                // ✅ Actualizar el formulario (eliminar el mes del diccionario)
-                budgetForm.MonthlyAmounts[_monthToDelete] = 0;
-
-                // ✅ Si no quedan meses con importe, resetear el modo eliminación
-                if (!budgetForm.MonthlyAmounts.Any(kvp => kvp.Value > 0))
-                {
-                    budgetForm.IsDeleting = false;
-                    isDeleteMode = false;
-                    isModalOpen = false;
-                }
-            }
-        }
-
-        private void CancelDeleteMonth()
-        {
-            _monthToDelete = 0;
-            isConfirmModalOpenDeleteOne = false;
-            StateHasChanged();
-        }
-
-        private void OpenDeleteAllConfirmation()
-        {
-            if (string.IsNullOrEmpty(budgetForm.CategoryName))
-            {
-                ToastService.ShowError("No se puede eliminar: categoría no especificada.");
-                return;
-            }
-
-            isConfirmModalOpenDeleteAll = true;
-            StateHasChanged();
-        }
-
-        private async Task ConfirmDeleteAll()
-        {
-            try
-            {
-                // 1. Obtener los meses que TIENEN PRESUPUESTO en la base de datos
-                List<int> monthsWithBudget = _allBudgets
-                    .Where(b => b.CategoryId == budgetForm.CategoryId && b.Year == budgetForm.Year)
-                    .Select(b => b.Month)
-                    .Distinct()
-                    .ToList();
-
-                if (monthsWithBudget.Count == 0)
-                {
-                    ToastService.ShowError("No hay presupuestos para eliminar.");
-                    return;
-                }
-
-                // 2. Crear request de eliminación en bloque
-                DeleteBulkBudgetRequestDTO deleteRequest = new DeleteBulkBudgetRequestDTO
-                {
-                    CategoryId = budgetForm.CategoryId,
-                    Year = budgetForm.Year,
-                    MonthsToDelete = monthsWithBudget
-                };
-
-                // 3. Llamar a la API
-                HttpRequestMessage deleteHttpRequest = new HttpRequestMessage
-                {
-                    Method = HttpMethod.Delete,
-                    RequestUri = new Uri("/api/budget/bulk", UriKind.Relative),
-                    Content = new StringContent(JsonSerializer.Serialize(deleteRequest), Encoding.UTF8, "application/json")
-                };
-
-                HttpResponseMessage deleteResponse = await SendAuthenticatedRequestAsync(() => Http.SendAsync(deleteHttpRequest));
-
-                if (!deleteResponse.IsSuccessStatusCode)
-                {
-                    string errorContent = await deleteResponse.Content.ReadAsStringAsync();
-                    await LogService.LogErrorAsync($"Error al eliminar presupuestos en bloque", new Exception(errorContent));
-                    ToastService.ShowError("Error al eliminar los presupuestos.");
-                    return;
-                }
-
-                ToastService.ShowSuccess($"Presupuestos de {budgetForm.CategoryName} para {budgetForm.Year} eliminados correctamente.");
-            }
-            catch (Exception ex)
-            {
-                await LogService.LogErrorAsync($"Error en ConfirmDeleteAll", ex);
-                ToastService.ShowError("Ocurrió un error inesperado.");
-            }
-            finally
-            {
-                ResetBudgetForm();
-
-                await LoadData();
-                ApplyFilters();
-                StateHasChanged();
-            }
-        }
-
-        private void CancelDeleteAll()
-        {
-            isConfirmModalOpenDeleteAll = false;
-            StateHasChanged();
-        }
-
-
     }
 }
