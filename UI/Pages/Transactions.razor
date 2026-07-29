@@ -32,7 +32,7 @@
 				<div style="min-width: 150px;">
 					<select class="form-control form-control-sm" @bind="selectedCategoryId">
 						<option value="0">Todas las categorías</option>
-						@foreach (var category in _categories)
+						@foreach (CategoryModel category in _categories)
 						{
 							<option value="@category.Id">@category.Name</option>
 						}
@@ -51,7 +51,7 @@
 				<!-- Filtro por mes -->
 				<div style="min-width: 110px;">
 					<select class="form-control form-control-sm" @bind="selectedMonth">
-						@foreach (var month in MonthHelper.Months)
+						@foreach (MonthModel month in MonthHelper.Months)
 						{
 							<option value="@month.Value">@month.Name</option>
 						}
@@ -61,7 +61,7 @@
 				<!-- Filtro por año -->
 				<div style="min-width: 100px;">
 					<select class="form-control form-control-sm" @bind="selectedYear">
-						@foreach (var year in _years)
+						@foreach (int year in _years)
 						{
 							<option value="@year">@year</option>
 						}
@@ -85,7 +85,7 @@
 					<div class="form-group">
 						<label class="form-label" for="transactionCategory">Categoría</label>
 						<select id="transactionCategory" class="form-control" @bind="CategoryId" disabled="@_transactionForm.IsDeleting">
-							@foreach (var category in _categories)
+							@foreach (CategoryModel category in _categories)
 							{
 								<option value="@category.Id">@category.Name</option>
 							}
@@ -172,9 +172,7 @@
 										<td class="text-start">@item.Date.ToString("dd/MM/yyyy")</td>
 										<td class="text-start">@item.CategoryName</td>
 										<td class="text-start">@item.Name</td>
-										<td class="text-end @(item.Amount >= 0 ? "text-success" : "text-danger")">
-											@(item.Amount >= 0 ? "+" : "-")@CurrencyHelper.FormatCurrency(Math.Abs(item.Amount))
-										</td>
+										<td class="text-end @item.GetDisplayClass()">@item.GetFormattedDisplay()</td>
 										<td class="text-end">
 											<button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(item)">
 												✏️
@@ -198,8 +196,8 @@
 						<tfoot>
 							<tr class="table-secondary fw-bold">
 								<td colspan="3" class="text-end">Total:</td>
-								<td class="text-end @(_totalAmount >= 0 ? "text-success" : "text-danger")">
-									@(_totalAmount >= 0 ? "+" : "-")@CurrencyHelper.FormatCurrency(Math.Abs(_totalAmount))
+								<td class="text-end @GetTotalDisplayClass(_totalAmount)">
+									@GetTotalFormattedDisplay(_totalAmount)
 								</td>
 								<td></td>
 							</tr>

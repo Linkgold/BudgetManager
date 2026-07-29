@@ -15,7 +15,7 @@
 
     <!-- Filtros -->
     <!-- 🔹 Contenedort de Modal -->
-    <div class="table-card-wrapper-budget @(_budgetForm.IsModalOpen ? (_budgetForm.IsDeleting ? "modal-open-delete" : "modal-open") : "")">
+    <div class="table-card-wrapper-budget @_budgetForm.CurrentMode.GetModalWrapperClass(_budgetForm.IsModalOpen)">
         <div class="card filter-card mb-3">
             <div class="card-body d-flex flex-wrap align-items-center gap-2">
                 <div style="flex: 1; min-width: 150px; position: relative;">

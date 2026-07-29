@@ -1,7 +1,7 @@
 ﻿using Shared.DTOs.Response;
 using UI.Models;
 
-namespace UI.Extensions
+namespace UI.Extensions.Mappings
 {
     public static class FixedExpenseMappingExtensions
     {

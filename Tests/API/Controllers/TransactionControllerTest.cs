@@ -1,4 +1,5 @@
-﻿using Shared.DTOs.Request;
+﻿using Contracts.Enums;
+using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using System.Globalization;
 using System.Net;
@@ -148,6 +149,7 @@ namespace Tests.API.Controllers
             Assert.Equal(6, transaction.Date.Month);
             Assert.Equal(2024, transaction.Date.Year);
             Assert.Equal("Alimentación", transaction.CategoryName);
+            Assert.Equal(CategoryNatureEnum.Expense, transaction.CategoryNature);
         }
 
         [Fact]
@@ -181,6 +183,7 @@ namespace Tests.API.Controllers
 
             Assert.NotNull(transactions);
             Assert.NotEmpty(transactions);
+            Assert.All(transactions, t => Assert.Equal(CategoryNatureEnum.Expense, t.CategoryNature));
             Assert.Equal(2, transactions.Count);
         }
 

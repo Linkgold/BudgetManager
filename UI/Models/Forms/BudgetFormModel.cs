@@ -1,6 +1,6 @@
 ﻿using UI.Helpers;
 
-namespace UI.Models
+namespace UI.Models.Forms
 {
     public class BudgetFormModel : FormModelBase
     {

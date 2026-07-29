@@ -1,6 +1,6 @@
 ﻿using Contracts.Enums;
 
-namespace UI.Models
+namespace UI.Models.Forms
 {
     public class TransactionFormModel : FormModelBase
     {

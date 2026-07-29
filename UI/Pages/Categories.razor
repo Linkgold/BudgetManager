@@ -35,20 +35,20 @@
             </div>
         </div>
         <!-- Modal para crear/editar/eliminar categoría -->
-        <Modal Title="@categoryForm.CurrentMode.GetModalTitle("Categoría")"
-               IsVisible="@categoryForm.IsModalOpen"
-               IsDeleteMode="@categoryForm.IsDeleting"
+        <Modal Title="@_categoryForm.CurrentMode.GetModalTitle("Categoría")"
+               IsVisible="@_categoryForm.IsModalOpen"
+               IsDeleteMode="@_categoryForm.IsDeleting"
                OnSave="@SaveCategory"
                OnClose="@CloseModal"
-               SaveButtonText="@categoryForm.SaveButtonText"
-               SaveButtonClass="@categoryForm.SaveButtonClass">
+               SaveButtonText="@_categoryForm.SaveButtonText"
+               SaveButtonClass="@_categoryForm.SaveButtonClass">
 
             <div class="row">
                 <!-- Columna izquierda: Nombre -->
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label" for="categoryName">Nombre</label>
-                        <input type="text" id="categoryName" class="form-control" @bind="categoryForm.Name" disabled="@categoryForm.IsDeleting" placeholder="Ej. Alimentación" />
+                        <input type="text" id="categoryName" class="form-control" @bind="_categoryForm.Name" disabled="@_categoryForm.IsDeleting" placeholder="Ej. Alimentación" />
                     </div>
                 </div>
 
@@ -56,7 +56,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label" for="categoryNature">Naturaleza</label>
-                        <select id="categoryNature" class="form-control" @bind="categoryForm.Nature" disabled="@categoryForm.IsDeleting">
+                        <select id="categoryNature" class="form-control" @bind="_categoryForm.Nature" disabled="@_categoryForm.IsDeleting">
                             <option value="@CategoryNatureEnum.Expense">💳 Gasto</option>
                             <option value="@CategoryNatureEnum.Income">💰 Ingreso</option>
                             <option value="@CategoryNatureEnum.Mixed">🔄 Mixto</option>
@@ -70,7 +70,7 @@
                 <div class="col-12">
                     <div class="form-group">
                         <label class="form-label" for="categoryDescription">Descripción</label>
-                        <input type="text" id="categoryDescription" class="form-control" @bind="categoryForm.Description" disabled="@categoryForm.IsDeleting" placeholder="Ej. Gastos de comida" />
+                        <input type="text" id="categoryDescription" class="form-control" @bind="_categoryForm.Description" disabled="@_categoryForm.IsDeleting" placeholder="Ej. Gastos de comida" />
                     </div>
                 </div>
             </div>
@@ -90,9 +90,9 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @if (filteredCategories.Any())
+                            @if (_filteredCategories.Any())
                             {
-                                @foreach (var category in filteredCategories)
+                                @foreach (CategoryModel category in _filteredCategories)
                                 {
                                     <tr>
                                         <td class="text-start">@category.Name</td>
@@ -127,7 +127,7 @@
                 </div>
             </div>
             <div class="card-footer text-muted small">
-                Mostrando @filteredCategories.Count() de @categories.Count() categorías
+                Mostrando @_filteredCategories.Count() de @_categories.Count() categorías
             </div>
         </div>
     </div>

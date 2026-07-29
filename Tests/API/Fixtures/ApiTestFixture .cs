@@ -205,7 +205,7 @@ namespace Tests.API.Fixtures
 
         // 🔥 Método para deserializar responses
         public T? DeserializeResponse<T>(string json) => JsonSerializer.Deserialize<T>(json, _jsonOptions);
-        
+
         // 🔥 Método para limpiar la base de datos
         public void ClearDatabase()
         {
@@ -217,7 +217,7 @@ namespace Tests.API.Fixtures
             SeedTestUser();
         }
 
-        public void Dispose()
+        public new void Dispose()
         {
             GC.SuppressFinalize(this);
             Client?.Dispose();

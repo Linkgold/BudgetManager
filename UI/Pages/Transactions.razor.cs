@@ -2,11 +2,12 @@
 using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Request;
 using Shared.DTOs.Response;
-using System.Net.Http.Json;
-using System.Transactions;
 using UI.Extensions;
+using UI.Extensions.Mappings;
+using UI.Helpers;
 using UI.Models;
-using UI.Services;
+using UI.Models.Forms;
+using UI.Services.API;
 using UI.Services.Interfaces;
 using UI.Shared;
 
@@ -155,11 +156,9 @@ namespace UI.Pages
         {
             try
             {
-                List<CategoryResponseDTO>? categories = await APIService.GetCategoriesAsync();
-                _categories = categories?.ToCategoryModelList() ?? new List<CategoryModel>();
+                _categories = await APIService.GetCategoriesAsync() ?? new List<CategoryModel>();
 
-                List<TransactionResponseDTO>? dtoList = await APIService.GetTransactionsAsync();
-                _transactions = dtoList?.ToTransactionModelList() ?? new List<TransactionModel>();
+                _transactions = await APIService.GetTransactionsAsync() ?? new List<TransactionModel>();
 
                 _years = new List<int>();
                 for (int year = 2020; year <= 2050; year++)
@@ -171,6 +170,7 @@ namespace UI.Pages
             {
                 await LogService.LogErrorAsync($"Error al cargar datos de transacciones", ex);
                 ToastService.ShowError("Error al cargar los datos.");
+
                 _transactions = new List<TransactionModel>();
                 _categories = new List<CategoryModel>();
             }
@@ -214,12 +214,7 @@ namespace UI.Pages
 
             _filteredTransactions = query.OrderByDescending(t => t.Date).ToList();
 
-            decimal total = 0m;
-            foreach (TransactionModel item in _filteredTransactions)
-            {
-                total += item.Amount;
-            }
-            _totalAmount = total;
+            _totalAmount = _filteredTransactions.GetTotalDisplayAmount();
         }
 
         private void ClearSearch()
@@ -279,7 +274,7 @@ namespace UI.Pages
                 Date = _transactionForm.Date
             };
 
-            TransactionResponseDTO? result = await APIService.CreateTransactionAsync(request);
+            TransactionModel? result = await APIService.CreateTransactionAsync(request);
             if (result == null)
             {
                 ToastService.ShowError($"Error al crear la transacción [{_transactionForm.Name}].");
@@ -301,7 +296,7 @@ namespace UI.Pages
                 Date = _transactionForm.Date
             };
 
-            TransactionResponseDTO? result = await APIService.UpdateTransactionAsync(_transactionForm.Id, request);
+            TransactionModel? result = await APIService.UpdateTransactionAsync(_transactionForm.Id, request);
             if (result == null)
             {
                 ToastService.ShowError($"Error al actualizar la transacción [{_transactionForm.Name}].");
@@ -313,7 +308,7 @@ namespace UI.Pages
 
         private async Task DeleteTransactionAsync()
         {
-            bool success = await APIService.DeleteTransactionAsync(_transactionForm.Id);
+            bool success = await APIService.DeleteTransactionAsync(_transactionForm.Id, _transactionForm.Name);
             if (!success)
             {
                 ToastService.ShowError($"Error al eliminar la transacción [{_transactionForm.Name}].");
@@ -443,20 +438,15 @@ namespace UI.Pages
             StateHasChanged();
         }
 
-        private string FormatCurrency(decimal amount) => amount.ToString("F2") + " €";
-
-        private string GetTransactionTypeForExisting(decimal amount, CategoryNatureEnum? categoryNature)
+        public static string GetTotalDisplayClass(decimal totalAmount)
         {
-            if (categoryNature == null) return "Expense";
+            return totalAmount >= 0 ? "text-success" : "text-danger";
+        }
 
-            // Si es Mixed, usar el signo del importe
-            if (categoryNature == CategoryNatureEnum.Mixed)
-            {
-                return amount >= 0 ? "Income" : "Expense";
-            }
-
-            // Si es Income o Expense, usar el tipo fijo
-            return GetDefaultTransactionTypeForCategory(categoryNature);
+        public static string GetTotalFormattedDisplay(decimal totalAmount)
+        {
+            string sign = totalAmount >= 0 ? "+" : "-";
+            return $"{sign}{CurrencyHelper.FormatCurrency(Math.Abs(totalAmount))}";
         }
     }
 }

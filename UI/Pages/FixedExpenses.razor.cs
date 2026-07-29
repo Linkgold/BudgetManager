@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Request;
-using Shared.DTOs.Response;
 using UI.Extensions;
+using UI.Extensions.Mappings;
 using UI.Models;
-using UI.Services;
+using UI.Models.Forms;
+using UI.Services.API;
 using UI.Services.Interfaces;
 using UI.Shared;
 
@@ -25,11 +26,11 @@ namespace UI.Pages
         // 2. MODELOS Y ESTADO
         // ================================================================
 
-        private List<FixedExpenseModel> fixedExpenses = new();
-        private List<FixedExpenseModel> filteredFixedExpenses = new();
-        private List<CategoryModel> categories = new();
-        private FixedExpenseFormModel fixedExpenseForm = new();
-        private List<int> years = new();
+        private List<FixedExpenseModel> _fixedExpenses = new();
+        private List<FixedExpenseModel> _filteredFixedExpenses = new();
+        private List<CategoryModel> _categories = new();
+        private FixedExpenseFormModel _fixedExpenseForm = new();
+        private List<int> _years = new();
 
         // ================================================================
         // 3. FILTROS Y PROPIEDADES CON SETTER
@@ -96,19 +97,18 @@ namespace UI.Pages
             try
             {
                 // Cargar categorías
-                List<CategoryResponseDTO>? result = await APIService.GetCategoriesAsync();
-                categories = result?.ToExpenseMixedCategoryModelList() ?? new List<CategoryModel>();
+                List<CategoryModel>? categoriesResult = await APIService.GetCategoriesAsync();
+                _categories = categoriesResult?.ToExpenseMixedCategoryModelList() ?? new List<CategoryModel>();
 
 
                 // Cargar gastos fijos
-                List<FixedExpenseResponseDTO>? dtoList = await APIService.GetFixedExpensesAsync();
-                fixedExpenses = dtoList?.ToFixedExpenseModelList() ?? new List<FixedExpenseModel>();
+                _fixedExpenses = await APIService.GetFixedExpensesAsync() ?? new List<FixedExpenseModel>();
 
                 // Inicializar años (2020-2050)
-                years = new List<int>();
+                _years = new List<int>();
                 for (int year = 2020; year <= 2050; year++)
                 {
-                    years.Add(year);
+                    _years.Add(year);
                 }
             }
             catch (Exception ex)
@@ -116,8 +116,8 @@ namespace UI.Pages
                 await LogService.LogErrorAsync($"Error al cargar datos de gastos fijos", ex);
 
                 ToastService.ShowError("Error al cargar los datos.");
-                fixedExpenses = new();
-                categories = new();
+                _fixedExpenses = new();
+                _categories = new();
             }
             finally
             {
@@ -131,7 +131,7 @@ namespace UI.Pages
 
         private void ApplyFilters()
         {
-            filteredFixedExpenses = fixedExpenses
+            _filteredFixedExpenses = _fixedExpenses
                 .Where(f => (selectedCategoryId == 0 || f.CategoryId == selectedCategoryId))
                 .Where(f => selectedYear == 0 || f.Year == selectedYear)
                 .Where(f => string.IsNullOrEmpty(searchTerm) ||
@@ -158,11 +158,11 @@ namespace UI.Pages
         {
             try
             {
-                if (fixedExpenseForm.IsDeleting)
+                if (_fixedExpenseForm.IsDeleting)
                 {
                     await DeleteFixedExpenseAsync();
                 }
-                else if (fixedExpenseForm.IsEditing)
+                else if (_fixedExpenseForm.IsEditing)
                 {
                     await UpdateFixedExpenseAsync();
                 }
@@ -171,9 +171,9 @@ namespace UI.Pages
                     await CreateFixedExpenseAsync();
                 }
 
-                fixedExpenseForm.IsModalOpen = false;
-                fixedExpenseForm.IsDeleting = false;
-                fixedExpenseForm.IsEditing = false;
+                _fixedExpenseForm.IsModalOpen = false;
+                _fixedExpenseForm.IsDeleting = false;
+                _fixedExpenseForm.IsEditing = false;
 
                 await LoadData();
 
@@ -190,61 +190,58 @@ namespace UI.Pages
         {
             CreateFixedExpenseRequestDTO request = new()
             {
-                CategoryId = fixedExpenseForm.CategoryId,
-                Name = fixedExpenseForm.Name,
-                Description = fixedExpenseForm.Description,
-                Amount = fixedExpenseForm.Amount,
-                Month = fixedExpenseForm.Month,
-                Year = fixedExpenseForm.Year
+                CategoryId = _fixedExpenseForm.CategoryId,
+                Name = _fixedExpenseForm.Name,
+                Description = _fixedExpenseForm.Description,
+                Amount = _fixedExpenseForm.Amount,
+                Month = _fixedExpenseForm.Month,
+                Year = _fixedExpenseForm.Year
             };
 
-            FixedExpenseResponseDTO? result = await APIService.CreateFixedExpenseAsync(request);
+            FixedExpenseModel? result = await APIService.CreateFixedExpenseAsync(request);
 
-            if (result == null)
+            if (result != null)
             {
-                ToastService.ShowError($"Error al crear el gasto fijo [{fixedExpenseForm.Name}].");
+                _fixedExpenseForm.IsModalOpen = false;
 
-                return;
+                await LoadData();
+                StateHasChanged();
             }
-
-            ToastService.ShowSuccess($"Gasto fijo [{fixedExpenseForm.Name}] creado correctamente.");
         }
 
         private async Task UpdateFixedExpenseAsync()
         {
             UpdateFixedExpenseRequestDTO request = new()
             {
-                Name = fixedExpenseForm.Name,
-                Description = fixedExpenseForm.Description,
-                Amount = fixedExpenseForm.Amount,
-                Month = fixedExpenseForm.Month,
-                Year = fixedExpenseForm.Year
+                Name = _fixedExpenseForm.Name,
+                Description = _fixedExpenseForm.Description,
+                Amount = _fixedExpenseForm.Amount,
+                Month = _fixedExpenseForm.Month,
+                Year = _fixedExpenseForm.Year
             };
 
-            FixedExpenseResponseDTO? result = await APIService.UpdateFixedExpenseAsync(fixedExpenseForm.Id, request);
+            FixedExpenseModel? result = await APIService.UpdateFixedExpenseAsync(_fixedExpenseForm.Id, request);
 
-            if (result == null)
+            if (result != null)
             {
-                ToastService.ShowError($"Error al actualizar el gasto fijo [{fixedExpenseForm.Name}].");
+                _fixedExpenseForm.IsModalOpen = false;
 
-                return;
+                await LoadData();
+                StateHasChanged();
             }
-
-            ToastService.ShowSuccess($"Gasto fijo [{fixedExpenseForm.Name}] actualizado correctamente.");
         }
 
         private async Task DeleteFixedExpenseAsync()
         {
-            bool success = await APIService.DeleteFixedExpenseAsync(fixedExpenseForm.Id);
+            bool success = await APIService.DeleteFixedExpenseAsync(_fixedExpenseForm.Id, _fixedExpenseForm.Name);
 
             if (!success)
             {
-                ToastService.ShowError($"Error al eliminar el gasto fijo [{fixedExpenseForm.Name}].");
+                _fixedExpenseForm.IsModalOpen = false;
 
-                return;
+                await LoadData();
+                StateHasChanged();
             }
-
-            ToastService.ShowSuccess($"Gasto fijo [{fixedExpenseForm.Name}] eliminado correctamente.");
         }
 
         // ================================================================
@@ -257,7 +254,7 @@ namespace UI.Pages
             (
                 new FixedExpenseModel()
                 {
-                    CategoryId = categories.FirstOrDefault()?.Id ?? 0,
+                    CategoryId = _categories.FirstOrDefault()?.Id ?? 0,
                     Month = DateTime.Now.Month,
                     Year = DateTime.Now.Year,
                 }, FormMode.Create
@@ -282,7 +279,7 @@ namespace UI.Pages
 
         private void FillFormFromModel(FixedExpenseModel fixedExpenseModel, FormMode mode)
         {
-            fixedExpenseForm = new FixedExpenseFormModel
+            _fixedExpenseForm = new FixedExpenseFormModel
             {
                 Id = fixedExpenseModel.Id,
                 CategoryId = fixedExpenseModel.CategoryId,
@@ -300,9 +297,9 @@ namespace UI.Pages
 
         private void CloseModal()
         {
-            fixedExpenseForm.IsModalOpen = false;
-            fixedExpenseForm.IsEditing = false;
-            fixedExpenseForm.IsDeleting = false;
+            _fixedExpenseForm.IsModalOpen = false;
+            _fixedExpenseForm.IsEditing = false;
+            _fixedExpenseForm.IsDeleting = false;
 
             InvokeAsync(StateHasChanged);
         }

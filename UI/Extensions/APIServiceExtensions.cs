@@ -1,6 +1,9 @@
 ﻿using Shared.DTOs.Request;
 using Shared.DTOs.Response;
-using UI.Services;
+using System.Xml.Linq;
+using UI.Extensions.Mappings;
+using UI.Models;
+using UI.Services.API;
 
 namespace UI.Extensions
 {
@@ -10,111 +13,303 @@ namespace UI.Extensions
         // CATEGORIES
         // ================================================================
 
-        public static async Task<List<CategoryResponseDTO>?> GetCategoriesAsync(this APIService api)
+        public static async Task<List<CategoryModel>?> GetCategoriesAsync(this APIService api)
         {
-            return await api.GetListAsync<CategoryResponseDTO>("/api/category");
+            APIResult<List<CategoryResponseDTO>> result = await api.GetListAsync<CategoryResponseDTO>("/api/category");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToCategoryModelList();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar las categorías.";
+
+            api.NotifyError(message);
+
+            return null;
         }
 
-        public static async Task<CategoryResponseDTO?> CreateCategoryAsync(this APIService api, CreateCategoryRequestDTO request)
+        public static async Task<CategoryModel?> CreateCategoryAsync(this APIService api, CreateCategoryRequestDTO request)
         {
-            return await api.PostAsync<CreateCategoryRequestDTO, CategoryResponseDTO>("/api/category", request);
+            APIResult<CategoryResponseDTO> result = await api.PostAsync<CreateCategoryRequestDTO, CategoryResponseDTO>("/api/category", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Categoría [{request.Name}] creada correctamente.");
+
+                return result.Data.ToCategoryModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al crear la categoría.";
+            api.NotifyError($"Error al crear la categoría [{request.Name}]: {message}");
+
+            return null;
         }
 
-        public static async Task<CategoryResponseDTO?> UpdateCategoryAsync(this APIService api, int id, UpdateCategoryRequestDTO request)
+        public static async Task<CategoryModel?> UpdateCategoryAsync(this APIService api, int id, UpdateCategoryRequestDTO request)
         {
-            return await api.PutAsync<UpdateCategoryRequestDTO, CategoryResponseDTO>($"/api/category/{id}", request);
+            APIResult<CategoryResponseDTO> result = await api.PutAsync<UpdateCategoryRequestDTO, CategoryResponseDTO>($"/api/category/{id}", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Categoría [{request.Name}] actualizada correctamente.");
+
+                return result.Data.ToCategoryModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al actualizar la categoría.";
+            api.NotifyError($"Error al actualizar la categoría [{request.Name}]: {message}");
+
+            return null;
         }
 
-        public static async Task<bool> DeleteCategoryAsync(this APIService api, int id)
+        public static async Task<bool> DeleteCategoryAsync(this APIService api, int id, string categoryName)
         {
-            return await api.DeleteAsync($"/api/category/{id}");
+            APIResult<bool> result = await api.DeleteAsync($"/api/category/{id}");
+
+            if (result.IsSuccess)
+            {
+                api.NotifySuccess($"Categoría [{categoryName}] eliminada correctamente.");
+
+                return true;
+            }
+
+            string message = result.ErrorMessage ?? "Error al eliminar la categoría.";
+            api.NotifyError($"Error al eliminar la categoría [{categoryName}]: {message}");
+
+            return false;
         }
 
         // ================================================================
         // TRANSACTIONS
         // ================================================================
 
-        public static async Task<List<TransactionResponseDTO>?> GetTransactionsAsync(this APIService api)
+        public static async Task<List<TransactionModel>?> GetTransactionsAsync(this APIService api)
         {
-            return await api.GetListAsync<TransactionResponseDTO>("/api/transaction");
+            APIResult<List<TransactionResponseDTO>> result = await api.GetListAsync<TransactionResponseDTO>("/api/transaction");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToTransactionModelList();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar las transacciones.";
+            api.NotifyError(message);
+
+            return null;
         }
 
-        public static async Task<TransactionResponseDTO?> CreateTransactionAsync(this APIService api, CreateTransactionRequestDTO request)
+        public static async Task<TransactionModel?> CreateTransactionAsync(this APIService api, CreateTransactionRequestDTO request)
         {
-            return await api.PostAsync<CreateTransactionRequestDTO, TransactionResponseDTO>("/api/transaction", request);
+            APIResult<TransactionResponseDTO> result = await api.PostAsync<CreateTransactionRequestDTO, TransactionResponseDTO>("/api/transaction", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Transacción [{request.Name}] creada correctamente.");
+                return result.Data.ToTransactionModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al crear la transacción.";
+            api.NotifyError($"Error al crear la transacción [{request.Name}]: {message}");
+
+            return null;
         }
 
-        public static async Task<TransactionResponseDTO?> UpdateTransactionAsync(this APIService api, int id, UpdateTransactionRequestDTO request)
+        public static async Task<TransactionModel?> UpdateTransactionAsync(this APIService api, int id, UpdateTransactionRequestDTO request)
         {
-            return await api.PutAsync<UpdateTransactionRequestDTO, TransactionResponseDTO>($"/api/transaction/{id}", request);
+            APIResult<TransactionResponseDTO> result = await api.PutAsync<UpdateTransactionRequestDTO, TransactionResponseDTO>($"/api/transaction/{id}", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Transacción [{request.Name}] actualizada correctamente.");
+                return result.Data.ToTransactionModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al actualizar la transacción.";
+            api.NotifyError($"Error al actualizar la transacción [{request.Name}]: {message}");
+
+            return null;
         }
 
-        public static async Task<bool> DeleteTransactionAsync(this APIService api, int id)
+        public static async Task<bool> DeleteTransactionAsync(this APIService api, int id, string name)
         {
-            return await api.DeleteAsync($"/api/transaction/{id}");
+            APIResult<bool> result = await api.DeleteAsync($"/api/transaction/{id}");
+
+            if (result.IsSuccess)
+            {
+                api.NotifySuccess($"Transacción [{name}] eliminada correctamente.");
+                return true;
+            }
+
+            string message = result.ErrorMessage ?? "Error al eliminar la transacción.";
+            api.NotifyError($"Error al eliminar la transacción [{name}]: {message}");
+
+            return false;
         }
 
         // ================================================================
         // BUDGETS
         // ================================================================
 
-        public static async Task<List<BudgetResponseDTO>?> GetBudgetsAsync(this APIService api)
+        public static async Task<List<BudgetModel>?> GetBudgetsAsync(this APIService api)
         {
-            return await api.GetListAsync<BudgetResponseDTO>("/api/budget");
+            APIResult<List<BudgetResponseDTO>> result = await api.GetListAsync<BudgetResponseDTO>("/api/budget");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToBudgetModelList();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar los presupuestos.";
+            api.NotifyError(message);
+
+            return null;
         }
 
-        public static async Task<BudgetResponseDTO?> CreateBudgetAsync(this APIService api, CreateBudgetRequestDTO request)
+        public static async Task<BulkBudgetModel?> CreateBulkBudgetAsync(this APIService api, CreateBulkBudgetRequestDTO request)
         {
-            return await api.PostAsync<CreateBudgetRequestDTO, BudgetResponseDTO>("/api/budget", request);
+            APIResult<BulkBudgetResponseDTO> result = await api.PostAsync<CreateBulkBudgetRequestDTO, BulkBudgetResponseDTO>("/api/budget/bulk", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Presupuestos creados correctamente para {request.Year}.");
+                return result.Data.ToBulkBudgetModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al crear los presupuestos.";
+            api.NotifyError(message);
+
+            return null;
         }
 
-        public static async Task<BudgetResponseDTO?> UpdateBudgetAsync(this APIService api, int id, UpdateBudgetRequestDTO request)
+        public static async Task<BulkBudgetModel?> UpdateBulkBudgetAsync(this APIService api, UpdateBulkBudgetRequestDTO request)
         {
-            return await api.PutAsync<UpdateBudgetRequestDTO, BudgetResponseDTO>($"/api/budget/{id}", request);
+            APIResult<BulkBudgetResponseDTO> result = await api.PutAsync<UpdateBulkBudgetRequestDTO, BulkBudgetResponseDTO>("/api/budget/bulk", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Presupuestos actualizados correctamente para {request.Year}.");
+                return result.Data.ToBulkBudgetModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al actualizar los presupuestos.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<BulkBudgetModel?> DeleteBulkBudgetAsync(this APIService api, DeleteBulkBudgetRequestDTO request)
+        {
+            APIResult<BulkBudgetResponseDTO> result = await api.DeleteAsync<BulkBudgetResponseDTO>("/api/budget/bulk", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Presupuestos eliminados correctamente.");
+                return result.Data.ToBulkBudgetModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al eliminar los presupuestos.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<BudgetModel?> UpdateBudgetAsync(this APIService api, int id, UpdateBudgetRequestDTO request)
+        {
+            APIResult<BudgetResponseDTO> result = await api.PutAsync<UpdateBudgetRequestDTO, BudgetResponseDTO>($"/api/budget/{id}", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToBudgetModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al actualizar el presupuesto.";
+            api.NotifyError(message);
+
+            return null;
         }
 
         public static async Task<bool> DeleteBudgetAsync(this APIService api, int id)
         {
-            return await api.DeleteAsync($"/api/budget/{id}");
-        }
+            APIResult<bool> result = await api.DeleteAsync($"/api/budget/{id}");
 
-        public static async Task<BulkBudgetResponseDTO?> CreateBulkBudgetAsync(this APIService api, CreateBulkBudgetRequestDTO request)
-        {
-            return await api.PostAsync<CreateBulkBudgetRequestDTO, BulkBudgetResponseDTO>("/api/budget/bulk", request);
-        }
+            if (result.IsSuccess)
+            {
+                return true;
+            }
 
-        public static async Task<BulkBudgetResponseDTO?> UpdateBulkBudgetAsync(this APIService api, UpdateBulkBudgetRequestDTO request)
-        {
-            return await api.PutAsync<UpdateBulkBudgetRequestDTO, BulkBudgetResponseDTO>("/api/budget/bulk", request);
-        }
+            string message = result.ErrorMessage ?? "Error al eliminar el presupuesto.";
+            api.NotifyError(message);
 
-        public static async Task<BulkBudgetResponseDTO?> DeleteBulkBudgetAsync(this APIService api, DeleteBulkBudgetRequestDTO request)
-        {
-            return await api.DeleteAsync<BulkBudgetResponseDTO>("/api/budget/bulk", request);
+            return false;
         }
 
         // ================================================================
         // FIXED EXPENSES
         // ================================================================
 
-        public static async Task<List<FixedExpenseResponseDTO>?> GetFixedExpensesAsync(this APIService api)
+        public static async Task<List<FixedExpenseModel>?> GetFixedExpensesAsync(this APIService api)
         {
-            return await api.GetListAsync<FixedExpenseResponseDTO>("/api/fixedexpense");
+            APIResult<List<FixedExpenseResponseDTO>> result = await api.GetListAsync<FixedExpenseResponseDTO>("/api/fixedexpense");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToFixedExpenseModelList();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar los gastos fijos.";
+            api.NotifyError(message);
+
+            return null;
         }
 
-        public static async Task<FixedExpenseResponseDTO?> CreateFixedExpenseAsync(this APIService api, CreateFixedExpenseRequestDTO request)
+        public static async Task<FixedExpenseModel?> CreateFixedExpenseAsync(this APIService api, CreateFixedExpenseRequestDTO request)
         {
-            return await api.PostAsync<CreateFixedExpenseRequestDTO, FixedExpenseResponseDTO>("/api/fixedexpense", request);
+            APIResult<FixedExpenseResponseDTO> result = await api.PostAsync<CreateFixedExpenseRequestDTO, FixedExpenseResponseDTO>("/api/fixedexpense", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Gasto fijo [{request.Name}] creado correctamente.");
+                return result.Data.ToFixedExpenseModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al crear el gasto fijo.";
+            api.NotifyError($"Error al crear el gasto fijo [{request.Name}]: {message}");
+            return null;
         }
 
-        public static async Task<FixedExpenseResponseDTO?> UpdateFixedExpenseAsync(this APIService api, int id, UpdateFixedExpenseRequestDTO request)
+        public static async Task<FixedExpenseModel?> UpdateFixedExpenseAsync(this APIService api, int id, UpdateFixedExpenseRequestDTO request)
         {
-            return await api.PutAsync<UpdateFixedExpenseRequestDTO, FixedExpenseResponseDTO>($"/api/fixedexpense/{id}", request);
+            APIResult<FixedExpenseResponseDTO> result = await api.PutAsync<UpdateFixedExpenseRequestDTO, FixedExpenseResponseDTO>($"/api/fixedexpense/{id}", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                api.NotifySuccess($"Gasto fijo [{request.Name}] actualizado correctamente.");
+
+                return result.Data.ToFixedExpenseModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al actualizar el gasto fijo.";
+            api.NotifyError($"Error al actualizar el gasto fijo [{request.Name}]: {message}");
+
+            return null;
         }
 
-        public static async Task<bool> DeleteFixedExpenseAsync(this APIService api, int id)
+        public static async Task<bool> DeleteFixedExpenseAsync(this APIService api, int id, string name)
         {
-            return await api.DeleteAsync($"/api/fixedexpense/{id}");
+            APIResult<bool> result = await api.DeleteAsync($"/api/fixedexpense/{id}");
+
+            if (result.IsSuccess)
+            {
+                api.NotifySuccess($"Gasto fijo [{name}] eliminado correctamente.");
+
+                return true;
+            }
+
+            string message = result.ErrorMessage ?? "Error al eliminar el gasto fijo.";
+            api.NotifyError($"Error al eliminar el gasto fijo [{name}]: {message}");
+
+            return false;
         }
     }
 }

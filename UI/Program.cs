@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using MudBlazor.Services;
 using UI.Services;
+using UI.Services.API;
 using UI.Services.Interfaces;
 
 namespace UI

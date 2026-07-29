@@ -36,5 +36,18 @@ namespace UI.Extensions
                 _ => entityName
             };
         }
+
+        public static string GetModalWrapperClass(this FormMode mode, bool isModalOpen)
+        {
+            if (!isModalOpen) return string.Empty;
+
+            return mode switch
+            {
+                FormMode.Delete => "modal-open-delete",
+                FormMode.Edit => "modal-open",
+                FormMode.Create => "modal-open",
+                _ => "modal-open"
+            };
+        }
     }
 }

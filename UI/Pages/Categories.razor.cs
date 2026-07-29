@@ -4,7 +4,8 @@ using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using UI.Extensions;
 using UI.Models;
-using UI.Services;
+using UI.Models.Forms;
+using UI.Services.API;
 using UI.Services.Interfaces;
 using UI.Shared;
 
@@ -26,9 +27,9 @@ namespace UI.Pages
         // 2. MODELOS Y ESTADO
         // ================================================================
 
-        private List<CategoryModel> categories = new();
-        private List<CategoryModel> filteredCategories = new();
-        private CategoryFormModel categoryForm = new();
+        private List<CategoryModel> _categories = new();
+        private List<CategoryModel> _filteredCategories = new();
+        private CategoryFormModel _categoryForm = new();
 
         // ================================================================
         // 3. FILTROS Y PROPIEDADES CON SETTER
@@ -80,15 +81,14 @@ namespace UI.Pages
         {
             try
             {
-                List<CategoryResponseDTO>? dtoList = await APIService.GetCategoriesAsync();
-                categories = dtoList?.ToCategoryModelList() ?? new List<CategoryModel>();
+                _categories = await APIService.GetCategoriesAsync() ?? new List<CategoryModel>();
             }
             catch (Exception ex)
             {
                 await LogService.LogErrorAsync($"Error al cargar categorías", ex);
 
                 ToastService.ShowError("Error al cargar las categorías.");
-                categories = [];
+                _categories = new List<CategoryModel>();
             }
             finally
             {
@@ -103,7 +103,7 @@ namespace UI.Pages
 
         private void ApplyFilters()
         {
-            filteredCategories = categories
+            _filteredCategories = _categories
                 .Where(c => string.IsNullOrEmpty(searchTerm) ||
                              c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                              (c.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
@@ -126,11 +126,11 @@ namespace UI.Pages
         {
             try
             {
-                if (categoryForm.IsDeleting)
+                if (_categoryForm.IsDeleting)
                 {
                     await DeleteCategoryAsync();
                 }
-                else if (categoryForm.IsEditing)
+                else if (_categoryForm.IsEditing)
                 {
                     await UpdateCategoryAsync();
                 }
@@ -139,8 +139,8 @@ namespace UI.Pages
                     await CreateCategoryAsync();
                 }
 
-                categoryForm.IsModalOpen = false;
-                categoryForm.IsDeleting = false;
+                _categoryForm.IsModalOpen = false;
+                _categoryForm.IsDeleting = false;
 
                 await LoadCategories();
                 await InvokeAsync(StateHasChanged);
@@ -156,56 +156,56 @@ namespace UI.Pages
         {
             CreateCategoryRequestDTO request = new()
             {
-                Name = categoryForm.Name,
-                Description = categoryForm.Description,
-                Nature = categoryForm.Nature
+                Name = _categoryForm.Name,
+                Description = _categoryForm.Description,
+                Nature = _categoryForm.Nature
             };
 
-            CategoryResponseDTO? result = await APIService.CreateCategoryAsync(request);
+            CategoryModel? result = await APIService.CreateCategoryAsync(request);
 
             if (result == null)
             {
-                ToastService.ShowError($"Error al crear la categoría [{categoryForm.Name}].");
+                ToastService.ShowError($"Error al crear la categoría [{_categoryForm.Name}].");
 
                 return;
             }
 
-            ToastService.ShowSuccess($"Categoría [{categoryForm.Name}] creada correctamente.");
+            ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] creada correctamente.");
         }
 
         private async Task UpdateCategoryAsync()
         {
             UpdateCategoryRequestDTO request = new()
             {
-                Name = categoryForm.Name,
-                Description = categoryForm.Description,
-                Nature = categoryForm.Nature
+                Name = _categoryForm.Name,
+                Description = _categoryForm.Description,
+                Nature = _categoryForm.Nature
             };
 
-            CategoryResponseDTO? result = await APIService.UpdateCategoryAsync(categoryForm.Id, request);
+            CategoryModel? result = await APIService.UpdateCategoryAsync(_categoryForm.Id, request);
 
             if (result == null)
             {
-                ToastService.ShowError($"Error al actualizar la categoría [{categoryForm.Name}].");
+                ToastService.ShowError($"Error al actualizar la categoría [{_categoryForm.Name}].");
 
                 return;
             }
 
-            ToastService.ShowSuccess($"Categoría [{categoryForm.Name}] actualizada correctamente.");
+            ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] actualizada correctamente.");
         }
 
         private async Task DeleteCategoryAsync()
         {
-            bool success = await APIService.DeleteCategoryAsync(categoryForm.Id);
+            bool success = await APIService.DeleteCategoryAsync(_categoryForm.Id, _categoryForm.Name);
 
             if (!success)
             {
-                ToastService.ShowError($"Error al eliminar la categoría [{categoryForm.Name}].");
+                ToastService.ShowError($"Error al eliminar la categoría [{_categoryForm.Name}].");
 
                 return;
             }
 
-            ToastService.ShowSuccess($"Categoría [{categoryForm.Name}] eliminada correctamente.");
+            ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] eliminada correctamente.");
         }
 
         // ================================================================
@@ -235,7 +235,7 @@ namespace UI.Pages
 
         private void FillFormFromModel(CategoryModel model, FormMode mode)
         {
-            categoryForm = new CategoryFormModel
+            _categoryForm = new CategoryFormModel
             {
                 Id = model.Id,
                 Name = model.Name,
@@ -249,9 +249,9 @@ namespace UI.Pages
 
         private void CloseModal()
         {
-            categoryForm.IsModalOpen = false;
-            categoryForm.IsEditing = false;
-            categoryForm.IsDeleting = false;
+            _categoryForm.IsModalOpen = false;
+            _categoryForm.IsEditing = false;
+            _categoryForm.IsDeleting = false;
 
             InvokeAsync(StateHasChanged);
         }

@@ -1,8 +1,9 @@
-﻿using Shared.DTOs.Request;
-using Shared.DTOs.Response;
-using AutoMapper;
+﻿using AutoMapper;
+using Contracts.Enums;
 using Domain.Entities;
 using Domain.ValueObjects;
+using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 
 namespace Application.Mappings
 {
@@ -19,7 +20,6 @@ namespace Application.Mappings
             CreateMap<Category, CategoryResponseDTO>()
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Info.Name))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Info.Description))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId))
                 .ForMember(dest => dest.Nature, opt => opt.MapFrom(src => src.Nature));
 
             // Request DTO → Domain (solo para el constructor)
@@ -49,8 +49,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Amount.Currency))
                 .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.ChargePeriod.Year))
                 .ForMember(dest => dest.Month, opt => opt.MapFrom(src => src.ChargePeriod.Month))
-                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Info.Name : string.Empty))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
+                .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Info.Name : string.Empty));
 
             // Request DTO → Domain
             CreateMap<CreateFixedExpenseRequestDTO, FixedExpense>()
@@ -74,8 +73,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Year, opt => opt.MapFrom(src => src.Period.Year))
                 .ForMember(dest => dest.Month, opt => opt.MapFrom(src => src.Period.Month))
                 .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.MonthlyAmount.Value))
-                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.MonthlyAmount.Currency))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
+                .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.MonthlyAmount.Currency));
 
             // Request DTO → Domain
             CreateMap<CreateBudgetRequestDTO, Budget>()
@@ -97,12 +95,12 @@ namespace Application.Mappings
             // Domain → Response
             CreateMap<Transaction, TransactionResponseDTO>()
                 .ForMember(dest => dest.CategoryName, opt => opt.MapFrom(src => src.Category != null ? src.Category.Info.Name : string.Empty))
+                .ForMember(dest => dest.CategoryNature, opt => opt.MapFrom(src => src.Category != null ? src.Category.Nature : CategoryNatureEnum.Expense))
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Info.Name))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Info.Description))
                 .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.Value))
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Amount.Currency))
-                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToDateTime()))
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.UserId));
+                .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToDateTime()));
 
 
             // Request → Domain

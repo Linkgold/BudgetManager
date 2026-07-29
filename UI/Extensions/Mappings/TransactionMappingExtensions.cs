@@ -2,7 +2,7 @@
 using Shared.DTOs.Response;
 using UI.Models;
 
-namespace UI.Extensions
+namespace UI.Extensions.Mappings
 {
     public static class TransactionMappingExtensions
     {
@@ -13,10 +13,7 @@ namespace UI.Extensions
 
         public static List<TransactionModel> ToTransactionModelList(this IEnumerable<TransactionResponseDTO> dtos)
         {
-            return dtos
-                .Select(dto => dto.ToTransactionModel())
-                .OrderByDescending(t => t.Date)
-                .ToList();
+            return dtos.Select(dto => dto.ToTransactionModel()).OrderByDescending(t => t.Date).ToList();
         }
     }
 }

@@ -2,9 +2,11 @@
 using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using UI.Extensions;
+using UI.Extensions.Mappings;
 using UI.Helpers;
 using UI.Models;
-using UI.Services;
+using UI.Models.Forms;
+using UI.Services.API;
 using UI.Services.Interfaces;
 using UI.Shared;
 
@@ -128,16 +130,6 @@ namespace UI.Pages
 
         protected override async Task OnInitializedAsync()
         {
-            /*// 🔥 Inicializar el diccionario del formulario con todos los meses
-            budgetForm = new BudgetFormModel { MonthlyAmounts = MonthHelper.Months.ToDictionary(m => m.Value, m => 0m) };
-
-            // 🔥 Años (desde 2020 hasta 2030)
-            _years = new List<int>();
-            for (int year = 2020; year <= 2050; year++)
-            {
-                _years.Add(year);
-            }*/
-
             await LoadData();
         }
 
@@ -150,12 +142,10 @@ namespace UI.Pages
             try
             {
                 // Cargar categorías
-                List<CategoryResponseDTO>? categoryDtos = await APIService.GetCategoriesAsync();
-                _allCategories = categoryDtos?.ToCategoryModelList() ?? new List<CategoryModel>();
+                _allCategories = await APIService.GetCategoriesAsync() ?? new List<CategoryModel>();
 
                 // Cargar presupuestos
-                List<BudgetResponseDTO>? budgetDtos = await APIService.GetBudgetsAsync();
-                _allBudgets = budgetDtos?.ToBudgetModelList() ?? new List<BudgetModel>();
+                _allBudgets = await APIService.GetBudgetsAsync() ?? new List<BudgetModel>();
 
                 // Inicializar años (2020-2050)
                 _years = new List<int>();
@@ -310,7 +300,7 @@ namespace UI.Pages
                 ).ToList()
             };
 
-            BulkBudgetResponseDTO? result = await APIService.CreateBulkBudgetAsync(request);
+            BulkBudgetModel? result = await APIService.CreateBulkBudgetAsync(request);
 
             if (result == null)
             {
@@ -347,7 +337,7 @@ namespace UI.Pages
                 ).ToList()
             };
 
-            BulkBudgetResponseDTO? result = await APIService.UpdateBulkBudgetAsync(request);
+            BulkBudgetModel? result = await APIService.UpdateBulkBudgetAsync(request);
 
             if (result == null)
             {
@@ -410,7 +400,7 @@ namespace UI.Pages
                 MonthsToDelete = monthsWithBudget
             };
 
-            BulkBudgetResponseDTO? result = await APIService.DeleteBulkBudgetAsync(deleteRequest);
+            BulkBudgetModel? result = await APIService.DeleteBulkBudgetAsync(deleteRequest);
 
             if (result == null)
             {
@@ -459,7 +449,7 @@ namespace UI.Pages
 
             UpdateBudgetRequestDTO request = new() { Amount = newAmount };
 
-            BudgetResponseDTO? result = await APIService.UpdateBudgetAsync(existingBudget.Id, request);
+            BudgetModel? result = await APIService.UpdateBudgetAsync(existingBudget.Id, request);
             if (result == null)
             {
                 return false;

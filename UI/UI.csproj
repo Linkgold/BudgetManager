@@ -13,7 +13,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="Extensions\CategoryMappingExtensions.cs" />
+    <None Include="Extensions\Mappings\CategoryMappingExtensions.cs" />
   </ItemGroup>
 
   <ItemGroup>

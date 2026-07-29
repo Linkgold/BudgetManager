@@ -2,7 +2,7 @@
 using Shared.DTOs.Response;
 using UI.Models;
 
-namespace UI.Extensions
+namespace UI.Extensions.Mappings
 {
     public static class CategoryMappingExtensions
     {
@@ -12,11 +12,10 @@ namespace UI.Extensions
             return dtos.Select(dto => dto.ToCategoryModel()).OrderBy(c => c.Name).ToList();
         }
 
-        public static List<CategoryModel> ToExpenseMixedCategoryModelList(this IEnumerable<CategoryResponseDTO> dtos)
+        public static List<CategoryModel> ToExpenseMixedCategoryModelList(this IEnumerable<CategoryModel> models)
         {
-            return dtos
+            return models
                 .Where(c => c.Nature == CategoryNatureEnum.Expense || c.Nature == CategoryNatureEnum.Mixed)
-                .Select(dto => dto.ToCategoryModel())
                 .OrderBy(c => c.Name)
                 .ToList();
         }

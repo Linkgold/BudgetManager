@@ -1,13 +1,12 @@
 ﻿using Microsoft.AspNetCore.Components;
-using Shared.DTOs.Request;
-using Shared.DTOs.Response;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using UI.Models.API;
 using UI.Services.Interfaces;
 
-namespace UI.Services
+namespace UI.Services.API
 {
     public class APIService
     {
@@ -15,14 +14,23 @@ namespace UI.Services
         private readonly ILogService _logService;
         private readonly IAuthService _authService;
         private readonly NavigationManager _navigationManager;
+        private readonly IToastService _toastService;
         private readonly JsonSerializerOptions _jsonOptions;
 
-        public APIService(HttpClient httpClient, IAuthService authService, NavigationManager navigationManager, ILogService logService)
+        public APIService
+        (
+            HttpClient httpClient, 
+            IAuthService authService, 
+            NavigationManager navigationManager, 
+            ILogService logService,
+            IToastService toastService
+        )
         {
             _httpClient = httpClient;
             _authService = authService;
             _navigationManager = navigationManager;
             _logService = logService;
+            _toastService = toastService;
             _jsonOptions = new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true,
@@ -34,7 +42,7 @@ namespace UI.Services
         // MÉTODOS GENÉRICOS CON AUTENTICACIÓN
         // ================================================================
 
-        public async Task<T?> GetAsync<T>(string endpoint) where T : class
+        public async Task<APIResult<List<T>>> GetListAsync<T>(string endpoint) where T : class
         {
             try
             {
@@ -42,12 +50,14 @@ namespace UI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadFromJsonAsync<T>(_jsonOptions);
+                    List<T>? data = await response.Content.ReadFromJsonAsync<List<T>>(_jsonOptions);
+
+                    return APIResult<List<T>>.Success(data ?? new List<T>());
                 }
 
-                await LogErrorAsync($"GET {endpoint}", response);
+                ApiErrorResponse? error = await ParseErrorResponse(response);
 
-                return null;
+                return APIResult<List<T>>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
             }
             catch (UnauthorizedAccessException)
             {
@@ -57,51 +67,28 @@ namespace UI.Services
             {
                 await _logService.LogErrorAsync($"Error en GET {endpoint}", ex);
 
-                return null;
+                return APIResult<List<T>>.Failure(500, "Ocurrió un error inesperado.");
             }
         }
 
-        public async Task<List<T>?> GetListAsync<T>(string endpoint) where T : class
-        {
-            try
-            {
-                HttpResponseMessage response = await GetCall(endpoint);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return await response.Content.ReadFromJsonAsync<List<T>>(_jsonOptions);
-                }
-
-                await LogErrorAsync($"GET {endpoint}", response);
-
-                return null;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await _logService.LogErrorAsync($"Error en GET {endpoint}", ex);
-
-                return null;
-            }
-        }
-
-        public async Task<TResponse?> PostAsync<TRequest, TResponse>(string endpoint, TRequest request)
+        public async Task<APIResult<TResponse>> PostAsync<TRequest, TResponse>(string endpoint, TRequest request)
             where TRequest : class
             where TResponse : class
         {
             try
             {
                 HttpResponseMessage response = await PostCall(endpoint, request);
+
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadFromJsonAsync<TResponse>(_jsonOptions);
+                    TResponse? data = await response.Content.ReadFromJsonAsync<TResponse>(_jsonOptions);
+                    
+                    return APIResult<TResponse>.Success(data!);
                 }
 
-                await LogErrorAsync($"POST {endpoint}", response);
-                return null;
+                ApiErrorResponse? error = await ParseErrorResponse(response);
+
+                return APIResult<TResponse>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
             }
             catch (UnauthorizedAccessException)
             {
@@ -111,38 +98,11 @@ namespace UI.Services
             {
                 await _logService.LogErrorAsync($"Error en POST {endpoint}", ex);
 
-                return null;
+                return APIResult<TResponse>.Failure(500, "Ocurrió un error inesperado.");
             }
         }
 
-        public async Task<bool> PostAsync<TRequest>(string endpoint, TRequest request) where TRequest : class
-        {
-            try
-            {
-                HttpResponseMessage response = await PostCall(endpoint, request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-
-                await LogErrorAsync($"POST {endpoint}", response);
-
-                return false;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await _logService.LogErrorAsync($"Error en POST {endpoint}", ex);
-
-                return false;
-            }
-        }
-
-        public async Task<TResponse?> PutAsync<TRequest, TResponse>(string endpoint, TRequest request)
+        public async Task<APIResult<TResponse>> PutAsync<TRequest, TResponse>(string endpoint, TRequest request)
             where TRequest : class
             where TResponse : class
         {
@@ -152,12 +112,14 @@ namespace UI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadFromJsonAsync<TResponse>(_jsonOptions);
+                    TResponse? data = await response.Content.ReadFromJsonAsync<TResponse>(_jsonOptions);
+
+                    return APIResult<TResponse>.Success(data!);
                 }
 
-                await LogErrorAsync($"PUT {endpoint}", response);
+                ApiErrorResponse? error = await ParseErrorResponse(response);
 
-                return null;
+                return APIResult<TResponse>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
             }
             catch (UnauthorizedAccessException)
             {
@@ -167,38 +129,11 @@ namespace UI.Services
             {
                 await _logService.LogErrorAsync($"Error en PUT {endpoint}", ex);
 
-                return null;
+                return APIResult<TResponse>.Failure(500, "Ocurrió un error inesperado.");
             }
         }
 
-        public async Task<bool> PutAsync<TRequest>(string endpoint, TRequest request) where TRequest : class
-        {
-            try
-            {
-                HttpResponseMessage response = await PutCall(endpoint, request);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return true;
-                }
-
-                await LogErrorAsync($"PUT {endpoint}", response);
-
-                return false;
-            }
-            catch (UnauthorizedAccessException)
-            {
-                throw;
-            }
-            catch (Exception ex)
-            {
-                await _logService.LogErrorAsync($"Error en PUT {endpoint}", ex);
-
-                return false;
-            }
-        }
-
-        public async Task<bool> DeleteAsync(string endpoint)
+        public async Task<APIResult<bool>> DeleteAsync(string endpoint)
         {
             try
             {
@@ -206,12 +141,12 @@ namespace UI.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return true;
+                    return APIResult<bool>.Success(true);
                 }
 
-                await LogErrorAsync($"DELETE {endpoint}", response);
+                ApiErrorResponse? error = await ParseErrorResponse(response);
 
-                return false;
+                return APIResult<bool>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
             }
             catch (UnauthorizedAccessException)
             {
@@ -221,11 +156,11 @@ namespace UI.Services
             {
                 await _logService.LogErrorAsync($"Error en DELETE {endpoint}", ex);
 
-                return false;
+                return APIResult<bool>.Failure(500, "Ocurrió un error inesperado.");
             }
         }
 
-        public async Task<T?> DeleteAsync<T>(string endpoint, object? request = null) where T : class
+        public async Task<APIResult<T>> DeleteAsync<T>(string endpoint, object? request = null) where T : class
         {
             try
             {
@@ -241,16 +176,18 @@ namespace UI.Services
                     httpRequest.Content = new StringContent(json, Encoding.UTF8, "application/json");
                 }
 
-                    HttpResponseMessage response = await DeleteCall(httpRequest);
+                HttpResponseMessage response = await DeleteCall(httpRequest);
 
-                    if (response.IsSuccessStatusCode)
-                    {
-                        return await response.Content.ReadFromJsonAsync<T>(_jsonOptions);
-                    }
+                if (response.IsSuccessStatusCode)
+                {
+                    T? data = await response.Content.ReadFromJsonAsync<T>(_jsonOptions);
 
-                    await LogErrorAsync($"DELETE {endpoint}", response);
+                    return APIResult<T>.Success(data!);
+                }
 
-                return null;
+                ApiErrorResponse? error = await ParseErrorResponse(response);
+
+                return APIResult<T>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
             }
             catch (UnauthorizedAccessException)
             {
@@ -260,7 +197,7 @@ namespace UI.Services
             {
                 await _logService.LogErrorAsync($"Error en DELETE {endpoint}", ex);
 
-                return null;
+                return APIResult<T>.Failure(500, "Ocurrió un error inesperado.");
             }
         }
 
@@ -290,17 +227,39 @@ namespace UI.Services
             return response;
         }
 
-
         private async Task<HttpResponseMessage> GetCall(string endpoint) => await SendAuthenticatedRequestAsync(() => _httpClient.GetAsync(endpoint));
         private async Task<HttpResponseMessage> PostCall<TRequest>(string endpoint, TRequest request) where TRequest : class => await SendAuthenticatedRequestAsync(() => _httpClient.PostAsJsonAsync(endpoint, request, _jsonOptions));
         private async Task<HttpResponseMessage> PutCall<TRequest>(string endpoint, TRequest request) where TRequest : class => await SendAuthenticatedRequestAsync(() => _httpClient.PutAsJsonAsync(endpoint, request, _jsonOptions));
         private async Task<HttpResponseMessage> DeleteCall(string endpoint) => await SendAuthenticatedRequestAsync(() => _httpClient.DeleteAsync(endpoint));
         private async Task<HttpResponseMessage> DeleteCall(HttpRequestMessage httpRequest) => await SendAuthenticatedRequestAsync(() => _httpClient.SendAsync(httpRequest));
 
-        private async Task LogErrorAsync(string operation, HttpResponseMessage response)
+        private async Task<ApiErrorResponse?> ParseErrorResponse(HttpResponseMessage response)
         {
-            string content = await response.Content.ReadAsStringAsync();
-            await _logService.LogErrorAsync($"API Error - {operation} - Status: {response.StatusCode}", new Exception(content));
+            try
+            {
+                string content = await response.Content.ReadAsStringAsync();
+
+                await _logService.LogErrorAsync($"API Error - Status: {response.StatusCode}", new Exception(content));
+
+                return JsonSerializer.Deserialize<ApiErrorResponse>(content, _jsonOptions);
+            }
+            catch
+            {
+                return new ApiErrorResponse
+                {
+                    Message = response.ReasonPhrase ?? "Error en la petición",
+                    StatusCode = (int)response.StatusCode
+                };
+            }
+        }
+        public void NotifySuccess(string message)
+        {
+            _toastService.ShowSuccess(message);
+        }
+
+        public void NotifyError(string message)
+        {
+            _toastService.ShowError(message);
         }
     }
 }
