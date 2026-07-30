@@ -73,3 +73,24 @@ select.form-control {
         cursor: not-allowed;
         background-color: var(--color-surface-light) !important;
     }
+
+/* ==================== INPUTS DE CONTRASEÑA ==================== */
+/* 🔐 Mejora de visibilidad del icono de "ojo" en modo oscuro */
+
+input[type="password"].password-reveal {
+    accent-color: var(--color-accent) !important;
+    caret-color: var(--color-text) !important;
+}
+
+/* Tema oscuro: Estilos agresivos para mayor visibilidad */
+:root input[type="password"].password-reveal,
+.dark-theme input[type="password"].password-reveal {
+    filter: brightness(1.2) contrast(1.1) !important;
+    color-scheme: dark !important;
+}
+
+/* Tema claro: Sin filtro adicional */
+.light-theme input[type="password"].password-reveal {
+    filter: none !important;
+    color-scheme: light !important;
+}

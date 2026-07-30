@@ -1,4 +1,5 @@
 ﻿using Application.Interfaces;
+using Crypt = BCrypt.Net.BCrypt;
 using Contracts.Enums;
 using Domain.Entities;
 using Domain.Interfaces;
@@ -40,7 +41,6 @@ namespace Tests.Helpers
         public const string DEFAULT_ENTITY_INFO_DESCRIPTION = "Gastos de supermercado";
         public const decimal DEFAULT_MONEY_AMOUNT = 100.00m;
         public const string DEFAULT_CURRENCY = "EUR";
-
 
         // ==================== USUARIOS ====================
 
@@ -369,8 +369,6 @@ namespace Tests.Helpers
             mock.Setup(service => service.Email).Returns((string)null);
         }
 
-
-
         // MÉTODOS PARA API
 
         public static async Task<int> CreateCategoryAsync(ApiTestFixture fixture, string name, CategoryNatureEnum nature = CategoryNatureEnum.Expense)
@@ -419,12 +417,12 @@ namespace Tests.Helpers
 
         public static async Task<int> CreateFixedExpenseAsync
         (
-            ApiTestFixture fixture, 
-            int categoryId, 
-            string name, 
+            ApiTestFixture fixture,
+            int categoryId,
+            string name,
             decimal amount,
             string currency,
-            int year, 
+            int year,
             int month
         )
         {
@@ -476,6 +474,63 @@ namespace Tests.Helpers
             TransactionResponseDTO? transaction = fixture.DeserializeResponse<TransactionResponseDTO?>(responseContent);
 
             return transaction?.Id ?? -1;
+        }
+
+        public static string GetUserName(string uniqueId)
+        {
+            return $"TestUser_{uniqueId}";
+        }
+
+        public static string GetEmail(string uniqueId)
+        {
+            return $"test_{uniqueId}@example.com";
+        }
+
+        public static async Task<string> RegisterTestUserAsync(ApiTestFixture fixture)
+        {
+            string _testUser = string.Empty;
+            string _testEmail = string.Empty;
+            string _testPassword = string.Empty;
+            string uniqueId = Guid.NewGuid().ToString("N").Substring(0, 6);
+            string userName = $"TestUser_{uniqueId}";
+            string email = $"test_{uniqueId}@example.com";
+
+            // 🔥 Obtener el usuario del fixture (el que tiene Id = 1)
+            User? user = await fixture.DbContext.Users.FindAsync(1);
+            if (user == null)
+            {
+                // Si no existe, crearlo
+                UserInfo userInfo = new UserInfo("TestUser", "test@example.com");
+                User newUser = new User(userInfo, Crypt.HashPassword("Password123!"));
+                fixture.DbContext.Users.Add(newUser);
+                await fixture.DbContext.SaveChangesAsync();
+                _testEmail = "test@example.com";
+                _testPassword = "Password123!";
+                return uniqueId;
+            }
+
+            // 🔥 Actualizar el usuario existente con datos de prueba
+            user.Update(new UserInfo(userName, email));
+            user.UpdatePassword(Crypt.HashPassword("Password123!"));
+            await fixture.DbContext.SaveChangesAsync();
+
+            return uniqueId;
+        }
+
+        public static async Task<string> GetTokenAsync(ApiTestFixture fixture, HttpClient client, string uniqueId)
+        {
+            LoginRequestDTO request = new LoginRequestDTO
+            {
+                Email = "test_{uniqueId}@example.com",
+                Password = DEFAULT_PASSWORD
+            };
+
+            StringContent content = fixture.SerializeRequest(request);
+            HttpResponseMessage response = await client.PostAsync("/api/user/login", content);
+            string responseContent = await response.Content.ReadAsStringAsync();
+            LoginResponseDTO? loginResponse = fixture.DeserializeResponse<LoginResponseDTO>(responseContent);
+
+            return loginResponse?.Token ?? string.Empty;
         }
     }
 }

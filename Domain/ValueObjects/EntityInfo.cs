@@ -19,7 +19,7 @@
             Description = description?.Trim();
         }
 
-        public bool Equals(EntityInfo other)
+        public bool Equals(EntityInfo? other)
         {
             if (other is null) return false;
             //return Name == other.Name && Description == other.Description;
@@ -29,7 +29,7 @@
                    string.Equals(Description ?? "", other.Description ?? "", StringComparison.InvariantCultureIgnoreCase);
         }
 
-        public override bool Equals(object obj) => Equals(obj as EntityInfo);
+        public override bool Equals(object? obj) => obj is EntityInfo other && Equals(other);
 
         public override int GetHashCode()
         {

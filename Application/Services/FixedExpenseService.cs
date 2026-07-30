@@ -1,10 +1,11 @@
-﻿using Shared.DTOs.Request;
-using Shared.DTOs.Response;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
+using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 
 namespace Application.Services
 {
@@ -105,17 +106,20 @@ namespace Application.Services
         {
             ArgumentNullException.ThrowIfNull(request);
 
-            // Validar que la categoría existe
-            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId, withTracking: true);
-            if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
-
-            // Validar que no exista un gasto fijo con el mismo nombre en la misma categoría
-            // Nota: Esto es opcional, pero ayuda a evitar duplicados
-            // Podrías añadir un método en el repositorio para verificar por nombre y categoría
-
             // 🔥 Obtener el User completo
             User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
             if (user == null) throw new KeyNotFoundException($"User with ID {UserId} not found");
+
+            // ✅ Validar que la categoría existe
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId, withTracking: true);
+            if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
+
+            // ✅ Validar que no exista un gasto fijo con la misma combinación
+            bool exists = await _fixedExpenseRepository.ExistsByCategoryNameMonthYearAsync(UserId, request.CategoryId, request.Name, request.Month, request.Year);
+            if (exists)
+            {
+                throw new ConflictException($"Ya existe un gasto fijo con el nombre '{request.Name}' en la categoría seleccionada para {request.Month}/{request.Year}.");
+            }
 
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
@@ -138,12 +142,20 @@ namespace Application.Services
 
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
 
+            // ✅ Validar que la categoría existe
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId);
+            if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
+
+            // ✅ Validar que no exista un gasto fijo con la misma combinación
+            bool exists = await _fixedExpenseRepository.ExistsByCategoryNameMonthYearAsync(UserId, request.CategoryId, request.Name, request.Month, request.Year, id);
+            if (exists)
+            {
+                throw new ConflictException($"Ya existe un gasto fijo con el nombre '{request.Name}' en la categoría seleccionada para {request.Month}/{request.Year}.");
+            }
+
             // Obtener el gasto fijo existente
             FixedExpense? fixedExpense = await _fixedExpenseRepository.GetByIdAsync(UserId, id);
             if (fixedExpense == null) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
-
-            // Validar que el nuevo nombre no esté siendo usado por otro gasto fijo en la misma categoría
-            // (opcional, depende de tus reglas de negocio)
 
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);

@@ -164,6 +164,29 @@ namespace Infrastructure.Repositories
             return exists;
         }
 
+        public async Task<bool> ExistsByCategoryNameMonthYearAsync(int userId, int categoryId, string name, int month, int year, int? excludeId = null)
+        {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
+            if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name cannot be empty", nameof(name));
+
+            IQueryable<FixedExpense> query = _dbSet
+                .AsNoTracking()
+                .Where(f => f.UserId == userId &&
+                            f.CategoryId == categoryId &&
+                            f.Info.Name == name &&
+                            f.ChargePeriod.Month == month &&
+                            f.ChargePeriod.Year == year);
+
+            // ✅ Excluir el ID actual para evitar que se detecte a sí mismo en caso de update
+            if (excludeId.HasValue)
+            {
+                query = query.Where(f => f.Id != excludeId.Value);
+            }
+
+            return await query.AnyAsync();
+        }
+
         // ==================== MÉTODOS DE ESCRITURA ====================
 
         public async Task AddAsync(FixedExpense fixedExpense)

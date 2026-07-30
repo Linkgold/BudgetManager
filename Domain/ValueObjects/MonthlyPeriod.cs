@@ -41,8 +41,8 @@
             if (other is null) return false;
             return Year == other.Year && Month == other.Month;
         }
-
-        public override bool Equals(object obj) => Equals(obj as MonthlyPeriod);
+        
+        public override bool Equals(object? obj) => obj is MonthlyPeriod other && Equals(other);
 
         public override int GetHashCode() => HashCode.Combine(Year, Month);
 

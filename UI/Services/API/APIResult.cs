@@ -20,8 +20,22 @@ namespace UI.Services.API
         {
             IsSuccess = false,
             StatusCode = statusCode,
-            ErrorMessage = message,
+            ErrorMessage = message ?? GetDefaultMessageForStatusCode(statusCode),
             ValidationErrors = errors
         };
+
+        private static string GetDefaultMessageForStatusCode(int statusCode)
+        {
+            return statusCode switch
+            {
+                400 => "Solicitud incorrecta.",
+                401 => "No autorizado.",
+                404 => "Recurso no encontrado.",
+                409 => "Conflicto con el estado actual del recurso.",
+                424 => "La operación falló debido a dependencias existentes.",
+                500 => "Error interno del servidor.",
+                _ => "Error en la petición."
+            };
+        }
     }
 }

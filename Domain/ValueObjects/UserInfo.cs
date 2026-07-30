@@ -35,15 +35,17 @@ namespace Domain.ValueObjects
             }
         }
 
-        public bool Equals(UserInfo other)
+        public bool Equals(UserInfo? other)
         {
             if (other is null) return false;
 
             return UserName == other.UserName && Email == other.Email;
         }
+        
+        public override bool Equals(object? obj) => obj is UserInfo other && Equals(other);
 
-        public override bool Equals(object obj) => Equals(obj as UserInfo);
         public override int GetHashCode() => HashCode.Combine(UserName, Email);
+        
         public override string ToString() => $"{UserName} <{Email}>";
 
         public static bool operator ==(UserInfo a, UserInfo b)

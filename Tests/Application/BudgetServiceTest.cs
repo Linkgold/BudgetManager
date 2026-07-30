@@ -493,7 +493,7 @@ namespace Tests.Application
             // Act & Assert
             ArgumentException exception = await Assert.ThrowsAsync<ArgumentException>(() => _budgetService.CreateBulkAsync(request));
 
-            Assert.Contains("Invalid month: 13", exception.Message);
+            Assert.Contains("Month must be between 1 and 12", exception.Message);
 
             _budgetRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<Budget>()), Times.Never);
         }

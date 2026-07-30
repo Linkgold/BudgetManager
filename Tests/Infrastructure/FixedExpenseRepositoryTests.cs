@@ -304,6 +304,87 @@ namespace Tests.Infrastructure
             Assert.False(exists);
         }
 
+        [Fact]
+        public async Task ExistsByCategoryNameMonthYearAsync_WithExistingCombination_ReturnsTrue()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user);
+            string name = "Seguro";
+            int month = 9;
+            int year = 2024;
+
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, name, month: month, year: year);
+
+            // Act
+            bool exists = await _repository.ExistsByCategoryNameMonthYearAsync(userId, category.Id, name, month, year);
+
+            // Assert
+            Assert.True(exists);
+        }
+
+        [Fact]
+        public async Task ExistsByCategoryNameMonthYearAsync_WithDifferentCategory_ReturnsFalse()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category1 = TestDataFactory.CreateCategory(1, user, "Coche");
+            Category category2 = TestDataFactory.CreateCategory(2, user, "Vida");
+            string name = "Seguro";
+            int month = 9;
+            int year = 2024;
+
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category1, name, month: month, year: year);
+
+            // Act
+            bool exists = await _repository.ExistsByCategoryNameMonthYearAsync(userId, category2.Id, name, month, year);
+
+            // Assert
+            Assert.False(exists);
+        }
+
+        [Fact]
+        public async Task ExistsByCategoryNameMonthYearAsync_WithDifferentMonth_ReturnsFalse()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user);
+            string name = "Seguro";
+            int month = 9;
+            int year = 2024;
+
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, name, month: month, year: year);
+
+            // Act
+            bool exists = await _repository.ExistsByCategoryNameMonthYearAsync(userId, category.Id, name, 10, year);
+
+            // Assert
+            Assert.False(exists);
+        }
+
+        [Fact]
+        public async Task ExistsByCategoryNameMonthYearAsync_WithDifferentYear_ReturnsFalse()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user);
+            string name = "Seguro";
+            int month = 9;
+            int year = 2024;
+
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, name, month: month, year: year);
+
+            // Act
+            bool exists = await _repository.ExistsByCategoryNameMonthYearAsync(userId, category.Id, name, month, 2025);
+
+            // Assert
+            Assert.False(exists);
+        }
+
         // ==================== TEST: UPDATE ====================
 
         [Fact]

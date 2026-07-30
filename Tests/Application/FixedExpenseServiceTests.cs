@@ -1,14 +1,15 @@
-﻿using Shared.DTOs.Request;
-using Shared.DTOs.Response;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;
+using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 using Tests.Helpers;
 
 namespace Tests.Application
@@ -319,6 +320,10 @@ namespace Tests.Application
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
+                .ReturnsAsync(category);
+
             _fixedExpenseRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId, fixedExpenseId))
                 .ReturnsAsync(existingFixedExpense);
@@ -329,6 +334,7 @@ namespace Tests.Application
                 fixedExpenseId,
                 new UpdateFixedExpenseRequestDTO
                 {
+                    CategoryId = categoryId,
                     Name = updatedName,
                     Description = updatedDescription,
                     Amount = updatedAmount,
@@ -513,6 +519,92 @@ namespace Tests.Application
             // Assert
             Assert.False(result);
             _fixedExpenseRepositoryMock.Verify(repo => repo.ExistsAsync(userId, It.IsAny<int>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task CreateAsync_WithDuplicateCombination_ThrowsConflictException()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            string name = "Seguro";
+            int month = 9;
+            int year = 2024;
+
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(categoryId, user);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
+                .ReturnsAsync(category);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(user);
+
+            _fixedExpenseRepositoryMock
+                .Setup(repo => repo.ExistsByCategoryNameMonthYearAsync(userId, categoryId, name, month, year))
+                .ReturnsAsync(true);
+
+            // Act & Assert
+            CreateFixedExpenseRequestDTO request = new()
+            {
+                CategoryId = categoryId,
+                Name = name,
+                Month = month,
+                Year = year,
+                Amount = 100.00m
+            };
+
+            ConflictException exception = await Assert.ThrowsAsync<ConflictException>(() => _fixedExpenseService.CreateAsync(request));
+
+            Assert.Contains($"Ya existe un gasto fijo con el nombre '{name}'", exception.Message);
+        }
+
+        [Fact]
+        public async Task UpdateAsync_WithDuplicateCombination_ThrowsConflictException()
+        {
+            // Arrange
+            int userId = 1;
+            int categoryId = 1;
+            int fixedExpenseId = 1;
+            string name = "Seguro";
+            int month = 9;
+            int year = 2024;
+
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(categoryId, user);
+            FixedExpense existingFixedExpense = TestDataFactory.CreateFixedExpense(fixedExpenseId, user, category, name, month: month, year: year);
+
+            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            _categoryRepositoryMock
+               .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
+               .ReturnsAsync(category);
+
+            _fixedExpenseRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, fixedExpenseId))
+                .ReturnsAsync(existingFixedExpense);
+
+            _fixedExpenseRepositoryMock
+                .Setup(repo => repo.ExistsByCategoryNameMonthYearAsync(userId, categoryId, name, month, year, fixedExpenseId))
+                .ReturnsAsync(true);
+
+            // Act & Assert
+            UpdateFixedExpenseRequestDTO request = new()
+            {
+                CategoryId = categoryId,
+                Name = name,
+                Month = month,
+                Year = year,
+                Amount = 100.00m
+            };
+
+            ConflictException exception = await Assert.ThrowsAsync<ConflictException>(() => _fixedExpenseService.UpdateAsync(fixedExpenseId, request));
+
+            Assert.Contains($"Ya existe un gasto fijo con el nombre '{name}'", exception.Message);
         }
 
         public void Dispose()

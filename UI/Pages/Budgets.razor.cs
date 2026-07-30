@@ -1,13 +1,10 @@
 ﻿using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Request;
-using Shared.DTOs.Response;
 using UI.Extensions;
-using UI.Extensions.Mappings;
 using UI.Helpers;
 using UI.Models;
 using UI.Models.Forms;
 using UI.Services.API;
-using UI.Services.Interfaces;
 using UI.Shared;
 
 namespace UI.Pages
@@ -15,17 +12,7 @@ namespace UI.Pages
     public partial class Budgets : BasePage
     {
         // ================================================================
-        // 1. INYECCIONES DE DEPENDENCIAS
-        // ================================================================
-
-        [Inject]
-        private IToastService ToastService { get; set; } = default!;
-
-        [Inject]
-        private APIService APIService { get; set; } = default!;
-
-        // ================================================================
-        // 2. MODELOS Y ESTADO
+        // 1. MODELOS Y ESTADO
         // ================================================================
 
         private List<BudgetModel> _allBudgets = new();
@@ -36,7 +23,7 @@ namespace UI.Pages
         private BudgetFormModel _budgetForm = new() { MonthlyAmounts = MonthHelper.Months.ToDictionary(m => m.Value, m => 0m) };
 
         // ================================================================
-        // 3. FILTROS Y PROPIEDADES CON SETTER
+        // 2. FILTROS Y PROPIEDADES CON SETTER
         // ================================================================
 
         private string _searchTerm = string.Empty;
@@ -125,7 +112,7 @@ namespace UI.Pages
         private bool IsCurrentYearSelected => _selectedYear == DateTime.Now.Year;
 
         // ================================================================
-        // 4. CICLO DE VIDA
+        // 3. CICLO DE VIDA
         // ================================================================
 
         protected override async Task OnInitializedAsync()
@@ -134,7 +121,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 5. CARGA DE DATOS
+        // 4. CARGA DE DATOS
         // ================================================================
 
         private async Task LoadData()
@@ -156,8 +143,6 @@ namespace UI.Pages
 
                 // Inicializar formulario con los meses.
                 _budgetForm.MonthlyAmounts = MonthHelper.GetMonthsWithShortName().ToDictionary(m => m.Value, m => 0m);
-
-                UpdateAvailableCategoriesForCreate();
             }
             catch (Exception ex)
             {
@@ -175,7 +160,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 6. FILTRADO
+        // 5. FILTRADO
         // ================================================================
 
         private void ApplyFilters()
@@ -214,11 +199,11 @@ namespace UI.Pages
             int currentYear = _budgetForm.Year > 0 ? _budgetForm.Year : selectedYear;
 
             // 🔥 Obtener IDs de categorías que YA TIENEN presupuesto para el año seleccionado en el formulario
-            List<int> categoriesWithBudget = _allBudgets
-                .Where(b => b.Year == _budgetForm.Year)
+            HashSet<int> categoriesWithBudget = _allBudgets
+                .Where(b => b.Year == currentYear)
                 .Select(b => b.CategoryId)
                 .Distinct()
-                .ToList();
+                .ToHashSet();
 
             // 🔥 Filtrar categorías: solo las que NO tienen presupuesto para ese año
             _availableCategoriesForCreate = _allCategories
@@ -234,7 +219,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 7. OPERACIONES CRUD (SAVE)
+        // 6. OPERACIONES CRUD (SAVE)
         // ================================================================
 
         private async Task SaveBudget()
@@ -262,9 +247,6 @@ namespace UI.Pages
                 _budgetForm.IsDeleting = false;
 
                 await LoadData();
-
-                ApplyFilters();
-
                 await InvokeAsync(StateHasChanged);
             }
             catch (Exception ex)
@@ -276,11 +258,9 @@ namespace UI.Pages
 
         private async Task CreateBulkBudgetAsync()
         {
-            List<KeyValuePair<int, decimal>> monthsToCreate = _budgetForm.MonthlyAmounts
-                .Where(kvp => kvp.Value > 0)
-                .ToList();
+            List<KeyValuePair<int, decimal>> allMonths = _budgetForm.MonthlyAmounts.ToList();
 
-            if (monthsToCreate.Count == 0)
+            if (allMonths.Count == 0)
             {
                 ToastService.ShowError("Debes asignar al menos un importe para crear un presupuesto.");
                 return;
@@ -290,7 +270,7 @@ namespace UI.Pages
             {
                 CategoryId = _budgetForm.CategoryId,
                 Year = _budgetForm.Year,
-                MonthlyBudgets = monthsToCreate.Select
+                MonthlyBudgets = allMonths.Select
                 (
                     kvp => new MonthlyBudgetDTO
                     {
@@ -302,14 +282,10 @@ namespace UI.Pages
 
             BulkBudgetModel? result = await APIService.CreateBulkBudgetAsync(request);
 
-            if (result == null)
+            if (result != null)
             {
-                ToastService.ShowError("Error al crear los presupuestos.");
-
-                return;
+                ToastService.ShowSuccess($"Presupuestos creados correctamente para {_budgetForm.Year}.");
             }
-
-            ToastService.ShowSuccess($"Presupuestos creados correctamente para {_budgetForm.Year}.");
         }
 
         private async Task UpdateBulkBudgetAsync()
@@ -466,11 +442,13 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 8. APERTURA DE MODALES
+        // 7. APERTURA DE MODALES
         // ================================================================
 
         private void OpenCreateModal()
         {
+            UpdateAvailableCategoriesForCreate();
+
             FillFormFromModel
             (
                 new BudgetModel
@@ -537,9 +515,6 @@ namespace UI.Pages
         {
             Dictionary<int, decimal> monthlyAmounts;
 
-            // 🔥 Actualizar las categorías disponibles para el año seleccionado
-            UpdateAvailableCategoriesForCreate();
-
             if (mode == FormMode.Create)
             {
                 monthlyAmounts = MonthHelper.Months.ToDictionary(month => month.Value, month => 0m);
@@ -579,7 +554,7 @@ namespace UI.Pages
             {
                 CategoryId = 0,
                 CategoryName = string.Empty,
-                Year = selectedYear,
+                Year = 0,
                 MonthlyAmounts = MonthHelper.Months.ToDictionary(month => month.Value, month => 0m),
                 OriginalMonthlyAmounts = new Dictionary<int, decimal>(),
                 IsModalOpen = false,
@@ -594,7 +569,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 9. CONFIRMACIONES DE ELIMINACIÓN
+        // 8. CONFIRMACIONES DE ELIMINACIÓN
         // ================================================================
 
         private void OpenDeleteConfirmation(int month)
@@ -659,7 +634,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 10. MÉTODOS AUXILIARES
+        // 9. MÉTODOS AUXILIARES
         // ================================================================
         private decimal GetBudgetAmount(int categoryId, int month, int year)
         {
@@ -696,24 +671,6 @@ namespace UI.Pages
             if (e.Value != null && int.TryParse(e.Value.ToString(), out int newYear))
             {
                 budgetYear = newYear;
-
-                if (!_budgetForm.IsEditing && !_budgetForm.IsDeleting)
-                {
-                    UpdateAvailableCategoriesForCreate();
-
-                    _budgetForm.MonthlyAmounts = MonthHelper.Months.ToDictionary(month => month.Value, month => 0m);
-
-                    if (_availableCategoriesForCreate.Any())
-                    {
-                        _budgetForm.CategoryId = _availableCategoriesForCreate.First().Id;
-                    }
-                    else
-                    {
-                        _budgetForm.CategoryId = 0;
-                    }
-
-                    StateHasChanged();
-                }
             }
         }
 

@@ -30,7 +30,7 @@ namespace UI.Extensions
         {
             return mode switch
             {
-                FormMode.Create => $"➕ Nueva {entityName}",
+                FormMode.Create => $"➕ Añadir {entityName}",
                 FormMode.Edit => $"✏️ Editar {entityName}",
                 FormMode.Delete => $"🗑️ Eliminar {entityName}",
                 _ => entityName

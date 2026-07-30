@@ -159,8 +159,8 @@ namespace Application.Services
             // 2. Validar que la categoría existe
             Category? category = await GatAndValidateCategoryExistsAsync(request.CategoryId);
 
-            // 3. Validar que hay meses con importe > 0
-            List<MonthlyBudgetDTO> validMonths = GetAndValidateMonths(request.MonthlyBudgets);
+            // 3. Validar que MonthlyBudgets no sea nulo y que tenga como mínimo un mese con importe > 0
+            ValidateMonths(request.MonthlyBudgets);
 
             // 4. Transacción
             await _transactionManager.BeginTransactionAsync();
@@ -170,7 +170,7 @@ namespace Application.Services
                 // 🔥 Crear los presupuestos en bloque
                 List<int> createdIds = new List<int>();
 
-                foreach (MonthlyBudgetDTO month in validMonths)
+                foreach (MonthlyBudgetDTO month in request.MonthlyBudgets)
                 {
                     MonthlyPeriod period = new MonthlyPeriod(month.Month, request.Year);
                     bool exists = await _budgetRepository.ExistsForCategoryAndPeriodAsync(UserId, request.CategoryId, period);
@@ -242,8 +242,8 @@ namespace Application.Services
             // 2. Validar que la categoría existe
             Category? category = await GatAndValidateCategoryExistsAsync(request.CategoryId);
 
-            // 3. Validar que hay meses con importe > 0
-            List<MonthlyBudgetDTO> validMonths = GetAndValidateMonths(request.MonthlyBudgets);
+            // 3. Validar que MonthlyBudgets no sea nulo y que tenga como mínimo un mese con importe > 0
+            ValidateMonths(request.MonthlyBudgets);
 
             // 4. Transacción
             await _transactionManager.BeginTransactionAsync();
@@ -252,7 +252,7 @@ namespace Application.Services
             {
                 List<int> updatedIds = new List<int>();
 
-                foreach (MonthlyBudgetDTO month in validMonths)
+                foreach (MonthlyBudgetDTO month in request.MonthlyBudgets)
                 {
                     MonthlyPeriod period = new MonthlyPeriod(month.Month, request.Year);
                     Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(UserId, request.CategoryId, period, withTracking: true);
@@ -409,18 +409,11 @@ namespace Application.Services
             return category;
         }
 
-        private List<MonthlyBudgetDTO> GetAndValidateMonths(List<MonthlyBudgetDTO> monthlyBudgets)
+        private void ValidateMonths(List<MonthlyBudgetDTO> monthlyBudgets)
         {
-            List<MonthlyBudgetDTO> validMonths = monthlyBudgets.Where(m => m.Amount > 0).ToList();
+            ArgumentNullException.ThrowIfNull(monthlyBudgets);
 
-            if (!validMonths.Any()) throw new ArgumentException("At least one month with amount > 0 is required");
-
-            foreach (MonthlyBudgetDTO month in validMonths)
-            {
-                if (month.Month is < 1 or > 12) throw new ArgumentException($"Invalid month: {month.Month}");
-            }
-
-            return validMonths;
+            if (!monthlyBudgets.Any(x => x.Amount > 0)) throw new ArgumentException("At least one month with amount > 0 is required");
         }
     }
 }

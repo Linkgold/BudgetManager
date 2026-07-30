@@ -1,12 +1,9 @@
 ﻿using Contracts.Enums;
-using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Request;
-using Shared.DTOs.Response;
 using UI.Extensions;
 using UI.Models;
 using UI.Models.Forms;
 using UI.Services.API;
-using UI.Services.Interfaces;
 using UI.Shared;
 
 namespace UI.Pages
@@ -14,17 +11,7 @@ namespace UI.Pages
     public partial class Categories : BasePage
     {
         // ================================================================
-        // 1. INYECCIONES DE DEPENDENCIAS
-        // ================================================================
-
-        [Inject]
-        private IToastService ToastService { get; set; } = default!;
-
-        [Inject]
-        private APIService APIService { get; set; } = default!;
-
-        // ================================================================
-        // 2. MODELOS Y ESTADO
+        // 1. MODELOS Y ESTADO
         // ================================================================
 
         private List<CategoryModel> _categories = new();
@@ -32,7 +19,7 @@ namespace UI.Pages
         private CategoryFormModel _categoryForm = new();
 
         // ================================================================
-        // 3. FILTROS Y PROPIEDADES CON SETTER
+        // 2. FILTROS Y PROPIEDADES CON SETTER
         // ================================================================
 
         private string _searchTerm = string.Empty;
@@ -65,19 +52,19 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 4. CICLO DE VIDA
+        // 3. CICLO DE VIDA
         // ================================================================
 
         protected override async Task OnInitializedAsync()
         {
-            await LoadCategories();
+            await LoadData();
         }
 
         // ================================================================
-        // 5. CARGA DE DATOS
+        // 4. CARGA DE DATOS
         // ================================================================
 
-        private async Task LoadCategories()
+        private async Task LoadData()
         {
             try
             {
@@ -98,7 +85,7 @@ namespace UI.Pages
 
 
         // ================================================================
-        // 6. FILTRADO
+        // 5. FILTRADO
         // ================================================================
 
         private void ApplyFilters()
@@ -119,31 +106,37 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 7. OPERACIONES CRUD (SAVE)
+        // 6. OPERACIONES CRUD (SAVE)
         // ================================================================
 
         private async Task SaveCategory()
         {
             try
             {
+                bool success = false;
+
                 if (_categoryForm.IsDeleting)
                 {
-                    await DeleteCategoryAsync();
+                    success = await DeleteCategoryAsync();
                 }
                 else if (_categoryForm.IsEditing)
                 {
-                    await UpdateCategoryAsync();
+                    success = await UpdateCategoryAsync();
                 }
                 else
                 {
-                    await CreateCategoryAsync();
+                    success = await CreateCategoryAsync();
                 }
 
-                _categoryForm.IsModalOpen = false;
-                _categoryForm.IsDeleting = false;
+                if (success)
+                {
+                    _categoryForm.IsModalOpen = false;
+                    _categoryForm.IsEditing = false;
+                    _categoryForm.IsDeleting = false;
 
-                await LoadCategories();
-                await InvokeAsync(StateHasChanged);
+                    await LoadData();
+                    await InvokeAsync(StateHasChanged);
+                }
             }
             catch (Exception ex)
             {
@@ -152,7 +145,7 @@ namespace UI.Pages
             }
         }
 
-        private async Task CreateCategoryAsync()
+        private async Task<bool> CreateCategoryAsync()
         {
             CreateCategoryRequestDTO request = new()
             {
@@ -163,17 +156,17 @@ namespace UI.Pages
 
             CategoryModel? result = await APIService.CreateCategoryAsync(request);
 
-            if (result == null)
+            if (result != null)
             {
-                ToastService.ShowError($"Error al crear la categoría [{_categoryForm.Name}].");
+                ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] creada correctamente.");
 
-                return;
+                return true;
             }
 
-            ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] creada correctamente.");
+            return false;
         }
 
-        private async Task UpdateCategoryAsync()
+        private async Task<bool> UpdateCategoryAsync()
         {
             UpdateCategoryRequestDTO request = new()
             {
@@ -184,32 +177,32 @@ namespace UI.Pages
 
             CategoryModel? result = await APIService.UpdateCategoryAsync(_categoryForm.Id, request);
 
-            if (result == null)
+            if (result != null)
             {
-                ToastService.ShowError($"Error al actualizar la categoría [{_categoryForm.Name}].");
+                ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] actualizada correctamente.");
 
-                return;
+                return true;
             }
 
-            ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] actualizada correctamente.");
+            return false;
         }
 
-        private async Task DeleteCategoryAsync()
+        private async Task<bool> DeleteCategoryAsync()
         {
             bool success = await APIService.DeleteCategoryAsync(_categoryForm.Id, _categoryForm.Name);
 
-            if (!success)
+            if (success)
             {
-                ToastService.ShowError($"Error al eliminar la categoría [{_categoryForm.Name}].");
+                ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] eliminada correctamente.");
 
-                return;
+                return true;
             }
 
-            ToastService.ShowSuccess($"Categoría [{_categoryForm.Name}] eliminada correctamente.");
+            return false;
         }
 
         // ================================================================
-        // 8. APERTURA DE MODALES
+        // 7. APERTURA DE MODALES
         // ================================================================
 
         private void OpenCreateModal()

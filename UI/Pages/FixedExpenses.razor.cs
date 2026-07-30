@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Components;
-using Shared.DTOs.Request;
+﻿using Shared.DTOs.Request;
 using UI.Extensions;
 using UI.Extensions.Mappings;
 using UI.Models;
 using UI.Models.Forms;
 using UI.Services.API;
-using UI.Services.Interfaces;
 using UI.Shared;
 
 namespace UI.Pages
@@ -13,17 +11,7 @@ namespace UI.Pages
     public partial class FixedExpenses : BasePage
     {
         // ================================================================
-        // 1. INYECCIONES DE DEPENDENCIAS
-        // ================================================================
-
-        [Inject]
-        private IToastService ToastService { get; set; } = default!;
-
-        [Inject]
-        private APIService APIService { get; set; } = default!;
-
-        // ================================================================
-        // 2. MODELOS Y ESTADO
+        // 1. MODELOS Y ESTADO
         // ================================================================
 
         private List<FixedExpenseModel> _fixedExpenses = new();
@@ -33,7 +21,7 @@ namespace UI.Pages
         private List<int> _years = new();
 
         // ================================================================
-        // 3. FILTROS Y PROPIEDADES CON SETTER
+        // 2. FILTROS Y PROPIEDADES CON SETTER
         // ================================================================
 
         private string _searchTerm = string.Empty;
@@ -80,7 +68,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 4. CICLO DE VIDA
+        // 3. CICLO DE VIDA
         // ================================================================
 
         protected override async Task OnInitializedAsync()
@@ -89,7 +77,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 5. CARGA DE DATOS
+        // 4. CARGA DE DATOS
         // ================================================================
 
         private async Task LoadData()
@@ -126,7 +114,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 6. FILTRADO
+        // 5. FILTRADO
         // ================================================================
 
         private void ApplyFilters()
@@ -138,7 +126,8 @@ namespace UI.Pages
                              f.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                              (f.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
                              f.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(f => f.Month)
+                .OrderBy(f => f.Year)
+                .ThenBy(f => f.Month)
                 .ThenBy(f => f.CategoryName)
                 .ToList();
         }
@@ -151,33 +140,38 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 7. OPERACIONES CRUD (SAVE)
+        // 6. OPERACIONES CRUD (SAVE)
         // ================================================================
 
         private async Task SaveFixedExpense()
         {
             try
             {
+                bool success = false;
+
                 if (_fixedExpenseForm.IsDeleting)
                 {
-                    await DeleteFixedExpenseAsync();
+                    success = await DeleteFixedExpenseAsync();
                 }
                 else if (_fixedExpenseForm.IsEditing)
                 {
-                    await UpdateFixedExpenseAsync();
+                    success = await UpdateFixedExpenseAsync();
                 }
                 else
                 {
-                    await CreateFixedExpenseAsync();
+                    success = await CreateFixedExpenseAsync();
                 }
 
-                _fixedExpenseForm.IsModalOpen = false;
-                _fixedExpenseForm.IsDeleting = false;
-                _fixedExpenseForm.IsEditing = false;
+                if (success)
+                {
+                    _fixedExpenseForm.IsModalOpen = false;
+                    _fixedExpenseForm.IsDeleting = false;
+                    _fixedExpenseForm.IsEditing = false;
 
-                await LoadData();
+                    await LoadData();
 
-                await InvokeAsync(StateHasChanged);
+                    await InvokeAsync(StateHasChanged);
+                }
             }
             catch (Exception ex)
             {
@@ -186,7 +180,7 @@ namespace UI.Pages
             }
         }
 
-        private async Task CreateFixedExpenseAsync()
+        private async Task<bool> CreateFixedExpenseAsync()
         {
             CreateFixedExpenseRequestDTO request = new()
             {
@@ -202,17 +196,18 @@ namespace UI.Pages
 
             if (result != null)
             {
-                _fixedExpenseForm.IsModalOpen = false;
-
-                await LoadData();
-                StateHasChanged();
+                ToastService.ShowSuccess($"Gasto fijo [{_fixedExpenseForm.Name}] creado correctamente.");
+                return true;
             }
+
+            return false;
         }
 
-        private async Task UpdateFixedExpenseAsync()
+        private async Task<bool> UpdateFixedExpenseAsync()
         {
             UpdateFixedExpenseRequestDTO request = new()
             {
+                CategoryId = _fixedExpenseForm.CategoryId,
                 Name = _fixedExpenseForm.Name,
                 Description = _fixedExpenseForm.Description,
                 Amount = _fixedExpenseForm.Amount,
@@ -224,24 +219,26 @@ namespace UI.Pages
 
             if (result != null)
             {
-                _fixedExpenseForm.IsModalOpen = false;
+                ToastService.ShowSuccess($"Gasto fijo [{_fixedExpenseForm.Name}] actualizado correctamente.");
 
-                await LoadData();
-                StateHasChanged();
+                return true;
             }
+
+            return false;
         }
 
-        private async Task DeleteFixedExpenseAsync()
+        private async Task<bool> DeleteFixedExpenseAsync()
         {
             bool success = await APIService.DeleteFixedExpenseAsync(_fixedExpenseForm.Id, _fixedExpenseForm.Name);
 
-            if (!success)
+            if (success)
             {
-                _fixedExpenseForm.IsModalOpen = false;
+                ToastService.ShowSuccess($"Gasto fijo [{_fixedExpenseForm.Name}] eliminado correctamente.");
 
-                await LoadData();
-                StateHasChanged();
+                return true;
             }
+
+            return false;
         }
 
         // ================================================================

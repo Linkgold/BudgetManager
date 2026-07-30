@@ -4,6 +4,7 @@ using Application.Services;
 using AutoMapper;
 using Contracts.Enums;
 using Domain.Entities;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
@@ -226,7 +227,7 @@ namespace Tests.Application
             // Act & Assert
             Func<Task> act = async () => await _service.CreateAsync(request);
 
-            await act.Should().ThrowAsync<InvalidOperationException>().WithMessage($"*{request.Name}*");
+            await act.Should().ThrowAsync<ConflictException>().WithMessage($"*{request.Name}*");
 
             _mockRepository.Verify(repo => repo.ExistsByNameAsync(userId, request.Name), Times.Once);
             _mockRepository.Verify(repo => repo.AddAsync(It.IsAny<Category>()), Times.Never);
@@ -335,7 +336,7 @@ namespace Tests.Application
 
             // Act & Assert
             Func<Task> act = async () => await _service.UpdateAsync(categoryId, request);
-            await act.Should().ThrowAsync<InvalidOperationException>().WithMessage($"*{request.Name}*");
+            await act.Should().ThrowAsync<ConflictException>().WithMessage($"*{request.Name}*");
 
             _mockRepository.Verify(repo => repo.GetByIdAsync(userId, categoryId), Times.Once);
             _mockRepository.Verify(repo => repo.GetByNameAsync(userId, request.Name), Times.Once);
@@ -390,7 +391,7 @@ namespace Tests.Application
         }
 
         [Fact]
-        public async Task DeleteAsync_ShouldThrowInvalidOperationException_WhenCategoryHasExpenses()
+        public async Task DeleteAsync_ShouldThrowDependencyException_WhenCategoryHasExpenses()
         {
             // Arrange
             int userId = 1;
@@ -408,7 +409,7 @@ namespace Tests.Application
 
             // Act & Assert
             Func<Task> act = async () => await _service.DeleteAsync(categoryId);
-            await act.Should().ThrowAsync<InvalidOperationException>().WithMessage($"*{categoryId}*");
+            await act.Should().ThrowAsync<DependencyException>().WithMessage($"*{categoryId}*");
 
             _mockRepository.Verify(repo => repo.ExistsAsync(userId, categoryId), Times.Once);
             _mockRepository.Verify(repo => repo.HasDependenciesAsync(userId, categoryId), Times.Once);

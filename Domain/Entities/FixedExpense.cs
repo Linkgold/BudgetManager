@@ -28,7 +28,9 @@ namespace Domain.Entities
         public User User { get; private set; }
 
         // Constructor privado para EF Core
+#pragma warning disable CS8618 // Un campo que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de agregar el modificador "required" o declararlo como un valor que acepta valores NULL.
         private FixedExpense() { }
+#pragma warning restore CS8618 // Un campo que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de agregar el modificador "required" o declararlo como un valor que acepta valores NULL.
 
         // Constructor de dominio
         public FixedExpense(User user, Category category, EntityInfo info, Money amount, MonthlyPeriod chargePeriod)

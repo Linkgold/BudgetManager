@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System.Net;
+using Microsoft.JSInterop;
+using UI.Services.API;
 using UI.Services.Interfaces;
 
 namespace UI.Shared
@@ -10,7 +11,13 @@ namespace UI.Shared
     public abstract class BasePage : ComponentBase
     {
         [Inject]
-        private IAuthService AuthService { get; set; } = default!;
+        protected IToastService ToastService { get; set; } = default!;
+
+        [Inject]
+        protected APIService APIService { get; set; } = default!;
+
+        [Inject]
+        protected IJSRuntime JSRuntime { get; set; } = default!;
 
         [Inject]
         protected ILogService LogService { get; set; } = default!;
@@ -34,20 +41,6 @@ namespace UI.Shared
         protected async Task LogInfoAsync(string message)
         {
             await LogService.LogInfoAsync(message);
-        }
-
-        protected async Task<HttpResponseMessage> SendAuthenticatedRequestAsync(Func<Task<HttpResponseMessage>> request)
-        {
-            HttpResponseMessage response = await request();
-
-            if (response.StatusCode == HttpStatusCode.Unauthorized)
-            {
-                await AuthService.LogoutAsync();
-                NavigationManager.NavigateTo("/login", true);
-                throw new UnauthorizedAccessException("Token expirado o inválido.");
-            }
-
-            return response;
         }
     }
 }

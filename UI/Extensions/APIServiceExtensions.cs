@@ -41,7 +41,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al crear la categoría.";
-            api.NotifyError($"Error al crear la categoría [{request.Name}]: {message}");
+            api.NotifyError(message);
 
             return null;
         }
@@ -58,7 +58,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al actualizar la categoría.";
-            api.NotifyError($"Error al actualizar la categoría [{request.Name}]: {message}");
+            api.NotifyError(message);
 
             return null;
         }
@@ -75,7 +75,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al eliminar la categoría.";
-            api.NotifyError($"Error al eliminar la categoría [{categoryName}]: {message}");
+            api.NotifyError(message);
 
             return false;
         }
@@ -110,7 +110,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al crear la transacción.";
-            api.NotifyError($"Error al crear la transacción [{request.Name}]: {message}");
+            api.NotifyError(message);
 
             return null;
         }
@@ -126,7 +126,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al actualizar la transacción.";
-            api.NotifyError($"Error al actualizar la transacción [{request.Name}]: {message}");
+            api.NotifyError(message);
 
             return null;
         }
@@ -142,7 +142,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al eliminar la transacción.";
-            api.NotifyError($"Error al eliminar la transacción [{name}]: {message}");
+            api.NotifyError(message);
 
             return false;
         }
@@ -274,7 +274,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al crear el gasto fijo.";
-            api.NotifyError($"Error al crear el gasto fijo [{request.Name}]: {message}");
+            api.NotifyError(message);
             return null;
         }
 
@@ -290,7 +290,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al actualizar el gasto fijo.";
-            api.NotifyError($"Error al actualizar el gasto fijo [{request.Name}]: {message}");
+            api.NotifyError(message);
 
             return null;
         }
@@ -307,7 +307,7 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al eliminar el gasto fijo.";
-            api.NotifyError($"Error al eliminar el gasto fijo [{name}]: {message}");
+            api.NotifyError(message);
 
             return false;
         }

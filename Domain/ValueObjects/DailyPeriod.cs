@@ -83,7 +83,7 @@
             return Day == other.Day && Year == other.Year && Month == other.Month;
         }
 
-        public override bool Equals(object obj) => Equals(obj as DailyPeriod);
+        public override bool Equals(object? obj) => obj is DailyPeriod other && Equals(other);
 
         public override int GetHashCode() => HashCode.Combine(Day, Year, Month);
 

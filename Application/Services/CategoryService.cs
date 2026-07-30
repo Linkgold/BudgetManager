@@ -1,10 +1,11 @@
-﻿using Shared.DTOs.Request;
-using Shared.DTOs.Response;
-using Application.Interfaces;
+﻿using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
+using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
+using Shared.DTOs.Request;
+using Shared.DTOs.Response;
 
 namespace Application.Services
 {
@@ -74,7 +75,7 @@ namespace Application.Services
         public async Task<CategoryResponseDTO> CreateAsync(CreateCategoryRequestDTO request)
         {
             // Validar que no exista una categoría con el mismo nombre
-            if (await _categoryRepository.ExistsByNameAsync(UserId, request.Name)) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
+            if (await _categoryRepository.ExistsByNameAsync(UserId, request.Name)) throw new ConflictException($"Category with name '{request.Name}' already exists");
 
             // 🔥 Obtener el User completo
             User? user = await _userRepository.GetByIdAsync(UserId, withTracking: true);
@@ -98,7 +99,7 @@ namespace Application.Services
 
             // Validar que el nuevo nombre no esté siendo usado por otra categoría
             Category? existingCategory = await _categoryRepository.GetByNameAsync(UserId, request.Name);
-            if (existingCategory != null && existingCategory.Id != id) throw new InvalidOperationException($"Category with name '{request.Name}' already exists");
+            if (existingCategory != null && existingCategory.Id != id) throw new ConflictException($"Category with name '{request.Name}' already exists");
 
             // Actualizar entidad de dominio
             category.Update(new EntityInfo(request.Name, request.Description), request.Nature);
@@ -117,7 +118,14 @@ namespace Application.Services
             if (!await _categoryRepository.ExistsAsync(UserId, id)) throw new KeyNotFoundException($"Category with ID {id} not found");
 
             // Verificar  si tiene dependencias
-            if (await _categoryRepository.HasDependenciesAsync(UserId, id)) throw new InvalidOperationException($"Category with ID {id} has associated expenses and cannot be deleted");
+            if (await _categoryRepository.HasDependenciesAsync(UserId, id))
+            {
+                // Obtener categoría existente
+                Category? category = await _categoryRepository.GetByIdAsync(UserId, id);
+                string categoryValue = category?.Info?.Name ?? $"ID {id}";
+
+                throw new DependencyException($"Category '{categoryValue}' has associated budgets/transactions/fixedexpenses and cannot be deleted");
+            }
 
             // Eliminar
             await _categoryRepository.DeleteAsync(UserId, id);

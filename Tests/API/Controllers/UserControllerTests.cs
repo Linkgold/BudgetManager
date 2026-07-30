@@ -1,10 +1,8 @@
 ﻿using Shared.DTOs.Request;
 using Shared.DTOs.Response;
-using Crypt = BCrypt.Net.BCrypt;
-using Domain.Entities;
-using Domain.ValueObjects;
 using System.Net;
 using Tests.API.Fixtures;
+using Tests.Helpers;
 
 namespace Tests.API.Controllers
 {
@@ -16,7 +14,6 @@ namespace Tests.API.Controllers
     {
         private readonly ApiTestFixture _fixture;
         private readonly HttpClient _client;
-        //private readonly HttpClient _authenticatedClient;
 
         public UserControllerTests(ApiTestFixture fixture)
         {
@@ -131,11 +128,11 @@ namespace Tests.API.Controllers
         public async Task Login_WithValidCredentials_ReturnsToken()
         {
             // Arrange - Registrar un usuario primero
-            await RegisterTestUserAsync();
+            string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
 
             LoginRequestDTO request = new LoginRequestDTO
             {
-                Email = _testEmail,
+                Email = TestDataFactory.GetEmail(uniqueId),
                 Password = "Password123!"
             };
 
@@ -177,7 +174,7 @@ namespace Tests.API.Controllers
         public async Task Login_WithInvalidPassword_ReturnsUnauthorized()
         {
             // Arrange - Registrar un usuario primero
-            await RegisterTestUserAsync();
+            await TestDataFactory.RegisterTestUserAsync(_fixture);
 
             LoginRequestDTO request = new LoginRequestDTO
             {
@@ -200,8 +197,8 @@ namespace Tests.API.Controllers
         public async Task GetCurrentUser_WithAuthenticatedUser_ReturnsUser()
         {
             // Arrange - Registrar y loguear un usuario
-            await RegisterTestUserAsync();
-            string token = await GetTokenAsync();
+            string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
+            string token = await TestDataFactory.GetTokenAsync(_fixture, _client, uniqueId);
 
             // 🔥 Configurar el token en el cliente
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
@@ -216,8 +213,8 @@ namespace Tests.API.Controllers
             UserResponseDTO? user = _fixture.DeserializeResponse<UserResponseDTO>(responseContent);
 
             Assert.NotNull(user);
-            Assert.Equal(_testUser, user.UserName);
-            Assert.Equal(_testEmail, user.Email);
+            Assert.Equal(TestDataFactory.GetUserName(uniqueId), user.UserName);
+            Assert.Equal(TestDataFactory.GetEmail(uniqueId), user.Email);
         }
 
         // ==================== TEST: UPDATE CURRENT USER ====================
@@ -226,8 +223,8 @@ namespace Tests.API.Controllers
         public async Task UpdateCurrentUser_WithValidData_ReturnsUpdatedUser()
         {
             // Arrange - Registrar y loguear un usuario
-            await RegisterTestUserAsync();
-            string token = await GetTokenAsync();
+            string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
+            string token = await TestDataFactory.GetTokenAsync(_fixture, _client, uniqueId);
 
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -259,8 +256,8 @@ namespace Tests.API.Controllers
         public async Task ChangePassword_WithValidData_ReturnsNoContent()
         {
             // Arrange - Registrar y loguear un usuario
-            await RegisterTestUserAsync();
-            string token = await GetTokenAsync();
+            string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
+            string token = await TestDataFactory.GetTokenAsync(_fixture, _client, uniqueId);
 
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -284,8 +281,8 @@ namespace Tests.API.Controllers
         public async Task ChangePassword_WithInvalidCurrentPassword_ReturnsBadRequest()
         {
             // Arrange - Registrar y loguear un usuario
-            await RegisterTestUserAsync();
-            string token = await GetTokenAsync();
+            string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
+            string token = await TestDataFactory.GetTokenAsync(_fixture, _client, uniqueId);
 
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -311,8 +308,8 @@ namespace Tests.API.Controllers
         public async Task DeleteCurrentUser_WithAuthenticatedUser_ReturnsNoContent()
         {
             // Arrange - Registrar y loguear un usuario
-            await RegisterTestUserAsync();
-            string token = await GetTokenAsync();
+            string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
+            string token = await TestDataFactory.GetTokenAsync(_fixture, _client, uniqueId);
 
             _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
 
@@ -321,59 +318,6 @@ namespace Tests.API.Controllers
 
             // Assert
             Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        }
-
-        // ==================== HELPERS ====================
-
-        private async Task RegisterTestUserAsync()
-        {
-            string uniqueId = Guid.NewGuid().ToString("N").Substring(0, 6);
-            string userName = $"TestUser_{uniqueId}";
-            string email = $"test_{uniqueId}@example.com";
-
-            // 🔥 Obtener el usuario del fixture (el que tiene Id = 1)
-            User? user = await _fixture.DbContext.Users.FindAsync(1);
-            if (user == null)
-            {
-                // Si no existe, crearlo
-                UserInfo userInfo = new UserInfo("TestUser", "test@example.com");
-                User newUser = new User(userInfo, Crypt.HashPassword("Password123!"));
-                _fixture.DbContext.Users.Add(newUser);
-                await _fixture.DbContext.SaveChangesAsync();
-                _testEmail = "test@example.com";
-                _testPassword = "Password123!";
-                return;
-            }
-
-            // 🔥 Actualizar el usuario existente con datos de prueba
-            user.Update(new UserInfo(userName, email));
-            user.UpdatePassword(Crypt.HashPassword("Password123!"));
-            await _fixture.DbContext.SaveChangesAsync();
-
-            _testUser = userName;
-            _testEmail = email;
-            _testPassword = "Password123!";
-        }
-
-        string _testUser;
-        string _testEmail;
-        string _testPassword;
-
-
-        private async Task<string> GetTokenAsync()
-        {
-            LoginRequestDTO request = new LoginRequestDTO
-            {
-                Email = _testEmail,
-                Password = _testPassword
-            };
-
-            StringContent content = _fixture.SerializeRequest(request);
-            HttpResponseMessage response = await _client.PostAsync("/api/user/login", content);
-            string responseContent = await response.Content.ReadAsStringAsync();
-            LoginResponseDTO? loginResponse = _fixture.DeserializeResponse<LoginResponseDTO>(responseContent);
-
-            return loginResponse?.Token ?? string.Empty;
         }
     }
 }

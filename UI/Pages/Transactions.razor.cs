@@ -1,14 +1,10 @@
 ﻿using Contracts.Enums;
-using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Request;
-using Shared.DTOs.Response;
 using UI.Extensions;
-using UI.Extensions.Mappings;
 using UI.Helpers;
 using UI.Models;
 using UI.Models.Forms;
 using UI.Services.API;
-using UI.Services.Interfaces;
 using UI.Shared;
 
 namespace UI.Pages
@@ -16,17 +12,7 @@ namespace UI.Pages
     public partial class Transactions : BasePage
     {
         // ================================================================
-        // 1. INYECCIONES DE DEPENDENCIAS
-        // ================================================================
-
-        [Inject]
-        private IToastService ToastService { get; set; } = default!;
-
-        [Inject]
-        private APIService APIService { get; set; } = default!;
-
-        // ================================================================
-        // 2. MODELOS Y ESTADO
+        // 1. MODELOS Y ESTADO
         // ================================================================
 
         private List<TransactionModel> _transactions = new();
@@ -38,7 +24,7 @@ namespace UI.Pages
         private decimal _totalAmount = 0m;
 
         // ================================================================
-        // 3. FILTROS Y PROPIEDADES CON SETTER
+        // 2. FILTROS Y PROPIEDADES CON SETTER
         // ================================================================
 
         private string _searchTerm = string.Empty;
@@ -140,7 +126,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 4. CICLO DE VIDA
+        // 3. CICLO DE VIDA
         // ================================================================
 
         protected override async Task OnInitializedAsync()
@@ -149,7 +135,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 5. CARGA DE DATOS
+        // 4. CARGA DE DATOS
         // ================================================================
 
         private async Task LoadData()
@@ -181,7 +167,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 6. FILTRADO
+        // 5. FILTRADO
         // ================================================================
 
         private void ApplyFilters()
@@ -227,32 +213,37 @@ namespace UI.Pages
         private void UpdateTypeSelector() => StateHasChanged();
 
         // ================================================================
-        // 7. OPERACIONES CRUD (SAVE)
+        // 6. OPERACIONES CRUD (SAVE)
         // ================================================================
 
         private async Task SaveTransaction()
         {
             try
             {
+                bool success = false;
+
                 if (_transactionForm.IsDeleting)
                 {
-                    await DeleteTransactionAsync();
+                    success = await DeleteTransactionAsync();
                 }
                 else if (_transactionForm.IsEditing)
                 {
-                    await UpdateTransactionAsync();
+                    success = await UpdateTransactionAsync();
                 }
                 else
                 {
-                    await CreateTransactionAsync();
+                    success = await CreateTransactionAsync();
                 }
+                
+                if (success)
+                {
+                    _transactionForm.IsModalOpen = false;
+                    _transactionForm.IsEditing = false;
+                    _transactionForm.IsDeleting = false;
 
-                _transactionForm.IsModalOpen = false;
-                _transactionForm.IsEditing = false;
-                _transactionForm.IsDeleting = false;
-
-                await LoadData();
-                await InvokeAsync(StateHasChanged);
+                    await LoadData();
+                    await InvokeAsync(StateHasChanged);
+                }
             }
             catch (Exception ex)
             {
@@ -261,7 +252,7 @@ namespace UI.Pages
             }
         }
 
-        private async Task CreateTransactionAsync()
+        private async Task<bool> CreateTransactionAsync()
         {
             decimal finalAmount = _transactionForm.FinalAmount;
 
@@ -275,16 +266,18 @@ namespace UI.Pages
             };
 
             TransactionModel? result = await APIService.CreateTransactionAsync(request);
-            if (result == null)
+            
+            if (result != null)
             {
-                ToastService.ShowError($"Error al crear la transacción [{_transactionForm.Name}].");
-                return;
+                ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] creada correctamente.");
+                
+                return true;
             }
 
-            ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] creada correctamente.");
+            return false;
         }
 
-        private async Task UpdateTransactionAsync()
+        private async Task<bool> UpdateTransactionAsync()
         {
             decimal finalAmount = _transactionForm.FinalAmount;
 
@@ -297,29 +290,33 @@ namespace UI.Pages
             };
 
             TransactionModel? result = await APIService.UpdateTransactionAsync(_transactionForm.Id, request);
-            if (result == null)
+            
+            if (result != null)
             {
-                ToastService.ShowError($"Error al actualizar la transacción [{_transactionForm.Name}].");
-                return;
+                ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] actualizada correctamente.");
+                
+                return true;
             }
 
-            ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] actualizada correctamente.");
+            return false;
         }
 
-        private async Task DeleteTransactionAsync()
+        private async Task<bool> DeleteTransactionAsync()
         {
             bool success = await APIService.DeleteTransactionAsync(_transactionForm.Id, _transactionForm.Name);
-            if (!success)
+            
+            if (success)
             {
-                ToastService.ShowError($"Error al eliminar la transacción [{_transactionForm.Name}].");
-                return;
+                ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] eliminada correctamente.");
+
+                return true;
             }
 
-            ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] eliminada correctamente.");
+            return false;
         }
 
         // ================================================================
-        // 8. APERTURA DE MODALES
+        // 7. APERTURA DE MODALES
         // ================================================================
 
         private void OpenCreateModal()
@@ -397,7 +394,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 9. MÉTODOS AUXILIARES
+        // 8. MÉTODOS AUXILIARES
         // ================================================================
 
         private string GetDefaultTransactionTypeForCategory(CategoryNatureEnum? categoryNature)

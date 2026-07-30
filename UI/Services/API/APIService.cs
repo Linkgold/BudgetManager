@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using Shared.Models;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text;
@@ -55,9 +56,9 @@ namespace UI.Services.API
                     return APIResult<List<T>>.Success(data ?? new List<T>());
                 }
 
-                ApiErrorResponse? error = await ParseErrorResponse(response);
+                ErrorResponse? error = await ParseErrorResponse(response);
 
-                return APIResult<List<T>>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
+                return APIResult<List<T>>.Failure((int)response.StatusCode, error?.Message);
             }
             catch (UnauthorizedAccessException)
             {
@@ -86,9 +87,9 @@ namespace UI.Services.API
                     return APIResult<TResponse>.Success(data!);
                 }
 
-                ApiErrorResponse? error = await ParseErrorResponse(response);
+                ErrorResponse? error = await ParseErrorResponse(response);
 
-                return APIResult<TResponse>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
+                return APIResult<TResponse>.Failure((int)response.StatusCode, error?.Message);
             }
             catch (UnauthorizedAccessException)
             {
@@ -117,9 +118,9 @@ namespace UI.Services.API
                     return APIResult<TResponse>.Success(data!);
                 }
 
-                ApiErrorResponse? error = await ParseErrorResponse(response);
+                ErrorResponse? error = await ParseErrorResponse(response);
 
-                return APIResult<TResponse>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
+                return APIResult<TResponse>.Failure((int)response.StatusCode, error?.Message);
             }
             catch (UnauthorizedAccessException)
             {
@@ -144,9 +145,9 @@ namespace UI.Services.API
                     return APIResult<bool>.Success(true);
                 }
 
-                ApiErrorResponse? error = await ParseErrorResponse(response);
+                ErrorResponse? error = await ParseErrorResponse(response);
 
-                return APIResult<bool>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
+                return APIResult<bool>.Failure((int)response.StatusCode, error?.Message);
             }
             catch (UnauthorizedAccessException)
             {
@@ -185,9 +186,9 @@ namespace UI.Services.API
                     return APIResult<T>.Success(data!);
                 }
 
-                ApiErrorResponse? error = await ParseErrorResponse(response);
+                ErrorResponse? error = await ParseErrorResponse(response);
 
-                return APIResult<T>.Failure((int)response.StatusCode, error?.Message, error?.Errors);
+                return APIResult<T>.Failure((int)response.StatusCode, error?.Message);
             }
             catch (UnauthorizedAccessException)
             {
@@ -233,19 +234,29 @@ namespace UI.Services.API
         private async Task<HttpResponseMessage> DeleteCall(string endpoint) => await SendAuthenticatedRequestAsync(() => _httpClient.DeleteAsync(endpoint));
         private async Task<HttpResponseMessage> DeleteCall(HttpRequestMessage httpRequest) => await SendAuthenticatedRequestAsync(() => _httpClient.SendAsync(httpRequest));
 
-        private async Task<ApiErrorResponse?> ParseErrorResponse(HttpResponseMessage response)
+        private async Task<ErrorResponse?> ParseErrorResponse(HttpResponseMessage response)
         {
             try
             {
                 string content = await response.Content.ReadAsStringAsync();
 
-                await _logService.LogErrorAsync($"API Error - Status: {response.StatusCode}", new Exception(content));
 
-                return JsonSerializer.Deserialize<ApiErrorResponse>(content, _jsonOptions);
+                if ((int)response.StatusCode >= 400 && (int)response.StatusCode < 500)
+                {
+                    await _logService.LogInfoAsync($"API Response - Status: {response.StatusCode} - {content}");
+                }
+                else
+                {
+                    await _logService.LogInfoAsync($"API Error - Status: {response.StatusCode} - {content}");
+                }
+
+                return JsonSerializer.Deserialize<ErrorResponse>(content, _jsonOptions);
             }
-            catch
+            catch (Exception ex)
             {
-                return new ApiErrorResponse
+                await _logService.LogErrorAsync($"Error parsing error response", ex);
+
+                return new ErrorResponse
                 {
                     Message = response.ReasonPhrase ?? "Error en la petición",
                     StatusCode = (int)response.StatusCode

@@ -2,6 +2,7 @@
 using FluentValidation.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Shared.Models;
 
 namespace API.Filters
 {
@@ -37,9 +38,28 @@ namespace API.Filters
                 return;
             }
 
-            // Tomar el primer argumento (asumimos que es el DTO)
-            object? requestArgument = context.ActionArguments.Values.FirstOrDefault();
+            // ✅ Verificar si hay algún argumento que NO sea primitivo
+            bool hasDto = context.ActionArguments.Values
+                .Any(arg => arg != null &&
+                            !arg.GetType().IsPrimitive &&
+                            arg.GetType() != typeof(string) &&
+                            arg.GetType() != typeof(decimal));
 
+            // ✅ Si no hay DTO en absoluto, continuar
+            if (!hasDto)
+            {
+                await next();
+                return;
+            }
+
+            // ✅ BUSCAR EL PRIMER ARGUMENTO QUE SEA UN DTO (NO PRIMITIVO)
+            object? requestArgument = context.ActionArguments.Values
+                .FirstOrDefault(arg => arg != null &&
+                                       !arg.GetType().IsPrimitive &&
+                                       arg.GetType() != typeof(string) &&
+                                       arg.GetType() != typeof(decimal));
+
+            // ✅ Si hay DTO pero es null, devolver BadRequest
             if (requestArgument == null)
             {
                 context.Result = new BadRequestObjectResult(new { Message = "Request body cannot be null" });
@@ -86,28 +106,18 @@ namespace API.Filters
             // Verificar si la validación es válida
             if (!validationResult.IsValid)
             {
-                // Construir errores de validación usando tipos explícitos
-                List<object> errorsList = new List<object>();
+                string errorMessage = string.Join("; ", validationResult.Errors.Select(e => e.ErrorMessage));
+                string errorDetail = string.Join("\n", validationResult.Errors.Select(e => $"{e.PropertyName}: {e.ErrorMessage}"));
 
-                foreach (ValidationFailure error in validationResult.Errors)
+                ErrorResponse errorResponse = new ErrorResponse
                 {
-                    object errorItem = new
-                    {
-                        Property = error.PropertyName,
-                        Message = error.ErrorMessage,
-                        AttemptedValue = error.AttemptedValue
-                    };
-
-                    errorsList.Add(errorItem);
-                }
-
-                object response = new
-                {
-                    Message = "Validation failed",
-                    Errors = errorsList
+                    StatusCode = StatusCodes.Status400BadRequest,
+                    Message = errorMessage,
+                    Detail = errorDetail,
+                    Timestamp = DateTime.UtcNow
                 };
 
-                context.Result = new BadRequestObjectResult(response);
+                context.Result = new BadRequestObjectResult(errorResponse);
                 return;
             }
 

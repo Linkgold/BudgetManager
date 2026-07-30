@@ -6,7 +6,9 @@
         public string Currency { get; private set; }
 
         // 🔥 Constructor privado SOLO para EF Core
+#pragma warning disable CS8618 // Un campo que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de agregar el modificador "required" o declararlo como un valor que acepta valores NULL.
         private Money() { }
+#pragma warning restore CS8618 // Un campo que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de agregar el modificador "required" o declararlo como un valor que acepta valores NULL.
 
         public Money(decimal value, string currency = "EUR", bool allowNegative = false)
         {
@@ -26,7 +28,7 @@
             return Value == other.Value && Currency == other.Currency;
         }
 
-        public override bool Equals(object obj) => Equals(obj as Money);
+        public override bool Equals(object? obj) => obj is Money other && Equals(other);
 
         public override int GetHashCode() => HashCode.Combine(Value, Currency);
 

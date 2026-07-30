@@ -14,12 +14,30 @@ namespace UI.Services
 
         public async Task LogErrorAsync(string message, Exception? exception = null)
         {
-            string fullMessage = exception != null
+            try
+            {
+                string fullMessage = exception != null
                 ? $"[ERROR] {message} - {exception.Message}\n{exception.StackTrace}"
                 : $"[ERROR] {message}";
 
-            Console.Error.WriteLine(fullMessage);
-            await _jsRuntime.InvokeVoidAsync("console.error", fullMessage);
+                Console.WriteLine(fullMessage);
+
+                // ✅ Manejar posible error de JS
+                try
+                {
+                    await _jsRuntime.InvokeVoidAsync("console.error", fullMessage);
+                }
+                catch
+                {
+                    // ✅ Si falla JS, solo log en consola
+                    Console.Error.WriteLine("JS console.error failed, but log was written to console.");
+                }
+            }
+            catch
+            {
+                // ✅ Si todo falla, al menos escribir en consola
+                Console.Error.WriteLine($"FATAL: Could not log error: {message}");
+            }
         }
 
         public async Task LogWarningAsync(string message)

@@ -24,6 +24,7 @@ namespace Domain.Interfaces
 
         // Métodos de negocio
         Task<bool> ExistsAsync(int userId, int id);
+        Task<bool> ExistsByCategoryNameMonthYearAsync(int userId, int categoryId, string name, int month, int year, int? excludeId = null);
 
         // Métodos de escritura
         Task AddAsync(FixedExpense fixedExpense);

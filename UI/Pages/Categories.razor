@@ -6,9 +6,9 @@
 <div class="container mt-3">
     <!-- 🔹 Título y botón de acción -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <h4 class="mb-0 page-title">📂 Categorías</h4>
+        <h4 class="mb-0 page-title">@PageTextHelper.GetPageTitle("Categories")</h4>
         <button class="btn btn-primary btn-sm" @onclick="OpenCreateModal">
-            ➕ Nueva Categoría
+            @PageTextHelper.GetCreateButtonText("Categories")
         </button>
     </div>
 
@@ -118,7 +118,7 @@
                             {
                                 <tr>
                                     <td colspan="5" class="text-center text-muted py-3">
-                                        No hay categorías que coincidan con los filtros.
+                                        @PageTextHelper.GetEmptyMessage("Categories")
                                     </td>
                                 </tr>
                             }
@@ -127,7 +127,7 @@
                 </div>
             </div>
             <div class="card-footer text-muted small">
-                Mostrando @_filteredCategories.Count() de @_categories.Count() categorías
+                @PageTextHelper.GetFooterMessage(_filteredCategories.Count(), _categories.Count(), "Categories")
             </div>
         </div>
     </div>
