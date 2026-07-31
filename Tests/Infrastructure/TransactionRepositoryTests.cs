@@ -1,5 +1,4 @@
 ﻿using Domain.Entities;
-using Contracts.Enums;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
@@ -13,6 +12,7 @@ namespace Tests.Infrastructure
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly ITransactionRepository _repository;
+        private readonly ICategoryRepository _categoryRepository;
 
         public TransactionRepositoryTests()
         {
@@ -24,6 +24,7 @@ namespace Tests.Infrastructure
 
             _dbContext = new ApplicationDbContext(options);
             _repository = new TransactionRepository(_dbContext);
+            _categoryRepository = new CategoryRepository(_dbContext);
         }
 
         // ==================== TEST: ADD ====================
@@ -408,19 +409,17 @@ namespace Tests.Infrastructure
         {
             // Arrange
             int userId = 1;
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(1, user);
             EntityInfo updatedEntityInfo = TestDataFactory.CreateEntityInfo("Compra actualizada", "Nueva descripción");
             Money updatedAmount = TestDataFactory.CreateMoney(50.00m);
             DailyPeriod updatedDate = TestDataFactory.CreateDailyPeriod(20);
 
-            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, TestDataFactory.CreateUser(), TestDataFactory.CreateCategory());
+            Category updatedCategory = await TestDataFactory.SeedCategoryAsync(_categoryRepository, 2, user, "Test 2");
+            Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category);
 
             // Modificar la entidad
-            transaction.Update
-            (
-                updatedEntityInfo,
-                updatedAmount,
-                updatedDate
-            );
+            transaction.Update(updatedCategory, updatedEntityInfo, updatedAmount, updatedDate);
 
             // Act
             await _repository.UpdateAsync(transaction);
@@ -428,6 +427,8 @@ namespace Tests.Infrastructure
             // Assert
             Transaction? updated = await _repository.GetByIdAsync(userId, transaction.Id);
             Assert.NotNull(updated);
+            Assert.Equal(updatedCategory.Id, updated.CategoryId);
+            Assert.Equal(updatedCategory.Info.Name, updated.Category.Info.Name);
             Assert.Equal(updatedEntityInfo.Name, updated.Info.Name);
             Assert.Equal(updatedEntityInfo.Description, updated.Info.Description);
             Assert.Equal(updatedAmount.Value, updated.Amount.Value);

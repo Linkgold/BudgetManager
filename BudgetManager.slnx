@@ -5,8 +5,6 @@
   <Project Path="Domain/Domain.csproj" Id="ed8e5bdd-8401-4e28-90d9-c9da6d2f679d" />
   <Project Path="Infrastructure/Infrastructure.csproj" Id="aa3e4ea6-bf94-4c68-a383-2abc3aa42a46" />
   <Project Path="Shared/Shared.csproj" Id="888d5857-2cde-454c-86a9-0ed735a6e9f3" />
-  <Project Path="Tests/Tests.csproj" Id="580124ed-fbbb-42b3-876e-6bb896570f7c">
-    <Build Solution="Debug|*" Project="false" />
-  </Project>
+  <Project Path="Tests/Tests.csproj" Id="580124ed-fbbb-42b3-876e-6bb896570f7c" />
   <Project Path="UI/UI.csproj" Id="930dca9a-ed57-4e13-b5cf-0d7c2077905a" />
 </Solution>

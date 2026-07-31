@@ -153,8 +153,6 @@ namespace API.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Create([FromBody] CreateTransactionRequestDTO request)
         {
-            System.Diagnostics.Debugger.Break();
-
             if (request == null) return BadRequest("Request cannot be null");
 
             TransactionResponseDTO createdTransaction = await _transactionService.CreateAsync(request);

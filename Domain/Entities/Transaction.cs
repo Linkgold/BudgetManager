@@ -52,44 +52,20 @@ namespace Domain.Entities
             CreatedAt = DateTime.UtcNow;
         }
 
-        public void Update(EntityInfo info, Money amount, DailyPeriod date)
+        public void Update(Category category, EntityInfo info, Money amount, DailyPeriod date)
         {
+            ArgumentNullException.ThrowIfNull(category);
             ArgumentNullException.ThrowIfNull(info);
             ArgumentNullException.ThrowIfNull(amount);
             ArgumentNullException.ThrowIfNull(date);
 
             // ✅ Validar según la naturaleza de la categoría
-            ValidateAmountByNature(Category.Nature, amount);
+            ValidateAmountByNature(category.Nature, amount);
 
+            Category = category;
+            CategoryId = category.Id;
             Info = info;
             Amount = amount;
-            Date = date;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void UpdateAmount(Money amount)
-        {
-            ArgumentNullException.ThrowIfNull(amount);
-
-            // ✅ Validar según la naturaleza de la categoría
-            ValidateAmountByNature(Category.Nature, amount);
-
-            Amount = amount;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void UpdateInfo(EntityInfo info)
-        {
-            ArgumentNullException.ThrowIfNull(info);
-
-            Info = info;
-            UpdatedAt = DateTime.UtcNow;
-        }
-
-        public void UpdateDate(DailyPeriod date)
-        {
-            ArgumentNullException.ThrowIfNull(date);
-
             Date = date;
             UpdatedAt = DateTime.UtcNow;
         }

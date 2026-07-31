@@ -200,6 +200,9 @@ namespace Tests.Domain.Entities
         public void Update_WithValidValues_ShouldUpdateTransaction()
         {
             // Arrange
+            User user = TestDataFactory.CreateUser();
+            Category originalCategory = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Expense);
+            Category updatedCategory = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Income);
             string updatedName = "Compra supermercado actualizada";
             string updatedDescription = "Carrefour 20/06/2024";
             decimal updatedAmount = 50.00m;
@@ -211,12 +214,14 @@ namespace Tests.Domain.Entities
             // Act
             transaction.Update
             (
+                updatedCategory,
                 TestDataFactory.CreateEntityInfo(updatedName, updatedDescription),
                 TestDataFactory.CreateMoney(updatedAmount, updatedCurrency), 
                 TestDataFactory.CreateDailyPeriod(updatedDay)
             );
 
             // Assert
+            Assert.Equal(updatedCategory.Id, transaction.CategoryId);
             Assert.Equal(updatedName, transaction.Info.Name);
             Assert.Equal(updatedDescription, transaction.Info.Description);
             Assert.Equal(updatedAmount, transaction.Amount.Value);
@@ -239,6 +244,7 @@ namespace Tests.Domain.Entities
             // Act
             transaction.Update
             (
+                category,
                 TestDataFactory.CreateEntityInfo(),
                 updatedAmount,
                 TestDataFactory.CreateDailyPeriod()
@@ -249,13 +255,25 @@ namespace Tests.Domain.Entities
         }
 
         [Fact]
+        public void Update_WithNullCategory_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
+
+            // Act & Assert
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(null, TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), TestDataFactory.CreateDailyPeriod()));
+
+            Assert.Equal("category", exception.ParamName);
+        }
+
+        [Fact]
         public void Update_WithNullInfo_ShouldThrowArgumentNullException()
         {
             // Arrange
             Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(null, TestDataFactory.CreateMoney(), TestDataFactory.CreateDailyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), null, TestDataFactory.CreateMoney(), TestDataFactory.CreateDailyPeriod()));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -267,7 +285,7 @@ namespace Tests.Domain.Entities
             Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateEntityInfo(), null, TestDataFactory.CreateDailyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), null, TestDataFactory.CreateDailyPeriod()));
 
             Assert.Equal("amount", exception.ParamName);
         }
@@ -279,102 +297,7 @@ namespace Tests.Domain.Entities
             Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), null));
-
-            Assert.Equal("date", exception.ParamName);
-        }
-
-        // ==================== UPDATE AMOUNT ====================
-
-        [Fact]
-        public void UpdateAmount_WithValidValue_ShouldUpdateAmount()
-        {
-            // Arrange
-            decimal updatedAmount = 50.00m;
-
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
-
-            // Act
-            transaction.UpdateAmount(TestDataFactory.CreateMoney(updatedAmount));
-
-            // Assert
-            Assert.Equal(updatedAmount, transaction.Amount.Value);
-            Assert.NotNull(transaction.UpdatedAt);
-        }
-
-        [Fact]
-        public void UpdateAmount_WithNullAmount_ShouldThrowArgumentNullException()
-        {
-            // Arrange
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
-
-            // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.UpdateAmount(null));
-
-            Assert.Equal("amount", exception.ParamName);
-        }
-
-        // ==================== UPDATE INFO ====================
-
-        [Fact]
-        public void UpdateInfo_WithValidValue_ShouldUpdateInfo()
-        {
-            // Arrange
-            string updatedName = "Nuevo nombre";
-            string udatedDescription = "Nueva descripción";
-
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
-
-            // Act
-            EntityInfo newInfo = TestDataFactory.CreateEntityInfo(updatedName, udatedDescription);
-            transaction.UpdateInfo(newInfo);
-
-            // Assert
-            Assert.Equal(updatedName, transaction.Info.Name);
-            Assert.Equal(udatedDescription, transaction.Info.Description);
-            Assert.NotNull(transaction.UpdatedAt);
-        }
-
-        [Fact]
-        public void UpdateInfo_WithNullInfo_ShouldThrowArgumentNullException()
-        {
-            // Arrange
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
-
-            // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.UpdateInfo(null));
-
-            Assert.Equal("info", exception.ParamName);
-        }
-
-        // ==================== UPDATE DATE ====================
-
-        [Fact]
-        public void UpdateDate_WithValidValue_ShouldUpdateDate()
-        {
-            int updatedDay = 20;
-
-            // Arrange
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
-
-            // Act
-            transaction.UpdateDate(TestDataFactory.CreateDailyPeriod(updatedDay));
-
-            // Assert
-            Assert.Equal(updatedDay, transaction.Date.Day);
-            Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, transaction.Date.Month);
-            Assert.Equal(TestDataFactory.DEFAULT_YEAR, transaction.Date.Year);
-            Assert.NotNull(transaction.UpdatedAt);
-        }
-
-        [Fact]
-        public void UpdateDate_WithNullDate_ShouldThrowArgumentNullException()
-        {
-            // Arrange
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
-
-            // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.UpdateDate(null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), null));
 
             Assert.Equal("date", exception.ParamName);
         }

@@ -16,6 +16,7 @@ namespace Tests.Infrastructure
     {
         private readonly ApplicationDbContext _dbContext;
         private readonly IFixedExpenseRepository _repository;
+        private readonly ICategoryRepository _categoryRepository;
 
         public FixedExpenseRepositoryTests()
         {
@@ -28,6 +29,7 @@ namespace Tests.Infrastructure
 
             _dbContext = new ApplicationDbContext(options);
             _repository = new FixedExpenseRepository(_dbContext);
+            _categoryRepository = new CategoryRepository(_dbContext);
         }
 
         // ==================== TEST: ADD ====================
@@ -399,6 +401,8 @@ namespace Tests.Infrastructure
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory(1, user);
 
+
+            Category updatedCategory = await TestDataFactory.SeedCategoryAsync(_categoryRepository, 2, user, "Test 2");
             FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
 
             // Modificar la entidad

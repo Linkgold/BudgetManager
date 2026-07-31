@@ -283,6 +283,7 @@ namespace UI.Pages
 
             UpdateTransactionRequestDTO request = new()
             {
+                CategoryId = _transactionForm.CategoryId,
                 Name = _transactionForm.Name,
                 Description = _transactionForm.Description,
                 Amount = finalAmount,

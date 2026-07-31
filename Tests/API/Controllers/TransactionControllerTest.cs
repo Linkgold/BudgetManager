@@ -369,10 +369,12 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            int updatedCategoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripción");
             int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, "EUR", 15, 6, 2024);
 
             UpdateTransactionRequestDTO request = new UpdateTransactionRequestDTO
             {
+                CategoryId = updatedCategoryId,
                 Name = "Compra actualizada",
                 Description = "Carrefour 20/06/2024",
                 Amount = 50.00m,
@@ -393,6 +395,7 @@ namespace Tests.API.Controllers
 
             Assert.NotNull(transaction);
             Assert.Equal(transactionId, transaction.Id);
+            Assert.Equal(updatedCategoryId, transaction.CategoryId);
             Assert.Equal(50.00m, transaction.Amount);
             Assert.Equal("CNY", transaction.Currency);
             Assert.Equal(20, transaction.Date.Day);

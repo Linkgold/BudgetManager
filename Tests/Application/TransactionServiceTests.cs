@@ -516,13 +516,22 @@ namespace Tests.Application
         {
             // Arrange
             int userId = 1;
+            int updatedCategoryId = 1;
             int transactionId = 1;
+            string updatedCategoryName = "Suscripciones";
             string updatedName = "Compra supermercado actualizada";
             string updatedDescription = "Carrefour 20/06/2024";
-            decimal updatedAmount = 50.00m;
-            int updatedDay = 20;
+            decimal updatedAmount = 327.00m;
+            int updatedDay = 17;
+
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(updatedCategoryId, user, updatedCategoryName);
 
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
+
+            _categoryRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, updatedCategoryId, It.IsAny<bool>()))
+                .ReturnsAsync(category);
 
             _transactionRepositoryMock
                 .Setup(repo => repo.GetByIdAsync(userId, transactionId))
@@ -534,6 +543,7 @@ namespace Tests.Application
                 transactionId,
                 new UpdateTransactionRequestDTO
                 {
+                    CategoryId = updatedCategoryId,
                     Name = updatedName,
                     Description = updatedDescription,
                     Amount = updatedAmount,
@@ -543,6 +553,8 @@ namespace Tests.Application
 
             // Assert
             Assert.NotNull(result);
+            Assert.Equal(updatedCategoryId, result.CategoryId);
+            Assert.Equal(updatedCategoryName, result.CategoryName);
             Assert.Equal(transactionId, result.Id);
             Assert.Equal(updatedAmount, result.Amount);
             Assert.Equal(updatedName, result.Name);

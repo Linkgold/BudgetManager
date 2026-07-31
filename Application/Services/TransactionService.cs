@@ -164,13 +164,18 @@ namespace Application.Services
 
             if (transaction == null) throw new KeyNotFoundException($"Transaction with ID {id} not found");
 
+            // ✅ Validar que la nueva categoría existe
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId, withTracking: true);
+
+            if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
+
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
             Money amount = new Money(request.Amount, request.Currency ?? transaction.Amount.Currency, allowNegative: true);
             DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
 
             // Actualizar entidad de dominio
-            transaction.Update(info, amount, date);
+            transaction.Update(category, info, amount, date);
 
             // Guardar
             await _transactionRepository.UpdateAsync(transaction);
