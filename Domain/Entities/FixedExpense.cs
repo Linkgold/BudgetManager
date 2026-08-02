@@ -53,25 +53,21 @@ namespace Domain.Entities
 
         // ==================== MÉTODOS DE COMPORTAMIENTO ====================
 
-        public void Update(EntityInfo info, Money amount, MonthlyPeriod chargePeriod)
+        public void Update(Category category, EntityInfo info, Money amount, MonthlyPeriod chargePeriod)
         {
+            ArgumentNullException.ThrowIfNull(category);
             ArgumentNullException.ThrowIfNull(info);
             ArgumentNullException.ThrowIfNull(amount);
             ArgumentNullException.ThrowIfNull(chargePeriod);
 
+            Category = category;
+            CategoryId = category.Id;
             Info = info;
             Amount = amount;
             ChargePeriod = chargePeriod;
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateAmount(Money amount)
-        {
-            ArgumentNullException.ThrowIfNull(amount);
-
-            Amount = amount;
-            UpdatedAt = DateTime.UtcNow;
-        }
         public override string ToString() => $"FixedExpense: {Info.Name} - {Amount:F2} {Amount.Currency} (Desde {ChargePeriod})";
     }
 }

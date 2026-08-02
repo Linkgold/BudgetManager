@@ -278,3 +278,25 @@ select.input-disabled {
 .mud-date-picker-custom .mud-input-underline:before {
     content: none !important;
 }
+
+/* ==================== INPUT AUTOFILL ==================== */
+/* 🔥 Forzar que los inputs autocompletados usen el tema */
+
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+    -webkit-text-fill-color: var(--color-text) !important;
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 8px !important;
+}
+
+/* 🔥 Para Firefox */
+input:-moz-autofill {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+}

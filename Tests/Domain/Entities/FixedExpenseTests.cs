@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Contracts.Enums;
+using Domain.Entities;
 using Domain.ValueObjects;
 using Tests.Helpers;
 
@@ -110,6 +111,8 @@ namespace Tests.Domain.Entities
         public void Update_WithValidValues_ShouldUpdateFixedExpense()
         {
             // Arrange
+            User user = TestDataFactory.CreateUser();
+            Category updatedCategory = TestDataFactory.CreateCategory(2, user,"Updated Category");
             string updatedName = "Netflix Premium";
             string updatedDescription = "Suscripción mensual Premium";
             decimal updatedAmount = 17.99m;
@@ -120,12 +123,15 @@ namespace Tests.Domain.Entities
             // Act
             fixedExpense.Update
             (
+                updatedCategory,
                 TestDataFactory.CreateEntityInfo(updatedName, updatedDescription), 
                 TestDataFactory.CreateMoney(updatedAmount), 
                 TestDataFactory.CreateMonthlyPeriod(updatedmonth)
             );
 
             // Assert
+            Assert.Equal(updatedCategory.Id, fixedExpense.CategoryId);
+            Assert.Equal(updatedCategory.Info.Name, fixedExpense.Category.Info.Name);
             Assert.Equal(updatedName, fixedExpense.Info.Name);
             Assert.Equal(updatedDescription, fixedExpense.Info.Description);
             Assert.Equal(updatedAmount, fixedExpense.Amount.Value);
@@ -135,13 +141,25 @@ namespace Tests.Domain.Entities
         }
 
         [Fact]
+        public void Update_WithNullCategory_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
+
+            // Act & Assert
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(null, TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), TestDataFactory.CreateMonthlyPeriod()));
+
+            Assert.Equal("category", exception.ParamName);
+        }
+
+        [Fact]
         public void Update_WithNullInfo_ShouldThrowArgumentNullException()
         {
             // Arrange
             FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(null, TestDataFactory.CreateMoney(), TestDataFactory.CreateMonthlyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), null, TestDataFactory.CreateMoney(), TestDataFactory.CreateMonthlyPeriod()));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -153,7 +171,7 @@ namespace Tests.Domain.Entities
             FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateEntityInfo(), null, TestDataFactory.CreateMonthlyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), null, TestDataFactory.CreateMonthlyPeriod()));
 
             Assert.Equal("amount", exception.ParamName);
         }
@@ -165,37 +183,8 @@ namespace Tests.Domain.Entities
             FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), null));
             Assert.Equal("chargePeriod", exception.ParamName);
-        }
-
-        // ==================== UPDATE AMOUNT ====================
-
-        [Fact]
-        public void UpdateAmount_WithValidValue_ShouldUpdateAmount()
-        {
-            // Arrange
-            decimal updatedAmount = 17.99m;
-
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-
-            // Act
-            fixedExpense.UpdateAmount(TestDataFactory.CreateMoney(updatedAmount));
-
-            // Assert
-            Assert.Equal(updatedAmount, fixedExpense.Amount.Value);
-            Assert.NotNull(fixedExpense.UpdatedAt);
-        }
-
-        [Fact]
-        public void UpdateAmount_WithNullAmount_ShouldThrowArgumentNullException()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-
-            // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.UpdateAmount(null));
-            Assert.Equal("amount", exception.ParamName);
         }
 
         // ==================== TO STRING ====================

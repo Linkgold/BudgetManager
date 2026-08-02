@@ -85,7 +85,7 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripciones");
-            int fixedExpenseId = await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Spotify", 9.99m, "EUR", 2024, 1);
+            int fixedExpenseId = await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Spotify", 9.99m, "EUR", 1, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/fixedexpense/{fixedExpenseId}");
@@ -136,8 +136,8 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripciones");
-            await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Netflix", 15.99m, "EUR", 2024, 1);
-            await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Spotify", 9.99m, "EUR", 2024, 3);
+            await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Netflix", 15.99m, "EUR", 1, 2024);
+            await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Spotify", 9.99m, "EUR", 3, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync("/api/fixedexpense/active/period?year=2024&month=2");
@@ -154,6 +154,71 @@ namespace Tests.API.Controllers
             Assert.Equal("Netflix", fixedExpenses[0].Name);
         }
 
+        // ==================== TEST: UPDATE ====================
+
+        [Fact]
+        public async Task Update_WithValidData_ReturnsUpdatedFixedExpensesn()
+        {
+            // Arrange
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+            int updatedCategoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripción");
+            int fixedExpenseId = await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Compra supermercado", 45.75m, "EUR", 6, 2024);
+
+            UpdateFixedExpenseRequestDTO request = new UpdateFixedExpenseRequestDTO
+            {
+                CategoryId = updatedCategoryId,
+                Name = "Compra actualizada",
+                Description = "Carrefour 20/06/2024",
+                Amount = 50.00m,
+                Currency = "CNY",
+                Month = 6,
+                Year = 2024
+            };
+
+            StringContent content = _fixture.SerializeRequest(request);
+
+            // Act
+            HttpResponseMessage response = await _client.PutAsync($"/api/fixedExpense/{fixedExpenseId}", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
+
+            string responseContent = await response.Content.ReadAsStringAsync();
+            FixedExpenseResponseDTO? fixedExpense = _fixture.DeserializeResponse<FixedExpenseResponseDTO?>(responseContent);
+
+            Assert.NotNull(fixedExpense);
+            Assert.Equal(fixedExpenseId, fixedExpense.Id);
+            Assert.Equal(updatedCategoryId, fixedExpense.CategoryId);
+            Assert.Equal(50.00m, fixedExpense.Amount);
+            Assert.Equal("CNY", fixedExpense.Currency);
+            Assert.Equal(6, fixedExpense.Month);
+            Assert.Equal(2024, fixedExpense.Year);
+        }
+
+        [Fact]
+        public async Task Update_WithNonExistingId_ReturnsNotFound()
+        {
+            // Arrange
+            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
+
+            UpdateFixedExpenseRequestDTO request = new UpdateFixedExpenseRequestDTO
+            {
+                CategoryId = categoryId,
+                Name = "Compra actualizada",
+                Amount = 50.00m,
+                Month= 1,
+                Year= 2024
+            };
+
+            StringContent content = _fixture.SerializeRequest(request);
+
+            // Act
+            HttpResponseMessage response = await _client.PutAsync("/api/fixedExpense/999", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+
         // ==================== TEST: DELETE ====================
 
         [Fact]
@@ -161,7 +226,7 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripciones");
-            int fixedExpenseId = await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "ToDelete", 10.00m, "EUR", 2024, 1);
+            int fixedExpenseId = await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "ToDelete", 10.00m, "EUR", 1, 2024);
 
             // Act
             HttpResponseMessage response = await _client.DeleteAsync($"/api/fixedexpense/{fixedExpenseId}");

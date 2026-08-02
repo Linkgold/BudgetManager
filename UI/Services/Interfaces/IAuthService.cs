@@ -8,6 +8,7 @@ namespace UI.Services.Interfaces
         Task<bool> RegisterAsync(CreateUserRequestDTO request);
         Task LogoutAsync();
         Task<string?> GetTokenAsync();
+        Task UpdateTokenAsync(string newToken);
         bool IsAuthenticated { get; }
     }
 }

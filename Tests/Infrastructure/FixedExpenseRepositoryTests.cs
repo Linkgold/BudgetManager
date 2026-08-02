@@ -401,7 +401,6 @@ namespace Tests.Infrastructure
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory(1, user);
 
-
             Category updatedCategory = await TestDataFactory.SeedCategoryAsync(_categoryRepository, 2, user, "Test 2");
             FixedExpense fixedExpense = await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
 
@@ -410,7 +409,7 @@ namespace Tests.Infrastructure
             Money updatedAmountObject = TestDataFactory.CreateMoney(updatedAmount);
             MonthlyPeriod updatedPeriodObject = TestDataFactory.CreateMonthlyPeriod(updatedMonth);
 
-            fixedExpense.Update(updatedInfoObject, updatedAmountObject, updatedPeriodObject);
+            fixedExpense.Update(updatedCategory, updatedInfoObject, updatedAmountObject, updatedPeriodObject);
 
             // Act
             await _repository.UpdateAsync(fixedExpense);
@@ -418,6 +417,8 @@ namespace Tests.Infrastructure
             // Assert
             FixedExpense? updated = await _repository.GetByIdAsync(userId, fixedExpense.Id);
             Assert.NotNull(updated);
+            Assert.Equal(updatedCategory.Id, updated.CategoryId);
+            Assert.Equal(updatedCategory.Info.Name, updated.Category.Info.Name);
             Assert.Equal(updatedName, updated.Info.Name);
             Assert.Equal(updatedDescription, updated.Info.Description);
             Assert.Equal(updatedAmount, updated.Amount.Value);

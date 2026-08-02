@@ -157,5 +157,14 @@ namespace UI.Services
 
             return _token;
         }
+
+        public async Task UpdateTokenAsync(string newToken)
+        {
+            _token = newToken;
+
+            await _storageService.SetItemAsync(TOKEN_KEY, newToken);
+
+            _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", newToken);
+        }
     }
 }

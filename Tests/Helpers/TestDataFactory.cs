@@ -422,8 +422,8 @@ namespace Tests.Helpers
             string name,
             decimal amount,
             string currency,
-            int year,
-            int month
+            int month,
+            int year
         )
         {
             CreateFixedExpenseRequestDTO request = new CreateFixedExpenseRequestDTO

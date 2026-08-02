@@ -216,6 +216,23 @@ namespace UI.Services.API
         {
             HttpResponseMessage response = await request();
 
+            // ✅ Comprobar si la respuesta contiene un nuevo token
+            if (response.Headers.TryGetValues("X-New-Token", out IEnumerable<string>? newTokenValues))
+            {
+                string? newToken = newTokenValues.FirstOrDefault();
+                await _logService.LogInfoAsync($"✅ Nuevo token recibido: {newToken?.Length ?? 0}");
+                if (!string.IsNullOrEmpty(newToken))
+                {
+                    // ✅ Actualizar el token en memoria y storage
+                    await _authService.UpdateTokenAsync(newToken);
+                    await _logService.LogInfoAsync("Token actualizado desde el servidor");
+                }
+            }
+            else
+            {
+                await _logService.LogErrorAsync("❌ No se recibió nuevo token");
+            }
+
             if (response.StatusCode == HttpStatusCode.Unauthorized)
             {
                 await _authService.LogoutAsync();

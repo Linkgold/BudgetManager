@@ -185,13 +185,17 @@ namespace API
         {
             // Registrar el filtro de validación
             services.AddScoped<ValidationFilter>();
+            services.AddScoped<TokenRenewalFilter>();
 
             services.AddControllers
             (
                 options =>
                 {
-                        // Agregar filtro de validación global
-                        options.Filters.Add<ValidationFilter>();
+                    // Agregar filtro de validación global
+                    options.Filters.Add<ValidationFilter>();
+
+                    // Agregar filtro de renovación de token global
+                    options.Filters.Add<TokenRenewalFilter>();
                 }
             ).AddJsonOptions
             (
@@ -250,10 +254,7 @@ namespace API
                         {
                             if (_environment.IsDevelopment())
                             {
-
-                                policy.AllowAnyOrigin()
-                                      .AllowAnyMethod()
-                                      .AllowAnyHeader();
+                                policy.AllowAnyOrigin();
                             }
                             else
                             {
@@ -261,10 +262,12 @@ namespace API
                                 (
                                     "https://midominio.com",
                                     "https://www.midominio.com"
-                                )
-                                .AllowAnyMethod()
-                                .AllowAnyHeader();
+                                );
                             }
+
+                            policy.AllowAnyMethod()
+                                  .AllowAnyHeader()
+                                  .WithExposedHeaders("X-New-Token");
                         }
                     );
                 }

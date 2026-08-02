@@ -201,7 +201,6 @@ namespace Tests.Domain.Entities
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            Category originalCategory = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Expense);
             Category updatedCategory = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Income);
             string updatedName = "Compra supermercado actualizada";
             string updatedDescription = "Carrefour 20/06/2024";

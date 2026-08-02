@@ -112,12 +112,15 @@
 					<div class="form-group">
 						<label class="form-label" for="transactionDate">Fecha</label>
 						<MudDatePicker @bind-Date="_transactionForm.MudDate"
-										Placeholder="DD/MM/YYYY"
-										Variant="Variant.Text"
-										Margin="Margin.Dense"
-										Disabled="@_transactionForm.IsDeleting"
-										Id="transactionDate"
-										Class="mud-date-picker-custom" />
+									   Editable="true"
+									   ImmediateText="true"
+									   DateFormat="dd/MM/yyyy"
+									   Placeholder="DD/MM/YYYY"
+									   Variant="Variant.Outlined"
+									   Margin="Margin.Dense"
+									   Disabled="@_transactionForm.IsDeleting"
+									   Id="transactionDate"
+									   Class="mud-date-picker-custom" />
 					</div>
 				</div>
 			</div>

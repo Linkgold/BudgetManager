@@ -142,10 +142,6 @@ namespace Application.Services
 
             if (id <= 0) throw new ArgumentException("Invalid fixed expense ID", nameof(id));
 
-            // ✅ Validar que la categoría existe
-            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId);
-            if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
-
             // ✅ Validar que no exista un gasto fijo con la misma combinación
             bool exists = await _fixedExpenseRepository.ExistsByCategoryNameMonthYearAsync(UserId, request.CategoryId, request.Name, request.Month, request.Year, id);
             if (exists)
@@ -157,13 +153,17 @@ namespace Application.Services
             FixedExpense? fixedExpense = await _fixedExpenseRepository.GetByIdAsync(UserId, id);
             if (fixedExpense == null) throw new KeyNotFoundException($"Fixed expense with ID {id} not found");
 
+            // ✅ Validar que la categoría existe
+            Category? category = await _categoryRepository.GetByIdAsync(UserId, request.CategoryId);
+            if (category == null) throw new KeyNotFoundException($"Category with ID {request.CategoryId} not found");
+
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
             Money amount = new Money(request.Amount, request.Currency ?? "EUR");
             MonthlyPeriod chargePeriod = new MonthlyPeriod(request.Month, request.Year);
 
             // Actualizar entidad de dominio
-            fixedExpense.Update(info, amount, chargePeriod);
+            fixedExpense.Update(category, info, amount, chargePeriod);
 
             // Guardar
             await _fixedExpenseRepository.UpdateAsync(fixedExpense);
