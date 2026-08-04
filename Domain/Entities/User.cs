@@ -56,7 +56,5 @@ namespace Domain.Entities
             PasswordHash = passwordHash;
             UpdatedAt = DateTime.UtcNow;
         }
-
-        public override string ToString() => $"{Info.UserName} <{Info.Email}>";
     }
 }

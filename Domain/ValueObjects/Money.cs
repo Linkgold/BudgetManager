@@ -1,4 +1,6 @@
-﻿namespace Domain.ValueObjects
+﻿using System.Globalization;
+
+namespace Domain.ValueObjects
 {
     public class Money
     {
@@ -31,8 +33,6 @@
         public override bool Equals(object? obj) => obj is Money other && Equals(other);
 
         public override int GetHashCode() => HashCode.Combine(Value, Currency);
-
-        public override string ToString() => $"{Value:F2} {Currency}";
 
         public static Money operator +(Money a, Money b)
         {

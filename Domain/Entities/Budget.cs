@@ -144,10 +144,5 @@ namespace Domain.Entities
 
             return totalSpent > MonthlyAmount.Value;
         }
-
-        public override string ToString()
-        {
-            return $"Budget: {Category?.Info?.Name ?? "Unknown"} - {MonthlyAmount:F2} {MonthlyAmount.Currency} ({Period})";
-        }
     }
 }

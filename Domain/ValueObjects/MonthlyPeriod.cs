@@ -46,8 +46,6 @@
 
         public override int GetHashCode() => HashCode.Combine(Year, Month);
 
-        public override string ToString() => $"{Month:00}-{Year:0000}";
-
         public static bool operator ==(MonthlyPeriod a, MonthlyPeriod b)
         {
             if (a is null && b is null) return true;

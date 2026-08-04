@@ -449,20 +449,5 @@ namespace Tests.Domain.ValueObjects
             // Act & Assert
             Assert.Equal(date1.GetHashCode(), date2.GetHashCode());
         }
-
-        // ==================== TO STRING ====================
-
-        [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            DailyPeriod date = new DailyPeriod(15, 6, 2024);
-
-            // Act
-            string result = date.ToString();
-
-            // Assert
-            Assert.Equal("15/06/2024", result);
-        }
     }
 }

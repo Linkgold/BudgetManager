@@ -106,32 +106,6 @@ namespace Tests.Domain.ValueObjects
         }
 
         [Fact]
-        public void ToString_WithoutDescription_ShouldReturnOnlyName()
-        {
-            // Arrange
-            EntityInfo info = new EntityInfo("Test");
-
-            // Act
-            string result = info.ToString();
-
-            // Assert
-            Assert.Equal("Test", result);
-        }
-
-        [Fact]
-        public void ToString_WithDescription_ShouldReturnNameAndDescription()
-        {
-            // Arrange
-            EntityInfo info = new EntityInfo("Test", "Description");
-
-            // Act
-            string result = info.ToString();
-
-            // Assert
-            Assert.Equal("Test: Description", result);
-        }
-
-        [Fact]
         public void ImplicitConversion_ToString_ShouldReturnName()
         {
             // Arrange

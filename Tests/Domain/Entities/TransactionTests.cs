@@ -316,22 +316,5 @@ namespace Tests.Domain.Entities
             Assert.Equal(TestDataFactory.DEFAULT_DAILY_MONTH, result.Month);
             Assert.Equal(TestDataFactory.DEFAULT_YEAR, result.Year);
         }
-
-        // ==================== TO STRING ====================
-
-        [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
-
-            // Act
-            string result = transaction.ToString();
-
-            // Assert
-            Assert.Contains(TestDataFactory.DEFAULT_ENTITY_INFO_NAME, result);
-            Assert.Contains($"{TestDataFactory.DEFAULT_MONEY_AMOUNT}", result);
-            Assert.Contains($"{TestDataFactory.DEFAULT_DAILY_DAY:00}/{TestDataFactory.DEFAULT_DAILY_MONTH:00}/{TestDataFactory.DEFAULT_YEAR:0000}", result);
-        }
     }
 }

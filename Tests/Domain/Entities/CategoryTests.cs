@@ -113,23 +113,6 @@ namespace Tests.Domain.Entities
             Assert.Equal("info", exception.ParamName);
         }
 
-        // ==================== TO STRING ====================
-
-        [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            Category category = TestDataFactory.CreateCategory();
-
-            // Act
-            string result = category.ToString();
-
-            // Assert
-            Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_NAME, result);
-            Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_DESCRIPTION, result);
-            Assert.Contains("Expense", result);
-        }
-
         // ==================== EQUALITY (opcional) ====================
 
         [Fact]

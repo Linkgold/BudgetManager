@@ -122,18 +122,5 @@ namespace Tests.Domain.ValueObjects
             Assert.True(period1.Equals(period2));
             Assert.True(period1 == period2);
         }
-
-        [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            MonthlyPeriod period = new MonthlyPeriod(6, 2024);
-
-            // Act
-            string result = period.ToString();
-
-            // Assert
-            Assert.Equal("06-2024", result);
-        }
     }
 }

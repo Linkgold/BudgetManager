@@ -43,13 +43,6 @@
             );
         }
 
-        public override string ToString()
-        {
-            if (string.IsNullOrEmpty(Description))
-                return Name;
-            return $"{Name}: {Description}";
-        }
-
         public static bool operator ==(EntityInfo a, EntityInfo b) => Equals(a, b);
 
         public static bool operator !=(EntityInfo a, EntityInfo b) => !Equals(a, b);

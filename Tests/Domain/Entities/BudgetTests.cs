@@ -323,20 +323,5 @@ namespace Tests.Domain.Entities
             // Assert
             Assert.False(isOver);
         }
-
-        [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            Budget budget = TestDataFactory.CreateBudgetWithoutId();
-
-            // Act
-            string result = budget.ToString();
-
-            // Assert
-            Assert.Contains(TestDataFactory.DEFAULT_CATEGORY_NAME, result);
-            Assert.Contains($"{TestDataFactory.DEFAULT_MONEY_AMOUNT} {TestDataFactory.DEFAULT_CURRENCY}", result);
-            Assert.Contains($"{TestDataFactory.DEFAULT_MONTHLY_MONTH}-{TestDataFactory.DEFAULT_YEAR}", result);
-        }
     }
 }

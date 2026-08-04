@@ -51,7 +51,5 @@ namespace Domain.Entities
 
             UpdatedAt = DateTime.UtcNow;
         }
-
-        public override string ToString() => $"Category: {Info.Name} (Description: {Info.Description}) [Nature:{Nature}]";
     }
 }

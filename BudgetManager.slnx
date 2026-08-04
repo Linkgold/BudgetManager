@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/Documentos/">
+    <File Path="CI-CD.md" />
     <File Path="DEPLOY.md" />
     <File Path="SEGURIDAD.md" />
   </Folder>

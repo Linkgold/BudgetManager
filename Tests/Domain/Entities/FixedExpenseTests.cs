@@ -186,22 +186,5 @@ namespace Tests.Domain.Entities
             ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), null));
             Assert.Equal("chargePeriod", exception.ParamName);
         }
-
-        // ==================== TO STRING ====================
-
-        [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
-
-            // Act
-            string result = fixedExpense.ToString();
-
-            // Assert
-            Assert.Contains(TestDataFactory.DEFAULT_ENTITY_INFO_NAME, result);
-            Assert.Contains($"{TestDataFactory.DEFAULT_MONEY_AMOUNT}", result);
-            Assert.Contains($"{TestDataFactory.DEFAULT_MONTHLY_MONTH}-{TestDataFactory.DEFAULT_YEAR}", result);
-        }
     }
 }

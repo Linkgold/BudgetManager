@@ -67,7 +67,5 @@ namespace Domain.Entities
             ChargePeriod = chargePeriod;
             UpdatedAt = DateTime.UtcNow;
         }
-
-        public override string ToString() => $"FixedExpense: {Info.Name} - {Amount:F2} {Amount.Currency} (Desde {ChargePeriod})";
     }
 }

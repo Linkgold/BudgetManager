@@ -87,8 +87,6 @@
 
         public override int GetHashCode() => HashCode.Combine(Day, Year, Month);
 
-        public override string ToString() => $"{Day:00}/{Month:00}/{Year:0000}";
-
         public static bool operator ==(DailyPeriod a, DailyPeriod b)
         {
             if (a is null && b is null) return true;
