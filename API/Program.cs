@@ -11,7 +11,7 @@ namespace API
         /// <param name="args">Argumentos de línea de comandos</param>
         public static void Main(string[] args)
         {
-            IHostBuilder hostBuilder = CreateHostBuilder(args);
+            IHostBuildere hostBuilder = CreateHostBuilder(args);
             IHost host = hostBuilder.Build();
             host.Run();
         }
