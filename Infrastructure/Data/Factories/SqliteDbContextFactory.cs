@@ -17,6 +17,8 @@ namespace Infrastructure.Data.Factories
 
             _connectionString = connectionString;
             _options = null;
+
+            EnsureDirectoryExists(_connectionString);
         }
 
         public ApplicationDbContext CreateDbContext()
@@ -29,14 +31,17 @@ namespace Infrastructure.Data.Factories
         {
             if (_options != null) return _options;
 
-            SqliteConnectionStringBuilder connectionStringBuilder = new SqliteConnectionStringBuilder(_connectionString);
-
+            SqliteConnectionStringBuilder builder = new SqliteConnectionStringBuilder(_connectionString)
+            {
+                Mode = SqliteOpenMode.ReadWriteCreate,
+                Cache = SqliteCacheMode.Shared
+            };
             DbContextOptionsBuilder<ApplicationDbContext> optionsBuilder = new DbContextOptionsBuilder<ApplicationDbContext>();
 
             // Configurar SQLite
             optionsBuilder.UseSqlite
             (
-                _connectionString,
+                builder.ConnectionString,
                 sqliteOptions =>
                 {
                     // Configuraciones específicas de SQLite
@@ -51,6 +56,18 @@ namespace Infrastructure.Data.Factories
 
             _options = optionsBuilder.Options;
             return _options;
+        }
+
+        private void EnsureDirectoryExists(string connectionString)
+        {
+            SqliteConnectionStringBuilder builder = new(connectionString);
+
+            string? directory = Path.GetDirectoryName(builder.DataSource);
+
+            if (!string.IsNullOrWhiteSpace(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
         }
     }
 }

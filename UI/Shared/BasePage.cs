@@ -40,7 +40,7 @@ namespace UI.Shared
 
         protected async Task LogInfoAsync(string message)
         {
-            await LogService.LogInfoAsync(message);
+            await LogService.LogInformationAsync(message);
         }
     }
 }

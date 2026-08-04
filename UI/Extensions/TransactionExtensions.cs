@@ -30,7 +30,6 @@ namespace UI.Extensions
             return $"{sign}{CurrencyHelper.FormatCurrency(Math.Abs(displayAmount))}";
         }
 
-        // ✅ Extensión para colecciones
         public static decimal GetTotalDisplayAmount(this IEnumerable<TransactionModel> transactions)
         {
             decimal total = 0m;
@@ -41,6 +40,23 @@ namespace UI.Extensions
             }
 
             return total;
+        }
+
+        public static int GetFirstMonthWithData(this IEnumerable<TransactionModel> transactions, int year)
+        {
+            List<int> monthsWithData = transactions
+                .Where(t => t.Date.Year == year)
+                .Select(t => t.Date.Month)
+                .Distinct()
+                .OrderBy(m => m)
+                .ToList();
+
+            return monthsWithData.FirstOrDefault();
+        }
+
+        public static bool HasMonthData(this IEnumerable<TransactionModel> transactions, int year, int month)
+        {
+            return transactions.Any(t => t.Date.Year == year && t.Date.Month == month);
         }
     }
 }

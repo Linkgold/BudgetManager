@@ -15,7 +15,7 @@ namespace Infrastructure
         /// <summary>
         /// Registra todos los servicios de Infrastructure
         /// </summary>
-        public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, DatabaseType databaseType = DatabaseType.SQLite)
+        public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration, DatabaseTypeEnum databaseType = DatabaseTypeEnum.SQLite)
         {
             // Registrar la fábrica apropiada
             services.AddSingleton<IDbContextFactory>
@@ -48,13 +48,13 @@ namespace Infrastructure
             return services;
         }
 
-        private static IDbContextFactory CreateFactory(IConfiguration configuration, DatabaseType databaseType)
+        private static IDbContextFactory CreateFactory(IConfiguration configuration, DatabaseTypeEnum databaseType)
         {
             string connectionString = GetConnectionString(configuration, databaseType);
 
             return databaseType switch
             {
-                DatabaseType.SQLite => new SqliteDbContextFactory(connectionString),
+                DatabaseTypeEnum.SQLite => new SqliteDbContextFactory(connectionString),
                 // DatabaseType.SqlServer => new SqlServerDbContextFactory(connectionString),
                 // DatabaseType.PostgreSQL => new PostgreSQLDbContextFactory(connectionString),
                 // DatabaseType.MySQL => new MySQLDbContextFactory(connectionString),
@@ -62,7 +62,7 @@ namespace Infrastructure
             };
         }
 
-        private static string GetConnectionString(IConfiguration configuration, DatabaseType databaseType)
+        private static string GetConnectionString(IConfiguration configuration, DatabaseTypeEnum databaseType)
         {
             string key = "DefaultConnection";
 
@@ -77,7 +77,7 @@ namespace Infrastructure
     /// <summary>
     /// Enumeración de tipos de base de datos soportados
     /// </summary>
-    public enum DatabaseType
+    public enum DatabaseTypeEnum
     {
         SQLite,
         // SqlServer,

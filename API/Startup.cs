@@ -12,7 +12,6 @@ using Infrastructure.Data.Factories;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using System.Reflection;
 using System.Text;
 
 namespace API
@@ -79,18 +78,14 @@ namespace API
             // Manejo de excepciones
             app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-            // Desarrollo
-            if (_environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI
-                (
-                    options =>
-                    {
-                        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Budget API v1");
-                    }
-                );
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI
+            (
+                options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "Budget API v1");
+                }
+            );
 
             // HTTPS
             app.UseHttpsRedirection();
@@ -127,7 +122,7 @@ namespace API
             if (string.IsNullOrEmpty(databaseTypeString)) throw new InvalidOperationException("DatabaseType not configured in appsettings.json");
 
             // Convertir a enum
-            bool parseSuccess = Enum.TryParse<DatabaseType>(databaseTypeString, true, out DatabaseType databaseType);
+            bool parseSuccess = Enum.TryParse<DatabaseTypeEnum>(databaseTypeString, true, out DatabaseTypeEnum databaseType);
 
             if (!parseSuccess) throw new InvalidOperationException($"DatabaseType '{databaseTypeString}' is not valid");
 
@@ -172,7 +167,6 @@ namespace API
             services.AddValidatorsFromAssemblyContaining<CreateCategoryRequestValidator>();
             services.AddValidatorsFromAssemblyContaining<CreateFixedExpenseRequestValidator>();
             services.AddValidatorsFromAssemblyContaining<CreateTransactionRequestValidator>();
-            services.AddValidatorsFromAssemblyContaining<UpdateBudgetRequestValidator>();
             services.AddValidatorsFromAssemblyContaining<UpdateCategoryRequestValidator>();
             services.AddValidatorsFromAssemblyContaining<UpdateFixedExpenseRequestValidator>();
             services.AddValidatorsFromAssemblyContaining<UpdateTransactionRequestValidator>();
@@ -243,6 +237,8 @@ namespace API
         /// </summary>
         private void ConfigureCors(IServiceCollection services)
         {
+            string[] origins = GetAllowedCorsOrigins();
+
             services.AddCors
             (
                 options =>
@@ -258,11 +254,7 @@ namespace API
                             }
                             else
                             {
-                                policy.WithOrigins
-                                (
-                                    "https://midominio.com",
-                                    "https://www.midominio.com"
-                                );
+                                policy.WithOrigins(origins);
                             }
 
                             policy.AllowAnyMethod()
@@ -369,6 +361,24 @@ namespace API
                 // Crear la base de datos si no existe (SQLite)
                 dbContext.EnsureDatabaseCreated();
             }
+        }
+
+        private string[] GetAllowedCorsOrigins()
+        {
+            string[]? origins = _configuration.GetSection("Cors:AllowedOrigins").Get<string[]>();
+
+            if (_environment.IsDevelopment())
+            {
+                return origins ?? [];
+            }
+
+            if (origins is null || origins.Length == 0)
+            {
+                throw new InvalidOperationException(
+                    "Cors:AllowedOrigins is not configured.");
+            }
+
+            return origins;
         }
 
         /// <summary>

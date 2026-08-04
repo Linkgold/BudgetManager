@@ -4,6 +4,6 @@
     {
         Task LogErrorAsync(string message, Exception? exception = null);
         Task LogWarningAsync(string message);
-        Task LogInfoAsync(string message);
+        Task LogInformationAsync(string message);
     }
 }

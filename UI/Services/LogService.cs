@@ -5,51 +5,51 @@ namespace UI.Services
 {
     public class LogService : ILogService
     {
+        private readonly ILogger<LogService> _logger;
         private readonly IJSRuntime _jsRuntime;
 
-        public LogService(IJSRuntime jsRuntime)
+        public LogService(ILogger<LogService> logger, IJSRuntime jsRuntime)
         {
+            _logger = logger;
             _jsRuntime = jsRuntime;
         }
 
         public async Task LogErrorAsync(string message, Exception? exception = null)
         {
-            try
+            if (exception is not null)
             {
-                string fullMessage = exception != null
-                ? $"[ERROR] {message} - {exception.Message}\n{exception.StackTrace}"
-                : $"[ERROR] {message}";
-
-                Console.WriteLine(fullMessage);
-
-                // ✅ Manejar posible error de JS
-                try
-                {
-                    await _jsRuntime.InvokeVoidAsync("console.error", fullMessage);
-                }
-                catch
-                {
-                    // ✅ Si falla JS, solo log en consola
-                    Console.Error.WriteLine("JS console.error failed, but log was written to console.");
-                }
+                _logger.LogError(exception, "{Message}", message);
             }
-            catch
+            else
             {
-                // ✅ Si todo falla, al menos escribir en consola
-                Console.Error.WriteLine($"FATAL: Could not log error: {message}");
+                _logger.LogError("{Message}", message);
             }
+
+            await WriteToBrowserConsoleAsync("error", exception is null ? message : $"{message}\n{exception}");
         }
 
         public async Task LogWarningAsync(string message)
         {
-            Console.WriteLine($"[WARNING] {message}");
-            await _jsRuntime.InvokeVoidAsync("console.warn", message);
+            _logger.LogWarning("{Message}", message);
+            await WriteToBrowserConsoleAsync("warn", message);
         }
 
-        public async Task LogInfoAsync(string message)
+        public async Task LogInformationAsync(string message)
         {
-            Console.WriteLine($"[INFO] {message}");
-            await _jsRuntime.InvokeVoidAsync("console.log", message);
+            _logger.LogInformation("{Message}", message);
+            await WriteToBrowserConsoleAsync("log", message);
+        }
+
+        private async Task WriteToBrowserConsoleAsync(string logLevel, string message)
+        {
+            try
+            {
+                await _jsRuntime.InvokeVoidAsync($"console.{logLevel}", message);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unable to write to browser console.");
+            }
         }
     }
 }

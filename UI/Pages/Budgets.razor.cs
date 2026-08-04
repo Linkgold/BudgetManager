@@ -226,6 +226,8 @@ namespace UI.Pages
         {
             try
             {
+                bool success = false;
+
                 if (_budgetForm.IsDeleting)
                 {
                     // 🔥 Abrir confirmación antes de eliminar
@@ -235,19 +237,22 @@ namespace UI.Pages
                 }
                 else if (_budgetForm.IsEditing)
                 {
-                    await UpdateBulkBudgetAsync();
+                    success = await UpdateBulkBudgetAsync();
                 }
                 else
                 {
-                    await CreateBulkBudgetAsync();
+                    success = await CreateBulkBudgetAsync();
                 }
 
-                _budgetForm.IsModalOpen = false;
-                _budgetForm.IsEditing = false;
-                _budgetForm.IsDeleting = false;
+                if (success)
+                {
+                    _budgetForm.IsModalOpen = false;
+                    _budgetForm.IsEditing = false;
+                    _budgetForm.IsDeleting = false;
 
-                await LoadData();
-                await InvokeAsync(StateHasChanged);
+                    await LoadData();
+                    await InvokeAsync(StateHasChanged);
+                }
             }
             catch (Exception ex)
             {
@@ -256,14 +261,14 @@ namespace UI.Pages
             }
         }
 
-        private async Task CreateBulkBudgetAsync()
+        private async Task<bool> CreateBulkBudgetAsync()
         {
             List<KeyValuePair<int, decimal>> allMonths = _budgetForm.MonthlyAmounts.ToList();
 
             if (allMonths.Count == 0)
             {
                 ToastService.ShowError("Debes asignar al menos un importe para crear un presupuesto.");
-                return;
+                return false;
             }
 
             CreateBulkBudgetRequestDTO request = new()
@@ -285,10 +290,13 @@ namespace UI.Pages
             if (result != null)
             {
                 ToastService.ShowSuccess($"Presupuestos creados correctamente para {_budgetForm.Year}.");
+                return true;
             }
+
+            return false;
         }
 
-        private async Task UpdateBulkBudgetAsync()
+        private async Task<bool> UpdateBulkBudgetAsync()
         {
             List<KeyValuePair<int, decimal>> monthsToUpdate = _budgetForm.MonthlyAmounts.Where(kvp => kvp.Value > 0).ToList();
 
@@ -296,7 +304,7 @@ namespace UI.Pages
             {
                 ToastService.ShowError("Debes asignar al menos un importe para actualizar un presupuesto.");
 
-                return;
+                return false;
             }
 
             UpdateBulkBudgetRequestDTO request = new()
@@ -315,14 +323,14 @@ namespace UI.Pages
 
             BulkBudgetModel? result = await APIService.UpdateBulkBudgetAsync(request);
 
-            if (result == null)
+            if (result != null)
             {
-                ToastService.ShowError("Error al actualizar los presupuestos.");
+                ToastService.ShowSuccess($"Presupuestos actualizados correctamente para {_budgetForm.Year}.");
 
-                return;
+                return true;
             }
 
-            ToastService.ShowSuccess($"Presupuestos actualizados correctamente para {_budgetForm.Year}.");
+            return false;
         }
 
         private async Task UpdateSingleMonthAsync(int month)

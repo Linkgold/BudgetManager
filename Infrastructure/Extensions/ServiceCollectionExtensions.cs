@@ -2,6 +2,7 @@
 using Infrastructure.Data;
 using Infrastructure.Data.Factories;
 using Infrastructure.Repositories;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,7 +17,7 @@ namespace Infrastructure.Extensions
         /// <summary>
         /// Registra los servicios de Infrastructure en el contenedor DI
         /// </summary>
-        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, string databaseType = "SQLite")
+        public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration, DatabaseTypeEnum databaseType = DatabaseTypeEnum.SQLite)
         {
             if (services == null) throw new ArgumentNullException(nameof(services));
 
@@ -48,28 +49,29 @@ namespace Infrastructure.Extensions
         /// <summary>
         /// Crea la fábrica de DbContext según el tipo de base de datos
         /// </summary>
-        private static IDbContextFactory CreateDbContextFactory(IConfiguration configuration, string databaseType)
+        private static IDbContextFactory CreateDbContextFactory(IConfiguration configuration, DatabaseTypeEnum databaseType)
         {
             string? connectionString;
 
-            switch (databaseType.ToLower())
+            switch (databaseType)
             {
-                case "sqlite":
+                case DatabaseTypeEnum.SQLite:
                     connectionString = configuration.GetConnectionString("SQLiteConnection");
                     if (string.IsNullOrEmpty(connectionString)) throw new InvalidOperationException("SQLite connection string not found in configuration");
 
                     return new SqliteDbContextFactory(connectionString);
 
+
                 // Preparado para futuras bases de datos
-                // case "sqlserver":
+                // case DatabaseTypeEnum.SqlServer:
                 //     connectionString = configuration.GetConnectionString("SqlServerConnection");
                 //     return new SqlServerDbContextFactory(connectionString);
                 // 
-                // case "postgresql":
+                // case DatabaseTypeEnum.PostgreSQL:
                 //     connectionString = configuration.GetConnectionString("PostgreSqlConnection");
                 //     return new PostgreSqlDbContextFactory(connectionString);
                 // 
-                // case "mysql":
+                // case DatabaseTypeEnum.MySQL:
                 //     connectionString = configuration.GetConnectionString("MySqlConnection");
                 //     return new MySqlDbContextFactory(connectionString);
 

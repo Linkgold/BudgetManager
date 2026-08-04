@@ -95,6 +95,23 @@ namespace UI.Pages
                 if (_selectedYear != value)
                 {
                     _selectedYear = value;
+
+                    // Verificar si el mes actual tiene datos en el nuevo año
+                    bool currentMonthHasData = _transactions.HasMonthData(_selectedYear, _selectedMonth);
+
+                    // Si el mes actual NO tiene datos, buscar el primer mes con datos
+                    if (!currentMonthHasData)
+                    {
+                        int firstMonthWithData = _transactions.GetFirstMonthWithData(_selectedYear);
+
+                        if (firstMonthWithData > 0)
+                        {
+                            _selectedMonth = firstMonthWithData;
+                        }
+
+                        // Si no hay datos en ningún mes, mantener el mes actual
+                    }
+                    
                     ApplyFilters();
                 }
             }
@@ -174,20 +191,24 @@ namespace UI.Pages
         {
             IEnumerable<TransactionModel> query = _transactions.AsEnumerable();
 
+            // Filtro por categoría
             if (selectedCategoryId > 0)
             {
                 query = query.Where(t => t.CategoryId == selectedCategoryId);
             }
 
+            // Filtro por tipo
             query = selectedType switch
             {
-                "Income" => query.Where(t => t.Amount > 0),
-                "Expense" => query.Where(t => t.Amount < 0),
+                "Income" => query.Where(t => t.GetDisplayAmount() > 0),
+                "Expense" => query.Where(t => t.GetDisplayAmount() < 0),
                 _ => query
             };
 
+            // Filtro por mes y año
             query = query.Where(t => t.Date.Month == selectedMonth && t.Date.Year == selectedYear);
 
+            // Búsqueda por concepto o descripción
             if (!string.IsNullOrEmpty(searchTerm))
             {
                 query = query.Where

@@ -53,7 +53,15 @@
 					<select class="form-control form-control-sm" @bind="selectedMonth">
 						@foreach (MonthModel month in MonthHelper.Months)
 						{
-							<option value="@month.Value">@month.Name</option>
+							bool hasData = _transactions.Any(t => t.Date.Month == month.Value && t.Date.Year == _selectedYear);
+
+							<option value="@month.Value">
+								@if (hasData)
+								{
+									<span style="color: var(--color-accent); margin-left: 4px;">● </span>
+								}
+								@month.Name
+							</option>
 						}
 					</select>
 				</div>
@@ -63,7 +71,14 @@
 					<select class="form-control form-control-sm" @bind="selectedYear">
 						@foreach (int year in _years)
 						{
-							<option value="@year">@year</option>
+							bool hasData = _transactions.Any(t => t.Date.Year == year);
+							<option value="@year">
+								@if (hasData)
+								{
+									<span style="color: var(--color-accent); margin-left: 4px;">● </span>
+								}
+								@year
+							</option>
 						}
 					</select>
 				</div>

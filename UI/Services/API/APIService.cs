@@ -220,17 +220,13 @@ namespace UI.Services.API
             if (response.Headers.TryGetValues("X-New-Token", out IEnumerable<string>? newTokenValues))
             {
                 string? newToken = newTokenValues.FirstOrDefault();
-                await _logService.LogInfoAsync($"✅ Nuevo token recibido: {newToken?.Length ?? 0}");
+                await _logService.LogInformationAsync($"✅ Nuevo token recibido: {newToken?.Length ?? 0}");
                 if (!string.IsNullOrEmpty(newToken))
                 {
                     // ✅ Actualizar el token en memoria y storage
                     await _authService.UpdateTokenAsync(newToken);
-                    await _logService.LogInfoAsync("Token actualizado desde el servidor");
+                    await _logService.LogInformationAsync("Token actualizado desde el servidor");
                 }
-            }
-            else
-            {
-                await _logService.LogErrorAsync("❌ No se recibió nuevo token");
             }
 
             if (response.StatusCode == HttpStatusCode.Unauthorized)
@@ -260,11 +256,11 @@ namespace UI.Services.API
 
                 if ((int)response.StatusCode >= 400 && (int)response.StatusCode < 500)
                 {
-                    await _logService.LogInfoAsync($"API Response - Status: {response.StatusCode} - {content}");
+                    await _logService.LogInformationAsync($"API Response - Status: {response.StatusCode} - {content}");
                 }
                 else
                 {
-                    await _logService.LogInfoAsync($"API Error - Status: {response.StatusCode} - {content}");
+                    await _logService.LogInformationAsync($"API Error - Status: {response.StatusCode} - {content}");
                 }
 
                 return JsonSerializer.Deserialize<ErrorResponse>(content, _jsonOptions);

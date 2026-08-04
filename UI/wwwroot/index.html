@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <!-- ✅ Content Security Policy (CSP) -->
+    <!-- ✅ Content Security Policy (CSP)
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
         script-src 'self' 'wasm-unsafe-eval';
@@ -18,7 +18,7 @@
         frame-ancestors 'none';
         base-uri 'self';
         form-action 'self';
-        ">
+        ">-->
 
     <title>UI</title>
     <base href="/" />
@@ -31,6 +31,7 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
     <script type="importmap"></script>
+    
 </head>
 
 <body>
@@ -47,8 +48,10 @@
         <a href="." class="reload">Reload</a>
         <span class="dismiss">🗙</span>
     </div>
+
+    <script src="js/site.js"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
-</body>
 
+</body>
 </html>

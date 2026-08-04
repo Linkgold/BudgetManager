@@ -92,9 +92,9 @@ namespace UI.Helpers
             };
         }
 
-        public static string GetFooterMessage(int filteredCount, int totalCount, string page) => $"Mostrando {filteredCount} de {totalCount} {ResolveEntityName("Budgets", filteredCount)}";
+        public static string GetFooterMessage(int filteredCount, int totalCount, string page) => filteredCount > 0 ? $"Mostrando {filteredCount} de {totalCount} {ResolveEntityName("Budgets", filteredCount)}" : GetEmptyMessage(page);
 
-        public static string GetBudgetFooterMessage(int filteredCount, int year) => $"Mostrando {filteredCount} {ResolveEntityName("Budgets", filteredCount)} para el año {year}";
+        public static string GetBudgetFooterMessage(int filteredCount, int year) => filteredCount > 0 ? $"Mostrando {filteredCount} {ResolveEntityName("Budgets", filteredCount)} para el año {year}" : GetEmptyMessage("Budgets");
 
         private static string ResolveEntityName(string page, int count)
         {
@@ -117,7 +117,16 @@ namespace UI.Helpers
         /// <param name="elementId">ID del elemento HTML a seleccionar</param>
         public static async Task SelectAllText(IJSRuntime jsRuntime, string elementId)
         {
-            await jsRuntime.InvokeVoidAsync("eval", $"document.getElementById('{elementId}').select()");
+            //await jsRuntime.InvokeVoidAsync("eval", $"document.getElementById('{elementId}').select()");
+            try
+            {
+                await jsRuntime.InvokeVoidAsync("selectAllText", elementId);
+            }
+            catch (JSException ex)
+            {
+                // 🔍 Log para depuración
+                Console.WriteLine($"❌ Error en SelectAllText: {ex.Message}");
+            }
         }
     }
 }

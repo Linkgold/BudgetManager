@@ -1,5 +1,6 @@
 ﻿using Contracts.Enums;
 using Shared.DTOs.Response;
+using UI.Extensions;
 
 namespace UI.Models
 {
@@ -16,19 +17,7 @@ namespace UI.Models
         public DateTime Date { get; set; }
 
         // ✅ Propiedad calculada para mostrar en UI
-        public decimal DisplayAmount
-        {
-            get
-            {
-                return CategoryNature switch
-                {
-                    CategoryNatureEnum.Income => Math.Abs(Amount),
-                    CategoryNatureEnum.Expense => -Math.Abs(Amount),
-                    CategoryNatureEnum.Mixed => Amount > 0 ? Math.Abs(Amount) : -Math.Abs(Amount),
-                    _ => Math.Abs(Amount)
-                };
-            }
-        }
+        public decimal DisplayAmount => this.GetDisplayAmount();
 
         public static TransactionModel FromDTO(TransactionResponseDTO dto)
         {

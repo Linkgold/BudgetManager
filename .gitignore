@@ -15,3 +15,7 @@ Release/
 *.user
 *.suo
 *.sln.docstates
+
+# Publish profiles
+**/Properties/PublishProfiles/*.pubxml.user
+**/Properties/PublishProfiles/*.publishsettings

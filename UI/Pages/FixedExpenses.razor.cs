@@ -122,10 +122,12 @@ namespace UI.Pages
             _filteredFixedExpenses = _fixedExpenses
                 .Where(f => (selectedCategoryId == 0 || f.CategoryId == selectedCategoryId))
                 .Where(f => selectedYear == 0 || f.Year == selectedYear)
-                .Where(f => string.IsNullOrEmpty(searchTerm) ||
-                             f.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                             (f.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                             f.CategoryName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .Where
+                (
+                    f => string.IsNullOrEmpty(searchTerm) ||
+                    f.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    (f.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
+                )
                 .OrderBy(f => f.Year)
                 .ThenBy(f => f.Month)
                 .ThenBy(f => f.CategoryName)

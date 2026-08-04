@@ -146,13 +146,20 @@
                             <tr>
                                 <td><span class="fw-semibold">@month.Name</span></td>
                                 <td>
-                                    <input type="number" class="form-control form-control-sm"
-                                           step="1.00" min="0" placeholder="0.00"
-                                           id="@($"{PageTextHelper.BUDGET_MONTH_AMOUNT_PREFIX}_{month.Value}")"
-                                           @bind="_budgetForm.MonthlyAmounts[month.Value]"
-                                           @bind:event="oninput"
-                                           @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, $"{PageTextHelper.BUDGET_MONTH_AMOUNT_PREFIX}_{month.Value}"))"
-                                           disabled="@_budgetForm.IsDeleting" />
+                                    @if (_budgetForm.IsDeleting && _budgetForm.MonthlyAmounts[month.Value] == 0m)
+                                    {
+                                        <div class="form-control form-control-sm text-muted" style="cursor: default; background-color: var(--color-surface); border: 1px solid var(--color-border);">—</div>
+                                    }
+                                    else
+                                    {
+                                        <input type="number" class="form-control form-control-sm"
+                                               step="1.00" min="0" placeholder="0.00"
+                                               id="@($"{PageTextHelper.BUDGET_MONTH_AMOUNT_PREFIX}_{month.Value}")"
+                                               @bind="_budgetForm.MonthlyAmounts[month.Value]"
+                                               @bind:event="oninput"
+                                               @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, $"{PageTextHelper.BUDGET_MONTH_AMOUNT_PREFIX}_{month.Value}"))"
+                                               disabled="@_budgetForm.IsDeleting" />
+                                    }
                                 </td>
                                 @if (_budgetForm.IsEditing || _budgetForm.IsDeleting)
                                 {
