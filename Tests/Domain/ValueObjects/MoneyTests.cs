@@ -12,7 +12,7 @@ namespace Tests.Domain.ValueObjects
 
             // Assert
             Assert.Equal(100.50m, money.Value);
-            Assert.Equal("EUR", money.Currency);
+            Assert.Equal("MAL!", money.Currency);
         }
 
         [Fact]
