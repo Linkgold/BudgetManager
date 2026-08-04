@@ -32,7 +32,7 @@ jobs:
         run: dotnet build API/API.csproj --configuration Release
 
       - name: Run tests
-        run: dotnet test Tests/Tests.csproj --configuration Release --no-build
+        run: dotnet test Tests/Tests.csproj --configuration Release
 
       - name: Publish API
         run: dotnet publish API/API.csproj --configuration Release --output ${{env.DOTNET_ROOT}}/myapp
