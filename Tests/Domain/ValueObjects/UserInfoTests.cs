@@ -113,20 +113,5 @@ namespace Tests.Domain.ValueObjects
             Assert.False(info1.Equals(info2));
             Assert.False(info1 == info2);
         }
-
-        // ==================== TO STRING ====================
-
-        [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            UserInfo userInfo = new UserInfo("Juan Pérez", "juan@email.com");
-
-            // Act
-            string result = userInfo.ToString();
-
-            // Assert
-            Assert.Equal("Juan Pérez <juan@email.com>", result);
-        }
     }
 }

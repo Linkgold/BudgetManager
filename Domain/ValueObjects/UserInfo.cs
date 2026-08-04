@@ -46,8 +46,6 @@ namespace Domain.ValueObjects
 
         public override int GetHashCode() => HashCode.Combine(UserName, Email);
         
-        public override string ToString() => $"{UserName} <{Email}>";
-
         public static bool operator ==(UserInfo a, UserInfo b)
         {
             if (a is null && b is null) return true;

@@ -92,7 +92,5 @@ namespace Domain.Entities
                     throw new InvalidOperationException($"Unknown category nature: {nature}");
             }
         }
-
-        public override string ToString() => $"{(Amount.Value >= 0 ? "+" : "-")}{Math.Abs(Amount.Value):F2} {Amount.Currency} - {Info.Name} ({Date})";
     }
 }

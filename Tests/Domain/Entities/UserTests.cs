@@ -133,21 +133,6 @@ namespace Tests.Domain.Entities
             Assert.Contains("Password hash cannot be empty", exception.Message);
         }
 
-        // ==================== TO STRING ====================
-
-        [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            User user = TestDataFactory.CreateUser();
-
-            // Act
-            string result = user.ToString();
-
-            // Assert
-            Assert.Equal($"{TestDataFactory.DEFAULT_USER_NAME} <{TestDataFactory.DEFAULT_USER_EMAIL}>", result);
-        }
-
         // ==================== NAVIGATION PROPERTIES ====================
 
         [Fact]

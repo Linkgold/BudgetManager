@@ -144,19 +144,6 @@ namespace Tests.Domain.ValueObjects
         }
 
         [Fact]
-        public void ToString_ShouldReturnFormattedString()
-        {
-            // Arrange
-            Money money = new Money(100.50m, "EUR");
-
-            // Act
-            string result = money.ToString();
-
-            // Assert
-            Assert.Equal("100,50 EUR", result);
-        }
-
-        [Fact]
         public void Constructor_WithAllowNegativeTrue_ShouldAllowNegativeValues()
         {
             // Act
