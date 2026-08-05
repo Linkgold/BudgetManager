@@ -1,17 +1,15 @@
-﻿using System.Globalization;
-
-namespace Domain.ValueObjects
+﻿namespace Domain.ValueObjects
 {
     public class Money
     {
         public decimal Value { get; private set; }
         public string Currency { get; private set; }
-
+        
         // 🔥 Constructor privado SOLO para EF Core
 #pragma warning disable CS8618 // Un campo que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de agregar el modificador "required" o declararlo como un valor que acepta valores NULL.
         private Money() { }
 #pragma warning restore CS8618 // Un campo que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de agregar el modificador "required" o declararlo como un valor que acepta valores NULL.
-
+        
         public Money(decimal value, string currency = "EUR", bool allowNegative = false)
         {
             if (!allowNegative && value < 0) throw new ArgumentException("Amount cannot be negative", nameof(value));

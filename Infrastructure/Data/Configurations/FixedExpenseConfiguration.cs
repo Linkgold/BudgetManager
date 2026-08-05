@@ -13,12 +13,11 @@ namespace Infrastructure.Data.Configurations
             // Llave primaria
             builder.HasKey(fixedExpense => fixedExpense.Id);
 
-            builder.Property(fixedExpense => fixedExpense.Id)
-                .ValueGeneratedOnAdd();
+            builder.Property(fixedExpense => fixedExpense.Id).ValueGeneratedOnAdd();
 
             // ==================== CONFIGURACIÓN DE ENTITYINFO ====================
 
-            builder.OwnsOne
+            builder.ComplexProperty
             (
                 fixedExpense => fixedExpense.Info, info =>
                 {
@@ -36,7 +35,7 @@ namespace Infrastructure.Data.Configurations
 
             // ==================== CONFIGURACIÓN DE MONEY ====================
 
-            builder.OwnsOne
+            builder.ComplexProperty
             (
                 fixedExpense => fixedExpense.Amount, amount =>
                 {
@@ -58,22 +57,18 @@ namespace Infrastructure.Data.Configurations
 
             // ==================== CONFIGURACIÓN DE PERIOD ====================
 
-            builder.OwnsOne
+            builder.ComplexProperty
             (
-                fixedExpense => fixedExpense.ChargePeriod, 
+                fixedExpense => fixedExpense.ChargePeriod,
                 period =>
                 {
                     period.Property(p => p.Month)
-                        .HasColumnName("ChargeMonth")
+                        .HasColumnName("Month")
                         .IsRequired();
 
                     period.Property(p => p.Year)
-                        .HasColumnName("ChargeYear")
+                        .HasColumnName("Year")
                         .IsRequired();
-
-                    // Índice simple sobre el período (para búsquedas por año/mes)
-                    period.HasIndex(p => new { p.Month, p.Year })
-                    .HasDatabaseName("IX_FixedExpenses_ChargePeriod");
                 }
             );
 
@@ -100,24 +95,6 @@ namespace Infrastructure.Data.Configurations
                .WithMany(user => user.FixedExpenses)
                .HasForeignKey(fixedExpense => fixedExpense.UserId)
                .OnDelete(DeleteBehavior.Cascade);
-
-            // ==================== ÍNDICES ====================
-
-            builder.HasIndex(fixedExpense => fixedExpense.CategoryId)
-                .HasDatabaseName("IX_FixedExpenses_CategoryId");
-
-            // 1. Definir Shadow Properties para el período (para usarlas en índices compuestos)
-            builder.Property<int>("Month")
-                .HasColumnName("Month")
-                .IsRequired();
-
-            builder.Property<int>("Year")
-                .HasColumnName("Year")
-                .IsRequired();
-
-            // ✅ ÍNDICE COMPUESTO USANDO SHADOW PROPERTIES
-            builder.HasIndex("CategoryId", "Month", "Year")
-                .HasDatabaseName("IX_FixedExpenses_Category_Period");
         }
     }
 }

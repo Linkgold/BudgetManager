@@ -4,6 +4,7 @@ using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Tests.Helpers;
 
@@ -14,19 +15,22 @@ namespace Tests.Infrastructure
     /// </summary>
     public class BudgetRepositoryTests : IDisposable
     {
+        private readonly SqliteConnection _connection;
         private readonly ApplicationDbContext _dbContext;
         private readonly IBudgetRepository _repository;
 
         public BudgetRepositoryTests()
         {
-            // Crear un nombre de base de datos único para cada prueba
-            string databaseName = Guid.NewGuid().ToString();
+            _connection = new SqliteConnection("DataSource=:memory:");
+            _connection.Open();
 
             DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: databaseName)
+                .UseSqlite(_connection)
                 .Options;
 
             _dbContext = new ApplicationDbContext(options);
+            _dbContext.EnsureDatabaseCreated();
+
             _repository = new BudgetRepository(_dbContext);
         }
 
@@ -121,7 +125,7 @@ namespace Tests.Infrastructure
             int userId = 1;
             User user = TestDataFactory.CreateUser();
             Category category1 = TestDataFactory.CreateCategory(1, user);
-            Category category2 = TestDataFactory.CreateCategory(2, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user, "Prueba");
 
             await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category1);
             await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category2);
@@ -143,10 +147,10 @@ namespace Tests.Infrastructure
             int userId = 1;
             User user = TestDataFactory.CreateUser();
             Category category1 = TestDataFactory.CreateCategory(1, user);
-            Category category2 = TestDataFactory.CreateCategory(2, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user, "Test");
 
             await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category1);
-            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category1);
+            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category1, month: 2);
             await TestDataFactory.SeedBudgetAsync(_repository, 3, user, category2);
 
             // Act
@@ -178,9 +182,10 @@ namespace Tests.Infrastructure
             int userId = 1;
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory(1, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user, "Prueba");
 
             await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category);
-            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category);
+            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category2);
             await TestDataFactory.SeedBudgetAsync(_repository, 3, user, category, month: 2);
 
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
@@ -226,7 +231,7 @@ namespace Tests.Infrastructure
             int userId = 1;
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory(1, user);
-            Category category2 = TestDataFactory.CreateCategory(2, user);
+            Category category2 = TestDataFactory.CreateCategory(2, user, "Prueba");
 
             await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category);
             await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category2);
@@ -418,6 +423,7 @@ namespace Tests.Infrastructure
         public void Dispose()
         {
             _dbContext?.Dispose();
+            _connection?.Dispose();
         }
     }
 }

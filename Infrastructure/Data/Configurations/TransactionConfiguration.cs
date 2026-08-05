@@ -18,7 +18,7 @@ namespace Infrastructure.Data.Configurations
                 .ValueGeneratedOnAdd();
 
             // ==================== CONFIGURACIÓN DE ENTITYINFO ====================
-            builder.OwnsOne
+            builder.ComplexProperty
             (
                 transaction => transaction.Info, info =>
                 {
@@ -35,7 +35,7 @@ namespace Infrastructure.Data.Configurations
             );
 
             // ==================== CONFIGURACIÓN DE MONEY ====================
-            builder.OwnsOne
+            builder.ComplexProperty
             (
                 transaction => transaction.Amount, amount =>
                 {
@@ -56,7 +56,7 @@ namespace Infrastructure.Data.Configurations
             );
 
             // ==================== CONFIGURACIÓN DE DAILYPERIOD ====================
-            builder.OwnsOne
+            builder.ComplexProperty
             (
                 transaction => transaction.Date, date =>
                 {
@@ -71,13 +71,6 @@ namespace Infrastructure.Data.Configurations
                     date.Property(d => d.Year)
                         .HasColumnName("Year")
                         .IsRequired();
-
-                    // Índices compuestos para consultas rápidas
-                    date.HasIndex(d => new { d.Year, d.Month })
-                        .HasDatabaseName("IX_Transactions_Year_Month");
-
-                    date.HasIndex(d => new { d.Year, d.Month, d.Day })
-                        .HasDatabaseName("IX_Transactions_Year_Month_Day");
                 }
             );
 
@@ -101,10 +94,6 @@ namespace Infrastructure.Data.Configurations
                 .WithMany(user => user.Transactions)
                 .HasForeignKey(transaction => transaction.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            // ==================== ÍNDICES ====================
-            builder.HasIndex(transaction => transaction.CategoryId)
-                .HasDatabaseName("IX_Transactions_CategoryId");
         }
     }
 }

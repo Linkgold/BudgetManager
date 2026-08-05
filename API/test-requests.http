@@ -135,7 +135,7 @@ Content-Type: application/json
 {
   "name": "Renta",
   "amount": 800.00,
-  "chargeMonth": 1,
+  "month": 1,
   "year": 2024,
   "chargeDay": 1,
   "description": "Alquiler del apartamento",
@@ -150,7 +150,7 @@ Content-Type: application/json
 {
   "name": "Internet",
   "amount": 50.00,
-  "chargeMonth": 1,
+  "month": 1,
   "year": 2024,
   "chargeDay": 5,
   "description": "Servicio de internet",
@@ -165,7 +165,7 @@ Content-Type: application/json
 {
   "name": "Renta",
   "amount": 850.00,
-  "chargeMonth": 1,
+  "month": 1,
   "year": 2024,
   "chargeDay": 1,
   "description": "Alquiler del apartamento (actualizado)",

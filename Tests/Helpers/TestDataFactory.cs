@@ -1,13 +1,17 @@
 ﻿using Application.Interfaces;
-using Crypt = BCrypt.Net.BCrypt;
 using Contracts.Enums;
 using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
+using Infrastructure.Data;
+using Infrastructure.Repositories;
+using Microsoft.Data.Sqlite;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using Tests.API.Fixtures;
+using Crypt = BCrypt.Net.BCrypt;
 
 namespace Tests.Helpers
 {
@@ -18,7 +22,7 @@ namespace Tests.Helpers
     {
         // ==================== CONSTANTES DE PRUEBA ====================
 
-        public const string DEFAULT_USER_NAME = "Toribio Gaviria";
+        public const string DEFAULT_USER_NAME = "toribio gaviria";
         public const string DEFAULT_USER_EMAIL = "torigavi@email.com";
         public const string DEFAULT_PASSWORD = "Password123!";
         public const string DEFAULT_CATEGORY_NAME = "Alimentación";

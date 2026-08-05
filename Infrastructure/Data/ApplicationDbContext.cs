@@ -31,11 +31,76 @@ namespace Infrastructure.Data
         /// <summary>
         /// Método para asegurar que la base de datos está creada
         /// </summary>
-        public void EnsureDatabaseCreated() => Database.EnsureCreated();
+        public void EnsureDatabaseCreated()
+        {
+            Database.EnsureCreated();
+
+            CreateIndexes(this);
+        }
 
         /// <summary>
         /// Método para aplicar migraciones pendientes
         /// </summary>
         public void MigrateDatabase() => Database.Migrate();
+
+
+        private static void CreateIndexes(ApplicationDbContext dbContext)
+        {
+            CreateBudgetIndexes(dbContext);
+            CreateCategoryIndexes(dbContext);
+            CreateFixedExpenseIndexes(dbContext);
+            CreateTransactionIndexes(dbContext);
+            CreateUserIndexes(dbContext);
+        }
+
+        private static void CreateBudgetIndexes(ApplicationDbContext dbContext)
+        {
+            dbContext.Database.ExecuteSqlRaw
+            (
+                "CREATE UNIQUE INDEX IF NOT EXISTS IX_Budgets_User_Category_Period ON Budgets(UserId, CategoryId, Month, Year);"
+            );
+
+            dbContext.Database.ExecuteSqlRaw
+            (
+                "CREATE INDEX IF NOT EXISTS IX_Budgets_User_Period ON Budgets(UserId, Month, Year);"
+            );
+        }
+
+        private static void CreateCategoryIndexes(ApplicationDbContext dbContext)
+        {
+            dbContext.Database.ExecuteSqlRaw
+            (
+                "CREATE UNIQUE INDEX IF NOT EXISTS IX_Categories_User_Name ON Categories(UserId, Name);"
+            );
+        }
+
+        private static void CreateFixedExpenseIndexes(ApplicationDbContext dbContext)
+        {
+            dbContext.Database.ExecuteSqlRaw
+            (
+                "CREATE UNIQUE INDEX IF NOT EXISTS IX_FixedExpenses_User_Category_Period ON FixedExpenses(UserId, CategoryId, Month, Year);"
+            );
+
+            dbContext.Database.ExecuteSqlRaw
+            (
+                "CREATE INDEX IF NOT EXISTS IX_FixedExpenses_User_Period ON FixedExpenses(UserId, Month, Year);"
+            );
+        }
+
+        private static void CreateTransactionIndexes(ApplicationDbContext dbContext)
+        {
+            dbContext.Database.ExecuteSqlRaw
+            (
+                "CREATE INDEX IF NOT EXISTS IX_Transactions_User_Period ON Transactions(UserId, Month, Year);"
+            );
+        }
+
+        private static void CreateUserIndexes(ApplicationDbContext dbContext)
+        {
+            dbContext.Database.ExecuteSqlRaw
+            (
+                "CREATE UNIQUE INDEX IF NOT EXISTS IX_Users_Email ON Users(Email);"
+            );
+        }
     }
 }

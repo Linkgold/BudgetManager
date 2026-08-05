@@ -4,6 +4,7 @@ using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Tests.Helpers;
 
@@ -14,20 +15,23 @@ namespace Tests.Infrastructure
     /// </summary>
     public class FixedExpenseRepositoryTests : IDisposable
     {
+        private readonly SqliteConnection _connection;
         private readonly ApplicationDbContext _dbContext;
         private readonly IFixedExpenseRepository _repository;
         private readonly ICategoryRepository _categoryRepository;
 
         public FixedExpenseRepositoryTests()
         {
-            // Crear un nombre de base de datos único para cada prueba
-            string databaseName = Guid.NewGuid().ToString();
+            _connection = new SqliteConnection("DataSource=:memory:");
+            _connection.Open();
 
             DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: databaseName)
+                .UseSqlite(_connection)
                 .Options;
 
             _dbContext = new ApplicationDbContext(options);
+            _dbContext.EnsureDatabaseCreated();
+
             _repository = new FixedExpenseRepository(_dbContext);
             _categoryRepository = new CategoryRepository(_dbContext);
         }
@@ -134,7 +138,7 @@ namespace Tests.Infrastructure
             string otherFixedExpenseName = "Spotify";
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory(1, user);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, month: 7);
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, otherFixedExpenseName, amount: 9.99m);
 
             // Act
@@ -159,7 +163,7 @@ namespace Tests.Infrastructure
             Category category2 = TestDataFactory.CreateCategory(2, user, "Seguros");
 
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category1);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category1, otherFixedExpenseName);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category1, otherFixedExpenseName, month: 7);
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category2, "Seguro Coche");
 
             // Act
@@ -253,7 +257,7 @@ namespace Tests.Infrastructure
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory(1, user);
 
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, year: 2026);
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Spotify", amount: otherAmount);
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category, "Disney+", year: 2025);
 
@@ -263,7 +267,7 @@ namespace Tests.Infrastructure
             decimal total = await _repository.GetTotalByCategoryAndPeriodAsync(userId, category.Id, period);
 
             // Assert
-            Assert.Equal(otherAmount + TestDataFactory.DEFAULT_FIXED_EXPENSE_AMOUNT, total); // Netflix + Spotify = 15.99 + 9.99
+            Assert.Equal(otherAmount, total); // Netflix + Spotify = 15.99 + 9.99
         }
 
         // ==================== TEST: EXISTS ====================
@@ -460,6 +464,7 @@ namespace Tests.Infrastructure
         public void Dispose()
         {
             _dbContext?.Dispose();
+            _connection?.Dispose();
         }
     }
 }
