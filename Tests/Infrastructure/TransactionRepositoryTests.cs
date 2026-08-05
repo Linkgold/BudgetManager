@@ -3,6 +3,7 @@ using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Tests.Helpers;
 
@@ -10,19 +11,23 @@ namespace Tests.Infrastructure
 {
     public class TransactionRepositoryTests : IDisposable
     {
+        private readonly SqliteConnection _connection;
         private readonly ApplicationDbContext _dbContext;
         private readonly ITransactionRepository _repository;
         private readonly ICategoryRepository _categoryRepository;
 
         public TransactionRepositoryTests()
         {
-            string databaseName = Guid.NewGuid().ToString();
+            _connection = new SqliteConnection("DataSource=:memory:");
+            _connection.Open();
 
             DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: databaseName)
+                .UseSqlite(_connection)
                 .Options;
 
             _dbContext = new ApplicationDbContext(options);
+            _dbContext.EnsureDatabaseCreated();
+
             _repository = new TransactionRepository(_dbContext);
             _categoryRepository = new CategoryRepository(_dbContext);
         }
@@ -475,6 +480,7 @@ namespace Tests.Infrastructure
         public void Dispose()
         {
             _dbContext?.Dispose();
+            _connection?.Dispose();
         }
     }
 }

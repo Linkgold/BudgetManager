@@ -25,8 +25,8 @@
             //return Name == other.Name && Description == other.Description;
 
             // Comparación case-insensitive usando StringComparison.OrdinalIgnoreCase
-            return string.Equals(Name ?? "", other.Name ?? "", StringComparison.InvariantCultureIgnoreCase) &&
-                   string.Equals(Description ?? "", other.Description ?? "", StringComparison.InvariantCultureIgnoreCase);
+            return string.Equals(Name ?? "", other.Name ?? "", StringComparison.OrdinalIgnoreCase) &&
+                   string.Equals(Description ?? "", other.Description ?? "", StringComparison.OrdinalIgnoreCase);
         }
 
         public override bool Equals(object? obj) => obj is EntityInfo other && Equals(other);

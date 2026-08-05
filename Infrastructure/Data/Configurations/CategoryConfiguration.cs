@@ -14,30 +14,30 @@ namespace Infrastructure.Data.Configurations
 
             builder.HasKey(category => category.Id);
 
-            builder.Property(category => category.Id)
-                .ValueGeneratedOnAdd();
+            builder.Property(category => category.Id).ValueGeneratedOnAdd();
 
             // ==================== CONFIGURACIÓN DE ENTITYINFO ====================
-            builder.OwnsOne
+            builder.ComplexProperty
             (
-                category => category.Info, 
+                category => category.Info,
                 info =>
                 {
                     info.Property(i => i.Name)
                         .HasColumnName("Name")
-                        .IsRequired()
-                        .HasMaxLength(50);
+                        .HasMaxLength(50)
+                        .IsRequired();
 
                     info.Property(i => i.Description)
                         .HasColumnName("Description")
-                        .HasMaxLength(500)
-                        .IsRequired(false);
-
-                    info.HasIndex(i => i.Name)
-                    .IsUnique()
-                    .HasDatabaseName("IX_Categories_Name");
+                        .HasMaxLength(200);
                 }
             );
+
+            /* TODO: Esperar a la nueva versión de EF para crear un índice único para el par (UserId, Info.Name)
+                     Ahora mismo, EF Core no permite crear un índice único para una propiedad compleja (Info.Name) junto con otra propiedad (UserId).
+            /*builder.HasIndex("UserId", "Info_Name")
+                .IsUnique()
+                .HasDatabaseName("IX_Categories_UserId_Name");*/
 
             // ==================== PROPIEDADES SIMPLES ====================
             builder.Property(category => category.Nature)

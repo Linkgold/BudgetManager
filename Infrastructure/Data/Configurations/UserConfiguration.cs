@@ -12,23 +12,35 @@ namespace Infrastructure.Data.Configurations
 
             builder.HasKey(user => user.Id);
 
-            builder.Property(user => user.Id)
-                .ValueGeneratedOnAdd();
+            builder.Property(user => user.Id).ValueGeneratedOnAdd();
 
             // ==================== CONFIGURACIÓN DE USERINFO ====================
+            builder.OwnsOne
+            (
+                user => user.Info,
+                info =>
+                {
+                    info.Property(i => i.UserName)
+                        .HasColumnName("UserName")
+                        .IsRequired()
+                        .HasMaxLength(50);
 
-            builder.OwnsOne(user => user.Info, info =>
-            {
-                info.Property(i => i.UserName)
-                    .HasColumnName("UserName")
-                    .IsRequired()
-                    .HasMaxLength(50);
+                    info.Property(i => i.Email)
+                        .HasColumnName("Email")
+                        .IsRequired()
+                        .HasMaxLength(100);
 
-                info.Property(i => i.Email)
-                    .HasColumnName("Email")
-                    .IsRequired()
-                    .HasMaxLength(100);
-            });
+                    // Índice simple para Email (dentro del OwnsOne)
+                    info.HasIndex(i => i.Email)
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_Email");
+
+                    // Índice simple para UserName (dentro del OwnsOne)
+                    info.HasIndex(i => i.UserName)
+                        .IsUnique()
+                        .HasDatabaseName("IX_Users_UserName");
+                }
+            );
 
             // ==================== PROPIEDADES SIMPLES ====================
 
@@ -45,31 +57,6 @@ namespace Infrastructure.Data.Configurations
             builder.Property(user => user.UpdatedAt)
                 .HasColumnName("UpdatedAt")
                 .IsRequired(false);
-
-            // ==================== ÍNDICES ====================
-
-            builder.OwnsOne(user => user.Info, info =>
-            {
-                info.Property(i => i.Email)
-                    .HasColumnName("Email")
-                    .IsRequired()
-                    .HasMaxLength(100);
-
-                info.Property(i => i.UserName)
-                    .HasColumnName("UserName")
-                    .IsRequired()
-                    .HasMaxLength(50);
-
-                // Índice simple para Email (dentro del OwnsOne)
-                info.HasIndex(i => i.Email)
-                    .IsUnique()
-                    .HasDatabaseName("IX_Users_Email");
-
-                // Índice simple para UserName (dentro del OwnsOne)
-                info.HasIndex(i => i.UserName)
-                    .IsUnique()
-                    .HasDatabaseName("IX_Users_UserName");
-            });
         }
     }
 }

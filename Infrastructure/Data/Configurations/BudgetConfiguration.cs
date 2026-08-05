@@ -12,14 +12,14 @@ namespace Infrastructure.Data.Configurations
             builder.ToTable("Budgets");
 
             builder.HasKey(budget => budget.Id);
-            
-            builder.Property(budget => budget.Id)
-                .ValueGeneratedOnAdd();
+
+            builder.Property(budget => budget.Id).ValueGeneratedOnAdd();
 
             // ==================== CONFIGURACIÓN DE MONEY ====================
-            builder.OwnsOne
+            builder.ComplexProperty
             (
-                budget => budget.MonthlyAmount, amount =>
+                budget => budget.MonthlyAmount,
+                amount =>
                 {
                     // ✅ Forzar el uso de campos (para que EF Core use el constructor privado)
                     amount.UsePropertyAccessMode(PropertyAccessMode.Field);
@@ -38,19 +38,10 @@ namespace Infrastructure.Data.Configurations
             );
 
             // ==================== CONFIGURACIÓN DE PERIOD ====================
-            // 1. Definir Shadow Properties para el período (para usarlas en índices compuestos)
-            builder.Property<int>("Month")
-                .HasColumnName("Month")
-                .IsRequired();
-
-            builder.Property<int>("Year")
-                .HasColumnName("Year")
-                .IsRequired();
-
-            // 2. Configurar el Value Object para que use las Shadow Properties
-            builder.OwnsOne
+            builder.ComplexProperty
             (
-                budget => budget.Period, period =>
+                budget => budget.Period,
+                period =>
                 {
                     period.Property(p => p.Month)
                         .HasColumnName("Month")
@@ -59,10 +50,6 @@ namespace Infrastructure.Data.Configurations
                     period.Property(p => p.Year)
                         .HasColumnName("Year")
                         .IsRequired();
-
-                    // Índice simple para el período
-                    period.HasIndex(p => new { p.Month, p.Year  })
-                        .HasDatabaseName("IX_Budgets_Period");
                 }
             );
 
@@ -86,15 +73,6 @@ namespace Infrastructure.Data.Configurations
                 .WithMany(user => user.Budgets)
                 .HasForeignKey(budget => budget.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-            // ==================== ÍNDICES ====================
-            builder.HasIndex(budget => budget.CategoryId)
-                .HasDatabaseName("IX_Budgets_CategoryId");
-
-            // ✅ ÍNDICE ÚNICO USANDO NOMBRES DE COLUMNA (NO con propiedades anidadas)
-            builder.HasIndex("CategoryId", "Year", "Month")
-                .IsUnique()
-                .HasDatabaseName("IX_Budgets_Category_Period");
         }
     }
 }

@@ -1,9 +1,9 @@
 ﻿using Contracts.Enums;
 using Domain.Entities;
 using Domain.Interfaces;
-using Domain.ValueObjects;
 using Infrastructure.Data;
 using Infrastructure.Repositories;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Tests.Helpers;
 
@@ -14,19 +14,22 @@ namespace Tests.Infrastructure
     /// </summary>
     public class CategoryRepositoryTests : IDisposable
     {
+        private readonly SqliteConnection _connection;
         private readonly ApplicationDbContext _dbContext;
         private readonly ICategoryRepository _repository;
 
         public CategoryRepositoryTests()
         {
-            // Crear un nombre de base de datos único para cada prueba
-            string databaseName = Guid.NewGuid().ToString();
+            _connection = new SqliteConnection("DataSource=:memory:");
+            _connection.Open();
 
             DbContextOptions<ApplicationDbContext> options = new DbContextOptionsBuilder<ApplicationDbContext>()
-                .UseInMemoryDatabase(databaseName: databaseName)
+                .UseSqlite(_connection)
                 .Options;
 
             _dbContext = new ApplicationDbContext(options);
+            _dbContext.EnsureDatabaseCreated();
+
             _repository = new CategoryRepository(_dbContext);
         }
 
@@ -85,7 +88,7 @@ namespace Tests.Infrastructure
             int userId = 1;
             User user = TestDataFactory.CreateUser(userId);
             Category category1 = await TestDataFactory.SeedCategoryAsync(_repository, 1, user);
-            Category category2 = await TestDataFactory.SeedCategoryAsync(_repository, 2, user);
+            Category category2 = await TestDataFactory.SeedCategoryAsync(_repository, 2, user, "Prueba");
 
             // Act
             IEnumerable<Category> result = await _repository.GetAllAsync(userId);
@@ -250,6 +253,7 @@ namespace Tests.Infrastructure
         public void Dispose()
         {
             _dbContext?.Dispose();
+            _connection?.Dispose();
         }
     }
 }
