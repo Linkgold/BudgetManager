@@ -217,7 +217,7 @@ namespace Tests.Infrastructure
         public async Task GetActiveForPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByPeriodAsync(1, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByPeriodAsync(1, null!));
         }
 
         // ==================== TEST: GET ACTIVE FOR PERIOD BY CATEGORY ====================

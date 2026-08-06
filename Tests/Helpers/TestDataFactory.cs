@@ -80,7 +80,7 @@ namespace Tests.Helpers
         /// <summary>
         /// Crea una categoría de prueba con usuario
         /// </summary>
-        public static Category CreateCategory(int id = 1, User user = null, string name = DEFAULT_CATEGORY_NAME, string description = DEFAULT_CATEGORY_DESCRIPTION, CategoryNatureEnum nature = DEFAULT_CATEGORY_NATURE)
+        public static Category CreateCategory(int id = 1, User? user = null, string name = DEFAULT_CATEGORY_NAME, string description = DEFAULT_CATEGORY_DESCRIPTION, CategoryNatureEnum nature = DEFAULT_CATEGORY_NATURE)
         {
             user ??= CreateUser(1);
             EntityInfo info = CreateEntityInfo(name, description);
@@ -93,7 +93,7 @@ namespace Tests.Helpers
         /// <summary>
         /// Crea una lista de categorías de prueba
         /// </summary>
-        public static List<Category> CreateCategories(int count = 3, User user = null)
+        public static List<Category> CreateCategories(int count = 3, User? user = null)
         {
             user ??= CreateUser(1);
             List<Category> categories = new List<Category>();
@@ -112,8 +112,8 @@ namespace Tests.Helpers
         public static FixedExpense CreateFixedExpense
         (
             int id = 1,
-            User user = null,
-            Category category = null,
+            User? user = null,
+            Category? category = null,
             string name = DEFAULT_FIXED_EXPENSE_NAME,
             string description = DEFAULT_FIXED_EXPENSE_DESCRIPTION,
             decimal amount = DEFAULT_FIXED_EXPENSE_AMOUNT,
@@ -194,8 +194,8 @@ namespace Tests.Helpers
         public static Transaction CreateTransaction
         (
             int id = 1,
-            User user = null,
-            Category category = null,
+            User? user = null,
+            Category? category = null,
             string name = DEFAULT_TRANSACTION_NAME,
             string description = DEFAULT_TRANSACTION_DESCRIPTION,
             decimal amount = DEFAULT_TRANSACTION_AMOUNT,
@@ -369,8 +369,8 @@ namespace Tests.Helpers
         {
             mock.Setup(service => service.UserId).Returns(0);
             mock.Setup(service => service.IsAuthenticated).Returns(false);
-            mock.Setup(service => service.UserName).Returns((string)null);
-            mock.Setup(service => service.Email).Returns((string)null);
+            mock.Setup(service => service.UserName).Returns((string?)null);
+            mock.Setup(service => service.Email).Returns((string?)null);
         }
 
         // MÉTODOS PARA API

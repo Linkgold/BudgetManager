@@ -219,7 +219,7 @@ namespace Tests.Infrastructure
         public async Task GetByPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByPeriodAsync(1, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByPeriodAsync(1, null!));
         }
 
         // ==================== TEST: GET BY CATEGORY AND PERIOD ====================
@@ -360,7 +360,7 @@ namespace Tests.Infrastructure
             Category category = TestDataFactory.CreateCategory();
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.ExistsForCategoryAndPeriodAsync(userId, category.Id, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.ExistsForCategoryAndPeriodAsync(userId, category.Id, null!));
         }
 
         // ==================== TEST: UPDATE ====================

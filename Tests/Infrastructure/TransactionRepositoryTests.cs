@@ -221,7 +221,7 @@ namespace Tests.Infrastructure
         public async Task GetByMonthlyPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
         {
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByMonthlyPeriodAsync(1, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByMonthlyPeriodAsync(1, null!));
         }
 
         // ==================== TEST: GET BY CATEGORY AND MONTHLY PERIOD ====================
@@ -317,7 +317,7 @@ namespace Tests.Infrastructure
             DailyPeriod endDate = TestDataFactory.CreateDailyPeriod(30);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(userId, null, endDate));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(userId, null!, endDate));
         }
 
         [Fact]
@@ -328,7 +328,7 @@ namespace Tests.Infrastructure
             DailyPeriod startDate = TestDataFactory.CreateDailyPeriod(1);
 
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(userId, startDate, null));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByDateRangeAsync(userId, startDate, null!));
         }
 
         // ==================== TEST: GET TOTAL ====================

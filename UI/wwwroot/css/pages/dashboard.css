@@ -1,11 +1,9 @@
 ﻿/* ==================== DASHBOARD ANUAL ==================== */
 
-/* 🔥 Título */
 .dashboard-title {
     color: var(--color-text) !important;
 }
 
-/* 🔥 Tarjeta principal */
 .dashboard-card {
     background-color: var(--color-card) !important;
     border: 1px solid var(--color-border) !important;
@@ -13,48 +11,378 @@
 }
 
 .dashboard-card-header {
-    background-color: #2C3E50 !important;
-    color: #FFFFFF !important;
+    background-color: var(--color-secondary) !important;
+    color: var(--color-text-inverse) !important;
     border-bottom: 1px solid var(--color-border) !important;
 }
 
 .dashboard-card .card-body {
     background-color: var(--color-card) !important;
+    padding: 0 !important;
 }
 
-/* 🔥 Primera columna (meses) - específico del dashboard */
-.dashboard-table tbody td:first-child,
-.dashboard-table thead th:first-child {
-    font-weight: 600;
-    text-align: left;
-    padding-left: 6px;
-    min-width: 80px;
-    max-width: 120px;
-    white-space: nowrap;
+.dashboard-table-wrapper {
+    overflow-x: auto;
+    position: relative;
 }
 
-.dashboard-table .category-cell {
-    padding: 2px 4px;
-    min-width: 60px;
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 600px;
+    background-color: var(--color-surface) !important;
 }
 
-/* 🔥 Responsive adicional */
-@media (max-width: 768px) {
+    /* ================================================================ */
+    /* 🔥 CABECERA */
+    /* ================================================================ */
+
     .dashboard-table thead th {
-        padding: 4px 2px;
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+        font-weight: 600 !important;
+        padding: 8px 8px !important;
+        border-bottom: 2px solid var(--color-border) !important;
+        text-align: center;
+        white-space: nowrap;
     }
+
+        .dashboard-table thead th:first-child {
+            text-align: left;
+        }
+
+        .dashboard-table thead th:last-child {
+            text-align: right;
+        }
+
+    /* ================================================================ */
+    /* 🔥 CUERPO */
+    /* ================================================================ */
 
     .dashboard-table tbody td {
-        padding: 3px 2px;
+        padding: 6px 8px !important;
+        border: none !important;
+        color: var(--color-text) !important;
+        background-color: transparent !important;
+        vertical-align: middle;
     }
 
-    .dashboard-table .category-cell {
-        min-width: 40px;
+    .dashboard-table tbody tr {
+        background-color: var(--color-surface) !important;
     }
 
-    .dashboard-table tbody td:first-child,
-    .dashboard-table thead th:first-child {
-        min-width: 60px;
-        max-width: 80px;
+        .dashboard-table tbody tr:nth-child(even) {
+            background-color: var(--color-table-stripe) !important;
+        }
+
+        .dashboard-table tbody tr:hover {
+            background-color: var(--color-table-hover) !important;
+        }
+
+    /* ================================================================ */
+    /* 🔥 PIE DE TABLA (TOTALES) */
+    /* ================================================================ */
+
+    .dashboard-table tfoot td {
+        padding: 6px 8px !important;
+        border: none !important;
+        border-top: 2px solid var(--color-border) !important; /* ==================== DASHBOARD ANUAL ==================== */
+
+        .dashboard-title {
+            color: var(--color-text) !important;
+        }
+
+        .dashboard-card {
+            background-color: var(--color-card) !important;
+            border: 1px solid var(--color-border) !important;
+            box-shadow: 0 2px 10px var(--shadow-color) !important;
+        }
+
+        .dashboard-card-header {
+            background-color: var(--color-secondary) !important;
+            color: var(--color-text-inverse) !important;
+            border-bottom: 1px solid var(--color-border) !important;
+        }
+
+        .dashboard-card .card-body {
+            background-color: var(--color-card) !important;
+            padding: 0 !important;
+        }
+
+        .dashboard-table-wrapper {
+            overflow-x: auto;
+            position: relative;
+        }
+
+        .dashboard-table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+            background-color: var(--color-surface) !important;
+        }
+            /* ================================================================ */
+            /* 🔥 CABECERA */
+            /* ================================================================ */
+
+            .dashboard-table thead th {
+                background-color: var(--color-secondary) !important;
+                color: var(--color-text-inverse) !important;
+                font-weight: 600 !important;
+                padding: 8px 8px !important;
+                border-bottom: 2px solid var(--color-border) !important;
+                text-align: center;
+                white-space: nowrap;
+            }
+
+                .dashboard-table thead th:first-child {
+                    text-align: left;
+                }
+
+                .dashboard-table thead th:last-child {
+                    text-align: right;
+                }
+            /* ================================================================ */
+            /* 🔥 CUERPO */
+            /* ================================================================ */
+
+            .dashboard-table tbody td {
+                padding: 6px 8px !important;
+                border: none !important;
+                color: var(--color-text) !important;
+                background-color: transparent !important;
+                vertical-align: middle;
+            }
+
+            .dashboard-table tbody tr {
+                background-color: var(--color-surface) !important;
+            }
+
+                .dashboard-table tbody tr:nth-child(even) {
+                    background-color: var(--color-table-stripe) !important;
+                }
+
+                .dashboard-table tbody tr:hover {
+                    background-color: var(--color-table-hover) !important;
+                }
+            
+            /* ================================================================ */
+            /* 🔥 COLUMNAS FIJAS (STICKY) */
+            /* ================================================================ */
+
+            .dashboard-table th:first-child,
+            .dashboard-table td:first-child {
+                position: sticky;
+                left: 0;
+                z-index: 10;
+                background-color: var(--color-surface) !important;
+                min-width: 120px;
+                max-width: 150px;
+            }
+
+            .dashboard-table th:last-child,
+            .dashboard-table td:last-child {
+                position: sticky;
+                right: 0;
+                z-index: 10;
+                background-color: var(--color-surface) !important;
+                min-width: 100px;
+            }
+
+            .dashboard-table thead th:first-child,
+            .dashboard-table thead th:last-child {
+                background-color: var(--color-secondary) !important;
+                color: var(--color-text-inverse) !important;
+                z-index: 20;
+            }
+            /* ================================================================ */
+            /* 🔥 FILAS ALTERNAS EN COLUMNAS FIJAS */
+            /* ================================================================ */
+
+            .dashboard-table tbody tr:nth-child(even) td:first-child,
+            .dashboard-table tbody tr:nth-child(even) td:last-child {
+                background-color: var(--color-table-stripe) !important;
+            }
+
+            .dashboard-table tbody tr:hover td:first-child,
+            .dashboard-table tbody tr:hover td:last-child {
+                background-color: var(--color-table-hover) !important;
+            }
+            /* ================================================================ */
+            /* 🔥 SOMBRAS LATERALES (SCROLL INDICATOR) */
+            /* ================================================================ */
+
+            .dashboard-table td:first-child::after,
+            .dashboard-table th:first-child::after {
+                content: "";
+                position: absolute;
+                top: 0;
+                right: -4px;
+                width: 6px;
+                height: 100%;
+                background: linear-gradient(to right, var(--shadow-color), transparent);
+                pointer-events: none;
+            }
+
+            .dashboard-table td:last-child::before,
+            .dashboard-table th:last-child::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: -4px;
+                width: 6px;
+                height: 100%;
+                background: linear-gradient(to left, var(--shadow-color), transparent);
+                pointer-events: none;
+            }
+            /* ================================================================ */
+            /* 🔥 CELDAS DE IMPORTES - SIN RECUADRO */
+            /* ================================================================ */
+
+            .dashboard-table .text-success {
+                color: var(--color-success) !important;
+            }
+
+            .dashboard-table .text-danger {
+                color: var(--color-error) !important;
+            }
+
+            .dashboard-table .fw-bold {
+                font-weight: 600 !important;
+            }
+
+            .dashboard-table .text-muted {
+                color: var(--color-text-muted) !important;
+            }
+
+        background-color: var(--color-secondary) !important;
+        font-weight: 600 !important;
+        color: var(--color-text-inverse) !important;
     }
-}
+
+    /* ================================================================ */
+    /* 🔥 PIE DE TABLA (TOTALES) */
+    /* ================================================================ */
+    /* ✅ ESTILO BASE PARA TODAS LAS CELDAS DEL PIE */
+    .dashboard-table tfoot td {
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+        border-top: 1px solid var(--color-border) !important;
+        font-weight: 600 !important;
+    }
+    /* ✅ TOTAL MES - borde superior más grueso */
+    .dashboard-table tfoot tr:first-child td {
+        border-top: 2px solid var(--color-border) !important;
+    }
+    /* ✅ ACUMULADO - mismo estilo que TOTAL MES */
+    .dashboard-table tfoot tr:last-child td {
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+    }
+    /* ✅ Columnas fijas en el pie */
+    .dashboard-table tfoot td:first-child,
+    .dashboard-table tfoot td:last-child {
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+    }
+
+    .dashboard-table tfoot .text-success,
+    .dashboard-table tfoot .text-danger {
+        font-weight: 600 !important;
+    }
+
+    /* ✅ Evitar saltos de línea en los totales */
+    .dashboard-table tfoot td div {
+        white-space: nowrap !important;
+    }
+
+    /* ================================================================ */
+    /* 🔥 COLUMNAS FIJAS (STICKY) */
+    /* ================================================================ */
+
+    .dashboard-table th:first-child,
+    .dashboard-table td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background-color: var(--color-surface) !important;
+        min-width: 120px;
+        max-width: 150px;
+    }
+
+    .dashboard-table th:last-child,
+    .dashboard-table td:last-child {
+        position: sticky;
+        right: 0;
+        z-index: 10;
+        background-color: var(--color-surface) !important;
+        min-width: 100px;
+    }
+
+    .dashboard-table thead th:first-child,
+    .dashboard-table thead th:last-child {
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+        z-index: 20;
+    }
+
+    /* ================================================================ */
+    /* 🔥 FILAS ALTERNAS EN COLUMNAS FIJAS */
+    /* ================================================================ */
+
+    .dashboard-table tbody tr:nth-child(even) td:first-child,
+    .dashboard-table tbody tr:nth-child(even) td:last-child {
+        background-color: var(--color-table-stripe) !important;
+    }
+
+    .dashboard-table tbody tr:hover td:first-child,
+    .dashboard-table tbody tr:hover td:last-child {
+        background-color: var(--color-table-hover) !important;
+    }
+
+    /* ================================================================ */
+    /* 🔥 SOMBRAS LATERALES (SCROLL INDICATOR) */
+    /* ================================================================ */
+
+    .dashboard-table td:first-child::after,
+    .dashboard-table th:first-child::after {
+        content: "";
+        position: absolute;
+        top: 0;
+        right: -4px;
+        width: 6px;
+        height: 100%;
+        background: linear-gradient(to right, var(--shadow-color), transparent);
+        pointer-events: none;
+    }
+
+    .dashboard-table td:last-child::before,
+    .dashboard-table th:last-child::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: -4px;
+        width: 6px;
+        height: 100%;
+        background: linear-gradient(to left, var(--shadow-color), transparent);
+        pointer-events: none;
+    }
+
+    /* ================================================================ */
+    /* 🔥 CELDAS DE IMPORTES - SIN RECUADRO */
+    /* ================================================================ */
+
+    .dashboard-table .text-success {
+        color: var(--color-success) !important;
+    }
+
+    .dashboard-table .text-danger {
+        color: var(--color-error) !important;
+    }
+
+    .dashboard-table .fw-bold {
+        font-weight: 600 !important;
+    }
+
+    .dashboard-table .text-muted {
+        color: var(--color-text-muted) !important;
+    }

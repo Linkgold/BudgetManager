@@ -2,9 +2,9 @@
 @attribute [Authorize]
 @inherits BasePage
 
-<div class="container mt-3">
+<div class="container-fluid mt-3">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
-        <h4 class="mb-0 dashboard-title">📊 Resumen Anual @_currentYear</h4>
+        <h4 class="mb-0 dashboard-title">📈 Resumen Anual @_currentYear</h4>
         <a href="/monthly" class="btn btn-outline-primary btn-sm">📅 Ver mes actual</a>
     </div>
 
@@ -12,44 +12,128 @@
         <div class="card-header dashboard-card-header py-2">
             <small class="fw-bold">📊 Presupuestos vs Gastos reales por categoría</small>
         </div>
-        <div class="card-body p-1">
-            <div class="table-wrapper">
-                <table class="data-table table table-hover mb-0">
+        <div class="card-body p-0">
+            <div class="dashboard-table-wrapper">
+                <table class="dashboard-table">
                     <thead>
                         <tr>
-                            <th>Mes</th>
-                            @foreach (var categoria in _categorias)
+                            <th class="text-start">Categoría</th>
+                            @foreach (var month in _months)
                             {
-                                <th class="text-center">@categoria</th>
+                                <th class="text-center">
+                                    <span class="d-none d-md-inline">@month.Name</span>
+                                    <span class="d-inline d-md-none">@month.ShortName</span>
+                                </th>
                             }
+                            <th class="text-end">Total</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var mes in _meses)
+                        @foreach (var category in _dashboardData.Categories)
                         {
-                            <tr @onclick="() => NavigateToMonth(mes.Nombre)" title="Ver detalle de @mes.Nombre">
-                                <td><span class="fw-semibold">@mes.Nombre</span></td>
-                                @foreach (var categoria in _categorias)
+                            <tr>
+                                <td class="text-start fw-semibold">@category.CategoryName</td>
+                                @foreach (var month in _months)
                                 {
-                                    var valor = mes.ObtenerValor(categoria);
-                                    <td class="category-cell text-center">
-                                        @if (valor.TieneDatos)
+                                    var data = category.MonthlyData.TryGetValue(month.Value, out var value) ? value : null;
+                                    <td class="text-center">
+                                        @if (data != null && (data.Budget > 0 || data.Spent > 0))
                                         {
-                                            <span class="fw-bold @(valor.Diferencia >= 0 ? "text-success" : "text-danger")">
-                                                @FormatCurrency(valor.Gasto)
-                                            </span>
-                                            <span class="text-muted">/</span>
-                                            <span class="fw-bold">@FormatCurrency(valor.Presupuesto)</span>
+                                            <div>
+                                                <span class="@(data.Spent <= data.Budget ? "text-success" : "text-danger")">
+                                                    @CurrencyHelper.FormatCurrency(data.Spent)
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span class="fw-bold">@CurrencyHelper.FormatCurrency(data.Budget)</span>
+                                            </div>
                                         }
                                         else
                                         {
-                                            <span class="text-muted" style="font-size: 0.6rem;">—</span>
+                                            <span class="text-muted">—</span>
                                         }
                                     </td>
                                 }
+                                <td class="text-end">
+                                    <div>
+                                        <span class="@(category.TotalSpent <= category.TotalBudget ? "text-success" : "text-danger")">
+                                            @CurrencyHelper.FormatCurrency(category.TotalSpent)
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold">@CurrencyHelper.FormatCurrency(category.TotalBudget)</span>
+                                    </div>
+                                </td>
                             </tr>
                         }
                     </tbody>
+                    <tfoot>
+                        <!-- Fila TOTAL MES -->
+                        <tr class="fw-bold">
+                            <td class="text-start">TOTAL MES</td>
+                            @foreach (var month in _months)
+                            {
+                                var totalBudget = _dashboardData.Months.FirstOrDefault(m => m.Month == month.Value)?.TotalBudget ?? 0;
+                                var totalSpent = _dashboardData.Months.FirstOrDefault(m => m.Month == month.Value)?.TotalSpent ?? 0;
+                                <td class="text-center">
+                                    <div>
+                                        <span class="@(totalSpent <= totalBudget ? "text-success" : "text-danger")">
+                                            @CurrencyHelper.FormatCurrency(totalSpent)
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold">@CurrencyHelper.FormatCurrency(totalBudget)</span>
+                                    </div>
+                                </td>
+                            }
+                            <td class="text-end">
+                                <div>
+                                    <span class="@(_dashboardData.TotalSpent <= _dashboardData.TotalBudget ? "text-success" : "text-danger")">
+                                        @CurrencyHelper.FormatCurrency(_dashboardData.TotalSpent)
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(_dashboardData.TotalBudget)</span>
+                                </div>
+                            </td>
+                        </tr>
+
+                        <!-- Fila ACUMULADO -->
+                        <tr class="fw-bold">
+                            <td class="text-start">ACUMULADO</td>
+                            @{
+                                decimal acumuladoBudget = 0;
+                                decimal acumuladoSpent = 0;
+                            }
+                            @foreach (var month in _months)
+                            {
+                                var totalBudget = _dashboardData.Months.FirstOrDefault(m => m.Month == month.Value)?.TotalBudget ?? 0;
+                                var totalSpent = _dashboardData.Months.FirstOrDefault(m => m.Month == month.Value)?.TotalSpent ?? 0;
+                                acumuladoBudget += totalBudget;
+                                acumuladoSpent += totalSpent;
+                                <td class="text-center">
+                                    <div>
+                                        <span class="@(acumuladoSpent <= acumuladoBudget ? "text-success" : "text-danger")">
+                                            @CurrencyHelper.FormatCurrency(acumuladoSpent)
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="fw-bold">@CurrencyHelper.FormatCurrency(acumuladoBudget)</span>
+                                    </div>
+                                </td>
+                            }
+                            <td class="text-end">
+                                <div>
+                                    <span class="@(_dashboardData.TotalSpent <= _dashboardData.TotalBudget ? "text-success" : "text-danger")">
+                                        @CurrencyHelper.FormatCurrency(_dashboardData.TotalSpent)
+                                    </span>
+                                </div>
+                                <div>
+                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(_dashboardData.TotalBudget)</span>
+                                </div>
+                            </td>
+                        </tr>
+                    </tfoot>
                 </table>
             </div>
         </div>
