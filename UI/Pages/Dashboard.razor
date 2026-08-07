@@ -1,4 +1,7 @@
 ﻿@page "/"
+@using Contracts.Enums
+@using UI.Extensions
+@using UI.Models.Dashboard
 @attribute [Authorize]
 @inherits BasePage
 
@@ -10,38 +13,48 @@
 
     <div class="card dashboard-card">
         <div class="card-header dashboard-card-header py-2">
-            <small class="fw-bold">📊 Presupuestos vs Gastos reales por categoría</small>
+            <small class="fw-bold">📊 Gastos reales vs Presupuestos por Categoría</small>
         </div>
         <div class="card-body p-0">
             <div class="dashboard-table-wrapper">
                 <table class="dashboard-table">
                     <thead>
                         <tr>
-                            <th class="text-start">Categoría</th>
-                            @foreach (var month in _months)
+                            <th class="text-center">Categoría</th>
+                            @foreach (MonthModel month in _months)
                             {
                                 <th class="text-center">
                                     <span class="d-none d-md-inline">@month.Name</span>
                                     <span class="d-inline d-md-none">@month.ShortName</span>
                                 </th>
                             }
-                            <th class="text-end">Total</th>
+                            <th class="text-center">Total</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (var category in _dashboardData.Categories)
+                        @foreach (DashboardCategoryRow category in _dashboardData.Categories)
                         {
                             <tr>
-                                <td class="text-start fw-semibold">@category.CategoryName</td>
-                                @foreach (var month in _months)
+                                <td class="text-start">
+                                    <div>
+                                        <span class="badge @category.Nature.GetBadgeClass()">
+                                            <span class="nature-icon">@category.Nature.GetIcon()</span>
+                                            @category.Nature.GetDisplayName()
+                                        </span>
+                                    </div>
+                                    <div>
+                                        <span class="fw-semibold">@category.CategoryName</span>
+                                    </div>
+                                </td>
+                                @foreach (MonthModel month in _months)
                                 {
-                                    var data = category.MonthlyData.TryGetValue(month.Value, out var value) ? value : null;
-                                    <td class="text-center">
+                                    DashboardMonthData? data = category.MonthlyData.TryGetValue(month.Value, out DashboardMonthData? value) ? value : null;
+                                    <td class="category-cell text-center">
                                         @if (data != null && (data.Budget > 0 || data.Spent > 0))
                                         {
                                             <div>
-                                                <span class="@(data.Spent <= data.Budget ? "text-success" : "text-danger")">
-                                                    @CurrencyHelper.FormatCurrency(data.Spent)
+                                                <span class="@category.Nature.GetStatusClass(data.DisplaySpent, data.Budget)">
+                                                    @CurrencyHelper.FormatCurrency(data.DisplaySpent)
                                                 </span>
                                             </div>
                                             <div>
@@ -50,14 +63,14 @@
                                         }
                                         else
                                         {
-                                            <span class="text-muted">—</span>
+                                            <span class="text-muted" style="font-size: 0.6rem;">—</span>
                                         }
                                     </td>
                                 }
                                 <td class="text-end">
                                     <div>
-                                        <span class="@(category.TotalSpent <= category.TotalBudget ? "text-success" : "text-danger")">
-                                            @CurrencyHelper.FormatCurrency(category.TotalSpent)
+                                        <span class="@category.Nature.GetStatusClass(category.TotalDisplaySpent, category.TotalBudget)">
+                                            @CurrencyHelper.FormatCurrency(category.TotalDisplaySpent)
                                         </span>
                                     </div>
                                     <div>
@@ -69,67 +82,57 @@
                     </tbody>
                     <tfoot>
                         <!-- Fila TOTAL MES -->
-                        <tr class="fw-bold">
+                        <tr class="table-secondary fw-bold">
                             <td class="text-start">TOTAL MES</td>
-                            @foreach (var month in _months)
+                            @foreach (DashboardMonthTotals monthTotals in _monthTotals)
                             {
-                                var totalBudget = _dashboardData.Months.FirstOrDefault(m => m.Month == month.Value)?.TotalBudget ?? 0;
-                                var totalSpent = _dashboardData.Months.FirstOrDefault(m => m.Month == month.Value)?.TotalSpent ?? 0;
                                 <td class="text-center">
                                     <div>
-                                        <span class="@(totalSpent <= totalBudget ? "text-success" : "text-danger")">
-                                            @CurrencyHelper.FormatCurrency(totalSpent)
+                                        <span class="@CategoryNatureEnum.Mixed.GetStatusClass(monthTotals.TotalDisplaySpent, monthTotals.TotalBudget)">
+                                            @CurrencyHelper.FormatCurrency(monthTotals.TotalDisplaySpent)
                                         </span>
                                     </div>
                                     <div>
-                                        <span class="fw-bold">@CurrencyHelper.FormatCurrency(totalBudget)</span>
+                                        <span class="fw-bold">@CurrencyHelper.FormatCurrency(monthTotals.TotalBudget)</span>
                                     </div>
                                 </td>
                             }
                             <td class="text-end">
                                 <div>
-                                    <span class="@(_dashboardData.TotalSpent <= _dashboardData.TotalBudget ? "text-success" : "text-danger")">
-                                        @CurrencyHelper.FormatCurrency(_dashboardData.TotalSpent)
+                                    <span class="@CategoryNatureEnum.Mixed.GetStatusClass(_totals.TotalDisplaySpent, _totals.TotalBudget)">
+                                        @CurrencyHelper.FormatCurrency(_totals.TotalDisplaySpent)
                                     </span>
                                 </div>
                                 <div>
-                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(_dashboardData.TotalBudget)</span>
+                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(_totals.TotalBudget)</span>
                                 </div>
                             </td>
                         </tr>
 
                         <!-- Fila ACUMULADO -->
-                        <tr class="fw-bold">
+                        <tr class="table-secondary fw-bold">
                             <td class="text-start">ACUMULADO</td>
-                            @{
-                                decimal acumuladoBudget = 0;
-                                decimal acumuladoSpent = 0;
-                            }
-                            @foreach (var month in _months)
+                            @foreach (DashboardAccumulatedMonth accumulated in _accumulatedTotals.Monthly)
                             {
-                                var totalBudget = _dashboardData.Months.FirstOrDefault(m => m.Month == month.Value)?.TotalBudget ?? 0;
-                                var totalSpent = _dashboardData.Months.FirstOrDefault(m => m.Month == month.Value)?.TotalSpent ?? 0;
-                                acumuladoBudget += totalBudget;
-                                acumuladoSpent += totalSpent;
                                 <td class="text-center">
                                     <div>
-                                        <span class="@(acumuladoSpent <= acumuladoBudget ? "text-success" : "text-danger")">
-                                            @CurrencyHelper.FormatCurrency(acumuladoSpent)
+                                        <span class="@CategoryNatureEnum.Mixed.GetStatusClass(accumulated.AcumuladoDisplaySpent, accumulated.AcumuladoBudget)">
+                                            @CurrencyHelper.FormatCurrency(accumulated.AcumuladoDisplaySpent)
                                         </span>
                                     </div>
                                     <div>
-                                        <span class="fw-bold">@CurrencyHelper.FormatCurrency(acumuladoBudget)</span>
+                                        <span class="fw-bold">@CurrencyHelper.FormatCurrency(accumulated.AcumuladoBudget)</span>
                                     </div>
                                 </td>
                             }
                             <td class="text-end">
                                 <div>
-                                    <span class="@(_dashboardData.TotalSpent <= _dashboardData.TotalBudget ? "text-success" : "text-danger")">
-                                        @CurrencyHelper.FormatCurrency(_dashboardData.TotalSpent)
+                                    <span class="@CategoryNatureEnum.Mixed.GetStatusClass(_accumulatedTotals.TotalDisplaySpent, _accumulatedTotals.TotalBudget)">
+                                        @CurrencyHelper.FormatCurrency(_accumulatedTotals.TotalDisplaySpent)
                                     </span>
                                 </div>
                                 <div>
-                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(_dashboardData.TotalBudget)</span>
+                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(_accumulatedTotals.TotalBudget)</span>
                                 </div>
                             </td>
                         </tr>

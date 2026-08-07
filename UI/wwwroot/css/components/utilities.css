@@ -1,0 +1,143 @@
+﻿/* ==================== UTILIDADES ==================== */
+
+/* 🔥 BOTÓN OUTLINE CON COLOR DE ACENTO */
+.btn-outline-accent {
+    color: var(--color-accent) !important;
+    border-color: var(--color-accent) !important;
+    background-color: transparent !important;
+    transition: all 0.2s ease;
+}
+
+    .btn-outline-accent:hover {
+        background-color: var(--color-accent) !important;
+        color: var(--color-text-inverse) !important;
+        border-color: var(--color-accent) !important;
+    }
+
+    .btn-outline-accent:focus {
+        box-shadow: 0 0 0 0.2rem rgba(var(--color-accent-rgb), 0.25) !important;
+    }
+
+    .btn-outline-accent:disabled {
+        opacity: 0.4;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+/* 🔥 CAMPO DESHABILITADO CON MISMO FONDO */
+.input-disabled {
+    background-color: var(--color-card) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+    cursor: default;
+    opacity: 1 !important;
+    font-weight: 500;
+}
+
+    .input-disabled:focus {
+        box-shadow: none !important;
+        border-color: var(--color-border) !important;
+    }
+
+select.input-disabled {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: none !important;
+}
+
+/* 🔥 BADGES (NATURE) */
+.badge-nature {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    border-radius: 50px;
+    text-align: center;
+    white-space: nowrap;
+    background-color: var(--color-surface-light);
+    color: var(--color-text);
+    border: 1px solid var(--color-border);
+}
+
+    .badge-nature.income {
+        background-color: var(--color-success);
+        color: var(--color-text-inverse);
+    }
+
+    .badge-nature.expense {
+        background-color: var(--color-error);
+        color: var(--color-text-inverse);
+    }
+
+    .badge-nature.mixed {
+        background-color: var(--color-warning);
+        color: var(--color-text);
+    }
+
+/* 🔥 BOTÓN LIMPIAR BÚSQUEDA */
+.search-input-with-clear {
+    padding-right: 30px !important;
+}
+
+.search-clear-btn {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 2px 6px;
+    border-radius: 50%;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    line-height: 1.4;
+    user-select: none;
+    background-color: transparent;
+    z-index: 5;
+}
+
+    .search-clear-btn:hover {
+        color: var(--color-text);
+        background-color: var(--color-surface-light);
+    }
+
+.search-input-wrapper {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+/* 🔥 INPUT AUTOFILL */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+    -webkit-box-shadow: 0 0 0 1000px var(--color-surface) inset !important;
+    -webkit-text-fill-color: var(--color-text) !important;
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+    border-radius: 8px !important;
+}
+
+input:-moz-autofill {
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+}
+
+/* 🔥 CURSOR EN TABLA */
+.data-table tbody tr:hover {
+    cursor: default !important;
+}
+
+    .data-table tbody tr:hover .btn {
+        cursor: pointer !important;
+    }
+
+/* 🔥 PÁGINA TÍTULO */
+.page-title {
+    color: var(--color-text) !important;
+    font-weight: 600;
+}
