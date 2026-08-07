@@ -3,6 +3,7 @@ using UI.Extensions;
 using UI.Helpers;
 using UI.Models;
 using UI.Models.Dashboard;
+using UI.Pages;
 using UI.Services.API;
 
 namespace UI.Services.Pages
@@ -53,88 +54,118 @@ namespace UI.Services.Pages
                 // Calcular datos por mes
                 for (int month = 1; month <= 12; month++)
                 {
-                    // 1. Presupuesto (solo para Expense y Mixed)
-                    decimal budget = 0m;
-                    if (category.Nature != CategoryNatureEnum.Income)
-                    {
-                        budget = budgets?
-                            .FirstOrDefault(b => b.CategoryId == category.Id && b.Month == month && b.Year == year)?
-                            .Amount ?? 0m;
-                    }
+                    // 1. Presupuesto
+                    decimal budget = budgets?
+                        .FirstOrDefault(b => b.CategoryId == category.Id && b.Month == month && b.Year == year)?
+                        .Amount ?? 0m;
 
+                    // 2. Gasto fijo (si existe en ese mes)
+                    decimal fixedExpense = fixedExpenses?
+                        .Where(f => f.CategoryId == category.Id && f.Month == month && f.Year == year)
+                        .Sum(f => f.Amount) ?? 0m;
 
-                    // 2. Gasto fijo (si existe en ese mes, solo para Expense y Mixed)
-                    decimal fixedExpense = 0m;
-                    if (category.Nature != CategoryNatureEnum.Income)
-                    {
-                        fixedExpense = fixedExpenses?
-                            .Where(f => f.CategoryId == category.Id && f.Month == month && f.Year == year)
-                            .Sum(f => f.Amount) ?? 0m;
-                    }
-
-                    // 3. Transacciones (gastos reales)
+                    // 3. Transacciones
                     decimal spent = transactions?
                         .Where(t => t.CategoryId == category.Id && t.Date.Month == month && t.Date.Year == year)
-                        .Sum(t => {
-                            // ✅ Ingresos: suman positivos
-                            // ✅ Gastos (Expense y Mixed): suman negativos (restan)
-                            if (t.CategoryNature == CategoryNatureEnum.Income)
-                            {
-                                return t.Amount;  // Ya es positivo (suma)
-                            }
-                            else if (t.CategoryNature == CategoryNatureEnum.Expense || t.CategoryNature == CategoryNatureEnum.Mixed)
-                            {
-                                return -Math.Abs(t.Amount);  // Restamos (negativo)
-                            }
-                            else
-                            {
-                                return 0m;
-                            }
-                        }) ?? 0m;
+                        .Sum(f => f.Amount) ?? 0m;
 
-                    // ✅ Total gasto real = transacciones
                     decimal totalSpent = spent;
-
-                    // ✅ Presupuesto + gasto fijo (para mostrar como presupuesto combinado)
                     decimal totalBudget = budget + fixedExpense;
-
-                    // ✅ Valor sin signo para UI
-                    decimal displaySpent = Math.Abs(totalSpent);
 
                     row.MonthlyData[month] = new DashboardMonthData
                     {
                         Month = month,
-                        Budget = totalBudget,        // Presupuesto + gasto fijo
-                        Spent = totalSpent,          // Gasto real total
-                        DisplaySpent = displaySpent  // Sin signo para UI
+                        Budget = totalBudget,
+                        Spent = totalSpent,
                     };
 
                     row.TotalBudget += totalBudget;
                     row.TotalSpent += totalSpent;
-                    row.TotalDisplaySpent += displaySpent;
                 }
 
                 dashboard.Categories.Add(row);
-                dashboard.TotalBudget += row.TotalBudget;
-                dashboard.TotalSpent += row.TotalSpent;
-                dashboard.TotalDisplaySpent += row.TotalDisplaySpent;
+                /*dashboard.TotalBudget += row.TotalBudget;
+                dashboard.TotalSpent += row.TotalSpent;*/
             }
 
             // Calcular totales por mes
+            CalculateMonthTotals(dashboard);
+
+            dashboard.AccumulatedMonths = CalculateAccumulatedTotals(dashboard);
+
+            return dashboard;
+        }
+
+        private void CalculateMonthTotals(DashboardModel dashboard)
+        {
             foreach (DashboardMonthColumn month in dashboard.Months)
             {
+                decimal monthBudgetWithSign = 0m;
+                decimal monthSpentWithSign = 0m;
+
                 foreach (DashboardCategoryRow row in dashboard.Categories)
                 {
                     if (row.MonthlyData.TryGetValue(month.Month, out DashboardMonthData? data))
                     {
-                        month.TotalBudget += data.Budget;
-                        month.TotalSpent += data.Spent;
-                        month.TotalDisplaySpent += data.DisplaySpent;
+                        if (row.Nature == CategoryNatureEnum.Income)
+                        {
+                            monthBudgetWithSign += data.Budget;
+                            monthSpentWithSign += data.Spent;
+                        }
+                        else
+                        {
+                            monthBudgetWithSign -= data.Budget;
+                            monthSpentWithSign -= data.Spent;
+                        }
                     }
                 }
+
+                month.TotalBudget = monthBudgetWithSign;
+                month.TotalSpent = monthSpentWithSign;
+            }
+        }
+
+        private List<DashboardAccumulatedMonth> CalculateAccumulatedTotals(DashboardModel dashboard)
+        {
+            List<DashboardAccumulatedMonth> accumulatedTotals = new List<DashboardAccumulatedMonth>();
+
+            decimal acumuladoBudget = 0m;
+            decimal acumuladoSpent = 0m;
+
+            foreach (DashboardMonthColumn month in dashboard.Months)
+            {
+                decimal monthBudgetWithSign = 0m;
+                decimal monthSpentWithSign = 0m;
+
+                foreach (DashboardCategoryRow row in dashboard.Categories)
+                {
+                    if (row.MonthlyData.TryGetValue(month.Month, out DashboardMonthData? data))
+                    {
+                        if (row.Nature == CategoryNatureEnum.Income)
+                        {
+                            monthBudgetWithSign += data.Budget;
+                            monthSpentWithSign += data.Spent;
+                        }
+                        else
+                        {
+                            monthBudgetWithSign -= data.Budget;
+                            monthSpentWithSign -= data.Spent;
+                        }
+                    }
+                }
+
+                acumuladoBudget += monthBudgetWithSign;
+                acumuladoSpent += monthSpentWithSign;
+
+                accumulatedTotals.Add(new DashboardAccumulatedMonth
+                {
+                    Month = month.Month,
+                    AcumuladoBudget = acumuladoBudget,
+                    AcumuladoSpent = acumuladoSpent,
+                });
             }
 
-            return dashboard;
+            return accumulatedTotals;
         }
     }
 }

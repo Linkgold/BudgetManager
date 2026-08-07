@@ -1,8 +1,30 @@
-﻿namespace UI.Shared
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Authorization;
+using System.Security.Claims;
+
+namespace UI.Shared
 {
     public partial class NavMenu
     {
+        [Inject]
+        private AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
+
+        private string _userName = string.Empty;
         private bool _collapseNavMenu = true;
+
+        protected override async Task OnInitializedAsync()
+        {
+            // ✅ Obtener el nombre del usuario autenticado
+            AuthenticationState authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+            ClaimsPrincipal user = authState.User;
+
+            if (user.Identity?.IsAuthenticated == true)
+            {
+                _userName = user.FindFirst(ClaimTypes.Name)?.Value ?? user.Identity.Name ?? "Usuario";
+            }
+
+            await base.OnInitializedAsync();
+        }
 
         private void ToggleNavMenu()
         {

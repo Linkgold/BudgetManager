@@ -55,6 +55,11 @@ namespace Infrastructure.Data.Configurations
                 }
             );
 
+            // ==================== CONFIGURACIÓN DE TRANSACTIONTYPE ====================
+            builder.Property(transaction => transaction.TransactionType)
+                .HasColumnName("TransactionType")
+                .IsRequired();
+
             // ==================== CONFIGURACIÓN DE DAILYPERIOD ====================
             builder.ComplexProperty
             (

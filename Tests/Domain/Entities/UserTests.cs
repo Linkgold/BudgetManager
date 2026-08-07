@@ -35,7 +35,7 @@ namespace Tests.Domain.Entities
         public void Constructor_WithNullUserInfo_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(null, "hashed_password"));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(null!, "hashed_password"));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -47,7 +47,7 @@ namespace Tests.Domain.Entities
             UserInfo userInfo = TestDataFactory.CreateUserInfo();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(userInfo, null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(userInfo, null!));
             Assert.Equal("passwordHash", exception.ParamName);
         }
 
@@ -89,7 +89,7 @@ namespace Tests.Domain.Entities
             User user = TestDataFactory.CreateUser();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.Update(null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.Update(null!));
             Assert.Equal("info", exception.ParamName);
         }
 
@@ -117,7 +117,7 @@ namespace Tests.Domain.Entities
             User user = TestDataFactory.CreateUser();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.UpdatePassword(null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.UpdatePassword(null!));
             Assert.Equal("passwordHash", exception.ParamName);
         }
 

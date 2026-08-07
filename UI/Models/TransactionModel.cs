@@ -11,6 +11,7 @@ namespace UI.Models
         public int CategoryId { get; set; }
         public string CategoryName { get; set; } = string.Empty;
         public CategoryNatureEnum CategoryNature { get; set; }
+        public TransactionTypeEnum TransactionType { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal Amount { get; set; }  // Importe positivo (siempre)
@@ -28,6 +29,7 @@ namespace UI.Models
                 CategoryId = dto.CategoryId,
                 CategoryName = dto.CategoryName,
                 CategoryNature = dto.CategoryNature,
+                TransactionType = dto.TransactionType,
                 Name = dto.Name,
                 Description = dto.Description,
                 Amount = dto.Amount,

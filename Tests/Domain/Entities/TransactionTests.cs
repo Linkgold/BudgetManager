@@ -46,7 +46,7 @@ namespace Tests.Domain.Entities
             DailyPeriod date = TestDataFactory.CreateDailyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(null, category, info, amount, date));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(null!, category, info, amount, TestDataFactory.DEFAULT_TRANSACTION_TYPE, date));
 
             Assert.Equal("user", exception.ParamName);
         }
@@ -61,7 +61,7 @@ namespace Tests.Domain.Entities
             DailyPeriod date = TestDataFactory.CreateDailyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, null, info, amount, date));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, null!, info, amount, TestDataFactory.DEFAULT_TRANSACTION_TYPE, date));
 
             Assert.Equal("category", exception.ParamName);
         }
@@ -76,7 +76,7 @@ namespace Tests.Domain.Entities
             DailyPeriod date = TestDataFactory.CreateDailyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, null, amount, date));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, null!, amount, TestDataFactory.DEFAULT_TRANSACTION_TYPE, date));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -91,7 +91,7 @@ namespace Tests.Domain.Entities
             DailyPeriod date = TestDataFactory.CreateDailyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, null, date));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, null!, TestDataFactory.DEFAULT_TRANSACTION_TYPE, date));
 
             Assert.Equal("amount", exception.ParamName);
         }
@@ -106,40 +106,9 @@ namespace Tests.Domain.Entities
             Money amount = TestDataFactory.CreateMoney();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, TestDataFactory.DEFAULT_TRANSACTION_TYPE, null!));
 
             Assert.Equal("date", exception.ParamName);
-        }
-
-        [Fact]
-        public void Constructor_WithIncomeCategoryAndNegativeAmount_ShouldThrowArgumentException()
-        {
-            // Arrange
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Income);
-            EntityInfo info = TestDataFactory.CreateEntityInfo();
-            Money amount = new Money(-100.00m, "EUR", allowNegative: true); // Permitido por Money
-            DailyPeriod date = TestDataFactory.CreateDailyPeriod();
-
-            // Act & Assert
-            ArgumentException exception = Assert.Throws<ArgumentException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, date));
-            Assert.Contains("must have a positive amount", exception.Message);
-        }
-
-        [Fact]
-        public void Constructor_WithExpenseCategoryAndNegativeAmount_ShouldThrowArgumentException()
-        {
-            // Arrange
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Expense);
-            EntityInfo info = TestDataFactory.CreateEntityInfo();
-            Money amount = new Money(-100.00m, "EUR", allowNegative: true);
-            DailyPeriod date = TestDataFactory.CreateDailyPeriod();
-
-            // Act & Assert
-            ArgumentException exception = Assert.Throws<ArgumentException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, date));
-
-            Assert.Contains("must have a positive amount", exception.Message);
         }
 
         [Fact]
@@ -153,23 +122,24 @@ namespace Tests.Domain.Entities
             DailyPeriod date = TestDataFactory.CreateDailyPeriod();
 
             // Act & Assert
-            ArgumentException exception = Assert.Throws<ArgumentException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, date));
+            ArgumentException exception = Assert.Throws<ArgumentException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, TestDataFactory.DEFAULT_TRANSACTION_TYPE, date));
 
-            Assert.Contains("Mixed transactions cannot have a zero amount", exception.Message);
+            Assert.Contains("must have a positive amount", exception.Message);
         }
 
         [Fact]
-        public void Constructor_WithMixedCategoryAndPositiveAmount_ShouldSucceed()
+        public void Constructor_WithIncomeCategoryAndIncomeTransactionType_ShouldSucceed()
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Mixed);
+            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Income);
             EntityInfo info = TestDataFactory.CreateEntityInfo();
             Money amount = new Money(100.00m, "EUR");
+            TransactionTypeEnum transactionType = TransactionTypeEnum.Income;
             DailyPeriod date = TestDataFactory.CreateDailyPeriod();
 
             // Act
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, date);
+            Transaction transaction = TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, transactionType, date);
 
             // Assert
             Assert.NotNull(transaction);
@@ -177,21 +147,56 @@ namespace Tests.Domain.Entities
         }
 
         [Fact]
-        public void Constructor_WithMixedCategoryAndNegativeAmount_ShouldSucceed()
+        public void Constructor_WithExpenseCategoryAndExpenseTransactionType_ShouldSucceed()
         {
             // Arrange
             User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Mixed);
+            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Expense);
             EntityInfo info = TestDataFactory.CreateEntityInfo();
-            Money amount = new Money(-100.00m, "EUR", allowNegative: true);
+            Money amount = new Money(100.00m, "EUR");
+            TransactionTypeEnum transactionType = TransactionTypeEnum.Expense;
             DailyPeriod date = TestDataFactory.CreateDailyPeriod();
 
             // Act
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, date);
+            Transaction transaction = TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, transactionType, date);
 
             // Assert
             Assert.NotNull(transaction);
-            Assert.Equal(-100.00m, transaction.Amount.Value);
+            Assert.Equal(100.00m, transaction.Amount.Value);
+        }
+
+        [Fact]
+        public void Constructor_WithExpenseCategoryAndIncomeTransactionType_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Income);
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Money amount = new Money(100.00m, "EUR");
+            TransactionTypeEnum transactionType = TransactionTypeEnum.Expense;
+            DailyPeriod date = TestDataFactory.CreateDailyPeriod();
+
+            // Act & Assert
+            ArgumentException exception = Assert.Throws<ArgumentException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, transactionType, date));
+
+            Assert.Contains("Expense", exception.Message);
+        }
+
+        [Fact]
+        public void Constructor_WithIncomeCategoryAndExpenseTransactionType_ShouldThrowArgumentNullException()
+        {
+            // Arrange
+            User user = TestDataFactory.CreateUser();
+            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Income);
+            EntityInfo info = TestDataFactory.CreateEntityInfo();
+            Money amount = new Money(100.00m, "EUR");
+            TransactionTypeEnum transactionType = TransactionTypeEnum.Expense;
+            DailyPeriod date = TestDataFactory.CreateDailyPeriod();
+
+            // Act & Assert
+            ArgumentException exception = Assert.Throws<ArgumentException>(() => TestDataFactory.CreateTransactionWithoutAutoCreation(user, category, info, amount, transactionType, date));
+
+            Assert.Contains("Income", exception.Message);
         }
 
         // ==================== UPDATE ====================
@@ -215,7 +220,8 @@ namespace Tests.Domain.Entities
             (
                 updatedCategory,
                 TestDataFactory.CreateEntityInfo(updatedName, updatedDescription),
-                TestDataFactory.CreateMoney(updatedAmount, updatedCurrency), 
+                TestDataFactory.CreateMoney(updatedAmount, updatedCurrency),
+                TransactionTypeEnum.Income,
                 TestDataFactory.CreateDailyPeriod(updatedDay)
             );
 
@@ -232,35 +238,13 @@ namespace Tests.Domain.Entities
         }
 
         [Fact]
-        public void Update_WithMixedCategoryAndNegativeAmount_ShouldSucceed()
-        {
-            // Arrange
-            Category category = TestDataFactory.CreateCategory(nature: CategoryNatureEnum.Mixed);
-            Money updatedAmount = new Money(-150.00m, "EUR", allowNegative: true);
-
-            Transaction transaction = TestDataFactory.CreateTransactionWithoutId(category: category);
-
-            // Act
-            transaction.Update
-            (
-                category,
-                TestDataFactory.CreateEntityInfo(),
-                updatedAmount,
-                TestDataFactory.CreateDailyPeriod()
-            );
-
-            // Assert
-            Assert.Equal(-150.00m, transaction.Amount.Value);
-        }
-
-        [Fact]
         public void Update_WithNullCategory_ShouldThrowArgumentNullException()
         {
             // Arrange
             Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(null, TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), TestDataFactory.CreateDailyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(null!, TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), TestDataFactory.DEFAULT_TRANSACTION_TYPE, TestDataFactory.CreateDailyPeriod()));
 
             Assert.Equal("category", exception.ParamName);
         }
@@ -272,7 +256,7 @@ namespace Tests.Domain.Entities
             Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), null, TestDataFactory.CreateMoney(), TestDataFactory.CreateDailyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), null!, TestDataFactory.CreateMoney(), TestDataFactory.DEFAULT_TRANSACTION_TYPE, TestDataFactory.CreateDailyPeriod()));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -284,7 +268,7 @@ namespace Tests.Domain.Entities
             Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), null, TestDataFactory.CreateDailyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), null!, TestDataFactory.DEFAULT_TRANSACTION_TYPE, TestDataFactory.CreateDailyPeriod()));
 
             Assert.Equal("amount", exception.ParamName);
         }
@@ -296,7 +280,7 @@ namespace Tests.Domain.Entities
             Transaction transaction = TestDataFactory.CreateTransactionWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => transaction.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), TestDataFactory.DEFAULT_TRANSACTION_TYPE, null!));
 
             Assert.Equal("date", exception.ParamName);
         }

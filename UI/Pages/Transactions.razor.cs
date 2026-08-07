@@ -275,7 +275,7 @@ namespace UI.Pages
 
         private async Task<bool> CreateTransactionAsync()
         {
-            decimal finalAmount = _transactionForm.FinalAmount;
+            decimal finalAmount = _transactionForm.Amount;
 
             CreateTransactionRequestDTO request = new()
             {
@@ -283,6 +283,7 @@ namespace UI.Pages
                 Name = _transactionForm.Name,
                 Description = _transactionForm.Description,
                 Amount = finalAmount,
+                TransactionType = _transactionForm.TransactionType,
                 Date = _transactionForm.Date
             };
 
@@ -300,7 +301,7 @@ namespace UI.Pages
 
         private async Task<bool> UpdateTransactionAsync()
         {
-            decimal finalAmount = _transactionForm.FinalAmount;
+            decimal finalAmount = _transactionForm.Amount;
 
             UpdateTransactionRequestDTO request = new()
             {
@@ -308,6 +309,7 @@ namespace UI.Pages
                 Name = _transactionForm.Name,
                 Description = _transactionForm.Description,
                 Amount = finalAmount,
+                TransactionType = _transactionForm.TransactionType,
                 Date = _transactionForm.Date
             };
 
@@ -345,12 +347,15 @@ namespace UI.Pages
         {
             CategoryModel? defaultCategory = _categories.OrderBy(c => c.Name).FirstOrDefault();
 
+            // ✅ Determinar la fecha por defecto según los filtros
+            DateTime defaultDate = MonthHelper.GetDefaultDate(_selectedMonth, _selectedYear);
+
             FillFormFromModel
             (
                 new TransactionModel
                 {
                     CategoryId = defaultCategory?.Id ?? 0,
-                    Date = DateTime.Now,
+                    Date = defaultDate,
                     Amount = 0m
                 },
                 FormMode.Create
@@ -374,17 +379,13 @@ namespace UI.Pages
         private void FillFormFromModel(TransactionModel model, FormMode mode)
         {
             CategoryModel? category = _categories.FirstOrDefault(c => c.Id == model.CategoryId);
-            string transactionType = "Expense";
 
-            transactionType = category?.Nature switch
+            TransactionTypeEnum defaultType = TransactionTypeEnum.Expense;
+
+            if (category != null)
             {
-                CategoryNatureEnum.Income => "Income",
-                CategoryNatureEnum.Expense => "Expense",
-                CategoryNatureEnum.Mixed => mode == FormMode.Create
-                    ? "Expense"
-                    : model.Amount >= 0 ? "Income" : "Expense",
-                _ => transactionType
-            };
+                defaultType = category.Nature.GetDefaultTransactionTypeForCategory();
+            }
 
             _transactionForm = new TransactionFormModel
             {
@@ -396,7 +397,7 @@ namespace UI.Pages
                 Description = model.Description ?? string.Empty,
                 Amount = Math.Abs(model.Amount),
                 Date = model.Date == DateTime.MinValue ? DateTime.Now : model.Date,
-                TransactionType = transactionType,
+                TransactionType = defaultType,
                 IsModalOpen = true,
                 IsEditing = mode == FormMode.Edit,
                 IsDeleting = mode == FormMode.Delete
@@ -418,32 +419,6 @@ namespace UI.Pages
         // ================================================================
         // 8. MÉTODOS AUXILIARES
         // ================================================================
-
-        private string GetDefaultTransactionTypeForCategory(CategoryNatureEnum? categoryNature)
-        {
-            if (categoryNature == null) return "Expense";
-
-            return categoryNature switch
-            {
-                CategoryNatureEnum.Income => "Income",
-                CategoryNatureEnum.Expense => "Expense",
-                CategoryNatureEnum.Mixed => "Expense",
-                _ => "Expense"
-            };
-        }
-
-        private string GetFixedTypeLabel()
-        {
-            if (_transactionForm.CategoryId == 0) return string.Empty;
-
-            return _transactionForm.CategoryNature switch
-            {
-                CategoryNatureEnum.Income => "💰 Ingreso",
-                CategoryNatureEnum.Expense => "💳 Gasto",
-                _ => string.Empty
-            };
-        }
-
         private void OnCategoryChanged()
         {
             CategoryModel? category = _categories.FirstOrDefault(c => c.Id == _transactionForm.CategoryId);
@@ -451,21 +426,10 @@ namespace UI.Pages
             if (category != null)
             {
                 _transactionForm.CategoryNature = category.Nature;
-                _transactionForm.TransactionType = GetDefaultTransactionTypeForCategory(category.Nature);
+                _transactionForm.TransactionType = category.Nature.GetDefaultTransactionTypeForCategory();
             }
 
             StateHasChanged();
-        }
-
-        public static string GetTotalDisplayClass(decimal totalAmount)
-        {
-            return totalAmount >= 0 ? "text-success" : "text-danger";
-        }
-
-        public static string GetTotalFormattedDisplay(decimal totalAmount)
-        {
-            string sign = totalAmount >= 0 ? "+" : "-";
-            return $"{sign}{CurrencyHelper.FormatCurrency(Math.Abs(totalAmount))}";
         }
     }
 }

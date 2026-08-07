@@ -40,7 +40,7 @@ namespace Tests.Domain.Entities
             MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(null, category, info, amount, chargePeriod));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(null!, category, info, amount, chargePeriod));
 
             Assert.Equal("user", exception.ParamName);
         }
@@ -55,7 +55,7 @@ namespace Tests.Domain.Entities
             MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, null, info, amount, chargePeriod));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, null!, info, amount, chargePeriod));
 
             Assert.Equal("category", exception.ParamName);
         }
@@ -70,7 +70,7 @@ namespace Tests.Domain.Entities
             MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, category, null, amount, chargePeriod));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, category, null!, amount, chargePeriod));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -85,7 +85,7 @@ namespace Tests.Domain.Entities
             MonthlyPeriod chargePeriod = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, category, info, null, chargePeriod));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, category, info, null!, chargePeriod));
 
             Assert.Equal("amount", exception.ParamName);
         }
@@ -100,7 +100,7 @@ namespace Tests.Domain.Entities
             Money amount = TestDataFactory.CreateMoney();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, category, info, amount, null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateFixedExpenseWithoutAutoCreation(user, category, info, amount, null!));
 
             Assert.Equal("chargePeriod", exception.ParamName);
         }
@@ -147,7 +147,7 @@ namespace Tests.Domain.Entities
             FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(null, TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), TestDataFactory.CreateMonthlyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(null!, TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), TestDataFactory.CreateMonthlyPeriod()));
 
             Assert.Equal("category", exception.ParamName);
         }
@@ -159,7 +159,7 @@ namespace Tests.Domain.Entities
             FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), null, TestDataFactory.CreateMoney(), TestDataFactory.CreateMonthlyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), null!, TestDataFactory.CreateMoney(), TestDataFactory.CreateMonthlyPeriod()));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -171,7 +171,7 @@ namespace Tests.Domain.Entities
             FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), null, TestDataFactory.CreateMonthlyPeriod()));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), null!, TestDataFactory.CreateMonthlyPeriod()));
 
             Assert.Equal("amount", exception.ParamName);
         }
@@ -183,7 +183,7 @@ namespace Tests.Domain.Entities
             FixedExpense fixedExpense = TestDataFactory.CreateFixedExpenseWithoutId();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => fixedExpense.Update(TestDataFactory.CreateCategory(), TestDataFactory.CreateEntityInfo(), TestDataFactory.CreateMoney(), null!));
             Assert.Equal("chargePeriod", exception.ParamName);
         }
     }

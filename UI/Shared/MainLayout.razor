@@ -2,7 +2,11 @@
 @inject IThemeService ThemeService
 <div class="page @(ThemeService.IsDark ? "dark-theme" : "light-theme")">
     <div class="sidebar">
-        <NavMenu />
+        <AuthorizeView>
+            <Authorized>
+                <NavMenu />
+            </Authorized>
+        </AuthorizeView>
     </div>
     <ToastContainer />
     <main>

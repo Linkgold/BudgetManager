@@ -403,12 +403,12 @@ namespace Tests.Application
         }
 
         [Fact]
-        public async Task CreateAsync_WithMixedCategoryAndNegativeAmount_ShouldSucceed()
+        public async Task CreateAsync_WithMixedCategoryAndTransactionTypeIncome_ShouldSucceed()
         {
             // Arrange
             int userId = 1;
             int categoryId = 1;
-            decimal incomingValue = -150.00m;
+            decimal incomingValue = 150.00m;
             string incomingCurrency = "CNY";
             Category category = TestDataFactory.CreateCategory(categoryId, nature: CategoryNatureEnum.Mixed);
 
@@ -431,6 +431,7 @@ namespace Tests.Application
                     Name = "Ingreso Extra",
                     Description = "Venta de segunda mano",
                     Amount = incomingValue,
+                    TransactionType = TransactionTypeEnum.Income,
                     Currency = incomingCurrency,
                     Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
                 }
@@ -443,7 +444,7 @@ namespace Tests.Application
         }
 
         [Fact]
-        public async Task CreateAsync_WithIncomeCategoryAndNegativeAmount_ShouldThrowException()
+        public async Task CreateAsync_WithIncomeCategoryAndTransactionTypeExpense_ShouldThrowException()
         {
             // Arrange
             int userId = 1;
@@ -470,7 +471,8 @@ namespace Tests.Application
                     {
                         CategoryId = categoryId,
                         Name = "Ingreso Incorrecto",
-                        Amount = -100.00m,
+                        Amount = 100.00m,
+                        TransactionType = TransactionTypeEnum.Expense,
                         Currency = "EUR",
                         Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
                     }
@@ -547,6 +549,7 @@ namespace Tests.Application
                     Name = updatedName,
                     Description = updatedDescription,
                     Amount = updatedAmount,
+                    TransactionType = TransactionTypeEnum.Expense,
                     Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, updatedDay)
                 }
             );

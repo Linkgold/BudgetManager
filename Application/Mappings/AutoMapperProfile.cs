@@ -99,6 +99,7 @@ namespace Application.Mappings
                 .ForMember(dest => dest.Name, opt => opt.MapFrom(src => src.Info.Name))
                 .ForMember(dest => dest.Description, opt => opt.MapFrom(src => src.Info.Description))
                 .ForMember(dest => dest.Amount, opt => opt.MapFrom(src => src.Amount.Value))
+                .ForMember(dest => dest.TransactionType, opt => opt.MapFrom(src => src.TransactionType))
                 .ForMember(dest => dest.Currency, opt => opt.MapFrom(src => src.Amount.Currency))
                 .ForMember(dest => dest.Date, opt => opt.MapFrom(src => src.Date.ToDateTime()));
 
@@ -112,7 +113,8 @@ namespace Application.Mappings
                         null!, // User se asigna en el servicio
                         null!, // Category se asigna en el servicio
                         new EntityInfo(src.Name, src.Description),
-                        new Money(src.Amount, src.Currency ?? "EUR", true),
+                        new Money(src.Amount, src.Currency ?? "EUR"),
+                        src.TransactionType,
                         new DailyPeriod(src.Date.Day, src.Date.Month, src.Date.Year)
                     )
                 );

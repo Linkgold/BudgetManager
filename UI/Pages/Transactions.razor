@@ -1,4 +1,5 @@
 ﻿@page "/transactions"
+@using Contracts.Enums
 @attribute [Authorize]
 @inherits BasePage
 
@@ -113,13 +114,13 @@
 						@if (ShowTypeSelector)
 						{
 							<select id="transactionType" class="form-control" @bind="_transactionForm.TransactionType" disabled="@_transactionForm.IsDeleting">
-								<option value="Expense">💳 Gasto</option>
-								<option value="Income">💰 Ingreso</option>
+								<option value="@TransactionTypeEnum.Expense">💳 Gasto</option>
+								<option value="@TransactionTypeEnum.Income">💰 Ingreso</option>
 							</select>
 						}
 						else
 						{
-							<input type="text" id="transactionType" class="form-control input-disabled" value="@GetFixedTypeLabel()" disabled />
+							<input type="text" id="transactionType" class="form-control input-disabled" value="@_transactionForm.CategoryNature.GetFixedTypeLabel()" disabled />
 						}
 					</div>
 				</div>
@@ -225,8 +226,8 @@
 						<tfoot>
 							<tr class="table-secondary fw-bold">
 								<td colspan="3" class="text-end">Total:</td>
-								<td class="text-end @GetTotalDisplayClass(_totalAmount)">
-									@GetTotalFormattedDisplay(_totalAmount)
+								<td class="text-end @_totalAmount.GetDisplayClass()">
+									@_totalAmount.GetTotalFormattedDisplay()
 								</td>
 								<td></td>
 							</tr>

@@ -140,11 +140,11 @@ namespace Application.Services
 
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
-            Money amount = new Money(request.Amount, request.Currency ?? "EUR", allowNegative: true);
+            Money amount = new Money(request.Amount, request.Currency ?? "EUR");
             DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
 
             // Crear entidad de dominio
-            Transaction transaction = new Transaction(user, category, info, amount, date);
+            Transaction transaction = new Transaction(user, category, info, amount, request.TransactionType, date);
 
             // Guardar
             await _transactionRepository.AddAsync(transaction);
@@ -171,11 +171,11 @@ namespace Application.Services
 
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
-            Money amount = new Money(request.Amount, request.Currency ?? transaction.Amount.Currency, allowNegative: true);
+            Money amount = new Money(request.Amount, request.Currency ?? transaction.Amount.Currency);
             DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
 
             // Actualizar entidad de dominio
-            transaction.Update(category, info, amount, date);
+            transaction.Update(category, info, amount, request.TransactionType, date);
 
             // Guardar
             await _transactionRepository.UpdateAsync(transaction);

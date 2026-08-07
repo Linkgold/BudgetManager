@@ -378,6 +378,7 @@ namespace Tests.API.Controllers
                 Name = "Compra actualizada",
                 Description = "Carrefour 20/06/2024",
                 Amount = 50.00m,
+                TransactionType = TransactionTypeEnum.Expense,
                 Currency = "CNY",
                 Date = new DateTime(2024, 6, 20)
             };
@@ -411,6 +412,7 @@ namespace Tests.API.Controllers
             {
                 Name = "Compra actualizada",
                 Amount = 50.00m,
+                TransactionType = TransactionTypeEnum.Expense,
                 Date = new DateTime(2024, 6, 20)
             };
 

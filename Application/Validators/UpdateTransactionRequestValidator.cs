@@ -20,12 +20,19 @@ namespace Application.Validators
                 .When(x => !string.IsNullOrEmpty(x.Description));
 
             RuleFor(x => x.Amount)
-                .NotEqual(0).WithMessage("Amount must be greater than zero");
+                .GreaterThan(0).WithMessage("Amount must be greater than zero");
+
+            RuleFor(x => x.Currency)
+                .MaximumLength(3).WithMessage("Currency must be a 3-letter ISO code")
+                .When(x => !string.IsNullOrEmpty(x.Currency));
 
             RuleFor(x => x.Date)
                 .NotEmpty().WithMessage("Date is required")
                 .Must(date => date.Year >= 1900 && date.Year <= 2100)
                 .WithMessage("Year must be between 1900 and 2100");
+
+            RuleFor(x => x.TransactionType)
+                .IsInEnum().WithMessage("Invalid transaction type");
         }
     }
 }

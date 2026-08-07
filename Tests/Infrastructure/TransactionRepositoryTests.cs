@@ -424,7 +424,7 @@ namespace Tests.Infrastructure
             Transaction transaction = await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category);
 
             // Modificar la entidad
-            transaction.Update(updatedCategory, updatedEntityInfo, updatedAmount, updatedDate);
+            transaction.Update(updatedCategory, updatedEntityInfo, updatedAmount, TestDataFactory.DEFAULT_TRANSACTION_TYPE, updatedDate);
 
             // Act
             await _repository.UpdateAsync(transaction);
