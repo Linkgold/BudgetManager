@@ -1,8 +1,9 @@
 ﻿using Shared.DTOs.Request;
 using Shared.DTOs.Response;
-using System.Xml.Linq;
+using Shared.DTOs.Response.Data;
 using UI.Extensions.Mappings;
 using UI.Models;
+using UI.Models.Dashboard;
 using UI.Services.API;
 
 namespace UI.Extensions
@@ -310,6 +311,25 @@ namespace UI.Extensions
             api.NotifyError(message);
 
             return false;
+        }
+
+        // ================================================================
+        // DASHBOARD
+        // ================================================================
+
+        public static async Task<DashboardModel?> GetDashboardDataAsync(this APIService api, int year)
+        {
+            APIResult<DashboardResponseDTO> result = await api.GetAsync<DashboardResponseDTO>($"/api/data/dashboard/{year}");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToDashboardModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar los datos del dashboard.";
+            api.NotifyError(message);
+
+            return null;
         }
     }
 }

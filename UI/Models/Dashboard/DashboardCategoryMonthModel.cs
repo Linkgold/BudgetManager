@@ -1,6 +1,6 @@
-﻿namespace Shared.DTOs.Response.Dashboard
+﻿namespace UI.Models.Dashboard
 {
-    public class DashboardMonthDataDTO
+    public class DashboardCategoryMonthModel
     {
         public int Month { get; set; }
         public decimal Budget { get; set; }

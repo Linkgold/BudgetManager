@@ -122,19 +122,5 @@ namespace API.Controllers
 
             return NoContent();
         }
-
-        /// <summary>
-        /// Elimina al usuario autenticado
-        /// </summary>
-        [HttpDelete("me")]
-        [Authorize]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> DeleteCurrentUser()
-        {
-            await _userService.DeleteAsync();
-
-            return NoContent();
-        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Contracts.Enums;
+using MudBlazor;
 
 namespace UI.Extensions
 {
@@ -42,6 +43,9 @@ namespace UI.Extensions
         /// </summary>
         public static string GetStatusClass(this CategoryNatureEnum nature, decimal spent, decimal budget)
         {
+            spent = Math.Abs(spent);
+            budget = Math.Abs(budget);
+
             if (budget == 0) return "text-muted";
 
             decimal percentage = (spent / budget) * 100;

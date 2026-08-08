@@ -31,7 +31,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach (DashboardCategoryRow category in _dashboardData.Categories)
+                        @foreach (DashboardCategoryModel category in _dashboardData.Categories)
                         {
                             <tr>
                                 <td class="text-start">
@@ -47,17 +47,17 @@
                                 </td>
                                 @foreach (MonthModel month in _months)
                                 {
-                                    DashboardMonthData? data = category.MonthlyData.TryGetValue(month.Value, out DashboardMonthData? value) ? value : null;
+                                    DashboardCategoryMonthModel? data = category.MonthlyData.FirstOrDefault(m => m.Month == month.Value);
                                     <td class="category-cell text-center">
-                                        @if (data != null && (data.Budget > 0 || data.Spent > 0))
+                                        @if (data != null)
                                         {
                                             <div>
                                                 <span class="@category.Nature.GetStatusClass(data.Spent, data.Budget)">
-                                                    @CurrencyHelper.FormatCurrency(data.Spent)
+                                                    @CurrencyHelper.FormatCurrency(data.Spent.GetDisplaySpent())
                                                 </span>
                                             </div>
                                             <div>
-                                                <span class="fw-bold">@CurrencyHelper.FormatCurrency(data.Budget)</span>
+                                                <span class="fw-bold">@CurrencyHelper.FormatCurrency(data.Budget.GetDisplaySpent())</span>
                                             </div>
                                         }
                                         else
@@ -69,7 +69,7 @@
                                 <td class="text-end">
                                     <div>
                                         <span class="@category.Nature.GetStatusClass(category.TotalSpent, category.TotalBudget)">
-                                            @CurrencyHelper.FormatCurrency(category.TotalSpent)
+                                            @CurrencyHelper.FormatCurrency(category.TotalSpent.GetDisplaySpent())
                                         </span>
                                     </div>
                                     <div>
@@ -83,7 +83,7 @@
                         <!-- Fila TOTAL MES -->
                         <tr class="table-secondary fw-bold">
                             <td class="text-start">TOTAL MES</td>
-                            @foreach (DashboardMonthColumn month in _dashboardData.Months)
+                            @foreach (DashboardMonthTotalsModel month in _dashboardData.Months)
                             {
                                 <td class="text-center">
                                     <div>
@@ -106,17 +106,17 @@
                         <!-- Fila ACUMULADO -->
                         <tr class="table-secondary fw-bold">
                             <td class="text-start">ACUMULADO</td>
-                            @foreach (DashboardAccumulatedMonth accumulated in _dashboardData.AccumulatedMonths)
+                            @foreach (DashboardMonthTotalsModel accumulated in _dashboardData.Months)
                             {
                                 <td class="text-center">
                                     <div>
-                                        <span class="@accumulated.AcumuladoSpent.GetDisplayClass()">
-                                            @CurrencyHelper.FormatCurrency(accumulated.AcumuladoSpent)
+                                        <span class="@accumulated.AccumulatedSpent.GetDisplayClass()">
+                                            @CurrencyHelper.FormatCurrency(accumulated.AccumulatedSpent)
                                         </span>
                                     </div>
                                     <div>
-                                        <span class="@accumulated.AcumuladoBudget.GetDisplayClass()">
-                                            @CurrencyHelper.FormatCurrency(accumulated.AcumuladoBudget)
+                                        <span class="@accumulated.AccumulatedBudget.GetDisplayClass()">
+                                            @CurrencyHelper.FormatCurrency(accumulated.AccumulatedBudget)
                                         </span>
                                     </div>
                                 </td>

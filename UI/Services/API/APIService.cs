@@ -43,6 +43,33 @@ namespace UI.Services.API
         // MÉTODOS GENÉRICOS CON AUTENTICACIÓN
         // ================================================================
 
+        public async Task<APIResult<T>> GetAsync<T>(string endpoint) where T : class
+        {
+            try
+            {
+                HttpResponseMessage response = await GetCall(endpoint);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    T? data = await response.Content.ReadFromJsonAsync<T>(_jsonOptions);
+                    return APIResult<T>.Success(data!);
+                }
+
+                ErrorResponse? error = await ParseErrorResponse(response);
+
+                return APIResult<T>.Failure((int)response.StatusCode, error?.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogErrorAsync($"Error en GET {endpoint}", ex);
+
+                return APIResult<T>.Failure(500, "Ocurrió un error inesperado.");
+            }
+        }
         public async Task<APIResult<List<T>>> GetListAsync<T>(string endpoint) where T : class
         {
             try

@@ -2,7 +2,6 @@
 using UI.Services;
 using UI.Services.API;
 using UI.Services.Interfaces;
-using UI.Services.Pages;
 
 namespace UI.Configuration.Extensions
 {
@@ -19,8 +18,6 @@ namespace UI.Configuration.Extensions
             services.AddScoped<ILogService, LogService>();
 
             services.AddScoped<APIService>();
-
-            services.AddScoped<DashboardService>();
 
             services.AddMudServices();
 
