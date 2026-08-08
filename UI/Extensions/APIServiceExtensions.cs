@@ -84,9 +84,9 @@ namespace UI.Extensions
         // TRANSACTIONS
         // ================================================================
 
-        public static async Task<List<TransactionModel>?> GetTransactionsAsync(this APIService api)
+        public static async Task<List<TransactionModel>?> GetTransactionsAsync(this APIService api, int year)
         {
-            APIResult<List<TransactionResponseDTO>> result = await api.GetListAsync<TransactionResponseDTO>("/api/transaction");
+            APIResult<List<TransactionResponseDTO>> result = await api.GetListAsync<TransactionResponseDTO>($"/api/transaction/year/{year}");
 
             if (result.IsSuccess && result.Data != null)
             {
@@ -151,9 +151,9 @@ namespace UI.Extensions
         // BUDGETS
         // ================================================================
 
-        public static async Task<List<BudgetModel>?> GetBudgetsAsync(this APIService api)
+        public static async Task<List<BudgetModel>?> GetBudgetsAsync(this APIService api, int year)
         {
-            APIResult<List<BudgetResponseDTO>> result = await api.GetListAsync<BudgetResponseDTO>("/api/budget");
+            APIResult<List<BudgetResponseDTO>> result = await api.GetListAsync<BudgetResponseDTO>($"/api/budget/year/{year}");
 
             if (result.IsSuccess && result.Data != null)
             {
@@ -248,9 +248,9 @@ namespace UI.Extensions
         // FIXED EXPENSES
         // ================================================================
 
-        public static async Task<List<FixedExpenseModel>?> GetFixedExpensesAsync(this APIService api)
+        public static async Task<List<FixedExpenseModel>?> GetFixedExpensesAsync(this APIService api, int year)
         {
-            APIResult<List<FixedExpenseResponseDTO>> result = await api.GetListAsync<FixedExpenseResponseDTO>("/api/fixedexpense");
+            APIResult<List<FixedExpenseResponseDTO>> result = await api.GetListAsync<FixedExpenseResponseDTO>($"/api/fixedexpense/year/{year}");
 
             if (result.IsSuccess && result.Data != null)
             {

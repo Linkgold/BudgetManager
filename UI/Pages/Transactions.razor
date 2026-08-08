@@ -69,7 +69,7 @@
 
 				<!-- Filtro por año -->
 				<div style="min-width: 100px;">
-					<select class="form-control form-control-sm" @bind="selectedYear">
+					<select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged">
 						@foreach (int year in _years)
 						{
 							bool hasData = _transactions.Any(t => t.Date.Year == year);

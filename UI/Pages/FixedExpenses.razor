@@ -41,8 +41,7 @@
 
                 <!-- Filtro por año -->
                 <div style="min-width: 120px;">
-                    <select class="form-control form-control-sm" @bind="selectedYear">
-                        <option value="0">Todos los años</option>
+                    <select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged">
                         @foreach (int year in _years)
                         {
                             <option value="@year">@year</option>

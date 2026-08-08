@@ -233,7 +233,7 @@ namespace Tests.API.Controllers
             await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
 
             // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/budget");
+            HttpResponseMessage response = await _client.GetAsync("/api/budget/year/2024");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -243,140 +243,6 @@ namespace Tests.API.Controllers
 
             Assert.NotNull(budgets);
             Assert.NotEmpty(budgets);
-        }
-
-        // ==================== TEST: GET BY CATEGORY ====================
-
-        [Fact]
-        public async Task GetByCategory_WithExistingCategory_ReturnsBudgets()
-        {
-            // Arrange
-            int categoryId1 = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            int categoryId2 = await TestDataFactory.CreateCategoryAsync(_fixture, "Transporte");
-
-            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId1, 500.00m, "EUR", 1, 2024);
-            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId1, 300.00m, "EUR", 2, 2024);
-            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId2, 200.00m, "EUR", 1, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync($"/api/budget/by-category/{categoryId1}");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            List<BudgetResponseDTO>? budgets = _fixture.DeserializeResponse<List<BudgetResponseDTO>>(responseContent);
-
-            Assert.NotNull(budgets);
-            Assert.Equal(2, budgets.Count);
-            Assert.All(budgets, b => Assert.Equal(categoryId1, b.CategoryId));
-        }
-
-        [Fact]
-        public async Task GetByCategory_WithNonExistingCategory_ReturnsNotFound()
-        {
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/budget/by-category/999");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        // ==================== TEST: GET BY PERIOD ====================
-
-        [Fact]
-        public async Task GetByPeriod_ReturnsBudgetsForPeriod()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
-            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 300.00m, "EUR", 2, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/budget/by-period?month=1&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            List<BudgetResponseDTO>? budgets = _fixture.DeserializeResponse<List<BudgetResponseDTO>>(responseContent);
-
-            Assert.NotNull(budgets);
-            Assert.Single(budgets);
-            Assert.Equal(500.00m, budgets[0].Amount);
-        }
-
-        // ==================== TEST: GET BY CATEGORY AND PERIOD ====================
-
-        [Fact]
-        public async Task GetByCategoryAndPeriod_WithExistingBudget_ReturnsBudget()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync($"/api/budget/by-category-period?categoryId={categoryId}&month=1&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            BudgetResponseDTO? budget = _fixture.DeserializeResponse<BudgetResponseDTO>(responseContent);
-
-            Assert.NotNull(budget);
-            Assert.Equal(categoryId, budget.CategoryId);
-            Assert.Equal(500.00m, budget.Amount);
-        }
-
-        [Fact]
-        public async Task GetByCategoryAndPeriod_WithNonExistingBudget_ReturnsNotFound()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync($"/api/budget/by-category-period?categoryId={categoryId}&month=1&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        // ==================== TEST: GET SUMMARY ====================
-
-        [Fact]
-        public async Task GetSummary_WithExistingBudget_ReturnsSummary()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            await TestDataFactory.CreateBudgetAsync(_fixture, categoryId, 500.00m, "EUR", 1, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync($"/api/budget/summary?categoryId={categoryId}&month=1&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            BudgetSummaryDTO? summary = _fixture.DeserializeResponse<BudgetSummaryDTO>(responseContent);
-
-            Assert.NotNull(summary);
-            Assert.Equal(categoryId, summary.CategoryId);
-            Assert.Equal(500.00m, summary.BudgetAmount);
-            Assert.Equal(0, summary.TotalSpent); // Por ahora siempre 0
-        }
-
-        [Fact]
-        public async Task GetSummary_WithNonExistingBudget_ReturnsNotFound()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync($"/api/budget/summary?categoryId={categoryId}&month=1&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
 
         // ==================== TEST: UPDATE BULK ====================

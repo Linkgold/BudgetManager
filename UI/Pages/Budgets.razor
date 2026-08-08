@@ -29,7 +29,7 @@
                     }
                 </div>
                 <div style="display: flex; align-items: center; gap: 4px; min-width: 150px;">
-                    <select class="form-control form-control-sm" @bind="selectedYear" style="flex: 1;">
+                    <select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged" style="flex: 1;">
                         @foreach (int year in _years)
                         {
                             <option value="@year">@year</option>
@@ -60,7 +60,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label class="form-label" for="budgetYear">Año</label>
-                        <select id="budgetYear" class="form-control" value="@budgetYear" @onchange="OnYearChanged" disabled="@(_budgetForm.IsDeleting || _budgetForm.IsEditing)">
+                        <select id="budgetYear" class="form-control" value="@budgetYear" @onchange="OnModalYearChanged" disabled="@(_budgetForm.IsDeleting || _budgetForm.IsEditing)">
                             @foreach (int year in _years)
                             {
                                 <option value="@year">@year</option>

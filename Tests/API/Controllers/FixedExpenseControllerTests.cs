@@ -118,7 +118,7 @@ namespace Tests.API.Controllers
         public async Task GetAll_ReturnsOkWithFixedExpenses()
         {
             // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/fixedexpense");
+            HttpResponseMessage response = await _client.GetAsync("/api/fixedexpense/year/2003");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -127,31 +127,6 @@ namespace Tests.API.Controllers
             List<FixedExpenseResponseDTO>? fixedExpenses = _fixture.DeserializeResponse<List<FixedExpenseResponseDTO>>(content);
 
             Assert.NotNull(fixedExpenses);
-        }
-
-        // ==================== TEST: GET ACTIVE FOR PERIOD ====================
-
-        [Fact]
-        public async Task GetActiveForPeriod_ReturnsOkWithFixedExpenses()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripciones");
-            await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Netflix", 15.99m, "EUR", 1, 2024);
-            await TestDataFactory.CreateFixedExpenseAsync(_fixture, categoryId, "Spotify", 9.99m, "EUR", 3, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/fixedexpense/active/period?year=2024&month=2");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string content = await response.Content.ReadAsStringAsync();
-            List<FixedExpenseResponseDTO>? fixedExpenses = _fixture.DeserializeResponse<List<FixedExpenseResponseDTO>>(content);
-
-            Assert.NotNull(fixedExpenses);
-            // Solo Netflix debe estar activo en febrero (Spotify empieza en marzo)
-            Assert.Single(fixedExpenses);
-            Assert.Equal("Netflix", fixedExpenses[0].Name);
         }
 
         // ==================== TEST: UPDATE ====================

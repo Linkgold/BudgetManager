@@ -33,11 +33,11 @@ namespace API.Controllers
         /// <summary>
         /// Obtiene todos los gastos fijos
         /// </summary>
-        [HttpGet]
+        [HttpGet("year/{year}")]
         [ProducesResponseType(typeof(List<FixedExpenseResponseDTO>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllByYear(int year)
         {
-            List<FixedExpenseResponseDTO> fixedExpenses = await _fixedExpenseService.GetAllAsync();
+            List<FixedExpenseResponseDTO> fixedExpenses = await _fixedExpenseService.GetAllByYearAsync(year);
 
             return Ok(fixedExpenses);
         }
@@ -56,59 +56,6 @@ namespace API.Controllers
             FixedExpenseResponseDTO fixedExpense = await _fixedExpenseService.GetByIdAsync(id);
 
             return Ok(fixedExpense);
-        }
-
-        /// <summary>
-        /// Obtiene todos los gastos fijos de una categoría
-        /// </summary>
-        [HttpGet("by-category/{categoryId}")]
-        [ProducesResponseType(typeof(List<FixedExpenseResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByCategory(int categoryId)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            List<FixedExpenseResponseDTO> fixedExpenses = await _fixedExpenseService.GetByCategoryIdAsync(categoryId);
-
-            return Ok(fixedExpenses);
-        }
-
-        /// <summary>
-        /// Obtiene los gastos fijos activos para un período específico
-        /// </summary>
-        [HttpGet("active/period")]
-        [ProducesResponseType(typeof(List<FixedExpenseResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetActiveForPeriod([FromQuery] int month, [FromQuery] int year)
-        {
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            List<FixedExpenseResponseDTO> fixedExpenses = await _fixedExpenseService.GetByPeriodAsync(month, year);
-
-            return Ok(fixedExpenses);
-        }
-
-        /// <summary>
-        /// Obtiene el total de gastos fijos para un período y categoría
-        /// </summary>
-        [HttpGet("total/period/category/{categoryId}")]
-        [ProducesResponseType(typeof(decimal), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetTotalForPeriodByCategory(int categoryId, [FromQuery] int month, [FromQuery] int year)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            decimal total = await _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, month, year);
-
-            return Ok(new { CategoryId = categoryId, Year = year, Month = month, Total = total });
         }
 
         // ==================== COMANDOS ====================

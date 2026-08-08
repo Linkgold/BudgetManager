@@ -38,14 +38,15 @@ namespace Infrastructure.Repositories
             return budget;
         }
 
-        public async Task<IEnumerable<Budget>> GetAllAsync(int userId)
+        public async Task<IEnumerable<Budget>> GetAllByYearAsync(int userId, int year)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+            if (year < 1900 || year > 2100) throw new ArgumentException("Year must be between 1900 and 2100", nameof(year));
 
             IEnumerable<Budget> budgets = await _dbSet
                 .AsNoTracking()
                 .Include(budget => budget.Category)
-                .Where(budget => budget.UserId == userId)
+                .Where(budget => budget.UserId == userId && budget.Period.Year == year)
                 .ToListAsync();
 
             return budgets

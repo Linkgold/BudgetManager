@@ -3,6 +3,7 @@ using Shared.DTOs.Request;
 using UI.Extensions;
 using UI.Helpers;
 using UI.Models;
+using UI.Models.Cache;
 using UI.Models.Forms;
 using UI.Services.API;
 using UI.Shared;
@@ -15,6 +16,7 @@ namespace UI.Pages
         // 1. MODELOS Y ESTADO
         // ================================================================
 
+        private readonly CacheDictionary<int, TransactionModel> _transactionsCache = new();
         private List<TransactionModel> _transactions = new();
         private List<TransactionModel> _filteredTransactions = new();
         private List<CategoryModel> _categories = new();
@@ -95,24 +97,6 @@ namespace UI.Pages
                 if (_selectedYear != value)
                 {
                     _selectedYear = value;
-
-                    // Verificar si el mes actual tiene datos en el nuevo año
-                    bool currentMonthHasData = _transactions.HasMonthData(_selectedYear, _selectedMonth);
-
-                    // Si el mes actual NO tiene datos, buscar el primer mes con datos
-                    if (!currentMonthHasData)
-                    {
-                        int firstMonthWithData = _transactions.GetFirstMonthWithData(_selectedYear);
-
-                        if (firstMonthWithData > 0)
-                        {
-                            _selectedMonth = firstMonthWithData;
-                        }
-
-                        // Si no hay datos en ningún mes, mantener el mes actual
-                    }
-                    
-                    ApplyFilters();
                 }
             }
         }
@@ -154,14 +138,13 @@ namespace UI.Pages
         // ================================================================
         // 4. CARGA DE DATOS
         // ================================================================
-
         private async Task LoadData()
         {
             try
             {
                 _categories = await APIService.GetCategoriesAsync() ?? new List<CategoryModel>();
 
-                _transactions = await APIService.GetTransactionsAsync() ?? new List<TransactionModel>();
+                await LoadTransactions(_selectedYear);
 
                 _years = new List<int>();
                 for (int year = 2020; year <= 2050; year++)
@@ -181,6 +164,21 @@ namespace UI.Pages
             {
                 ApplyFilters();
             }
+        }
+
+        private async Task LoadTransactions(int year)
+        {
+            if (_transactionsCache.TryGetValue(year, out List<TransactionModel>? cached))
+            {
+                _transactions = cached!;
+                return;
+            }
+
+            List<TransactionModel> transactions = await APIService.GetTransactionsAsync(year) ?? new List<TransactionModel>();
+
+            _transactionsCache.Add(year, transactions);
+
+            _transactions = transactions;
         }
 
         // ================================================================
@@ -255,14 +253,24 @@ namespace UI.Pages
                 {
                     success = await CreateTransactionAsync();
                 }
-                
+
                 if (success)
                 {
+                    _transactionsCache.Remove(_transactionForm.Date.Year);
+
+                    if (_transactionForm.IsEditing && _transactionForm.OriginalYear != _transactionForm.Date.Year)
+                    {
+                        _transactionsCache.Remove(_transactionForm.OriginalYear);
+                    }
+
                     _transactionForm.IsModalOpen = false;
                     _transactionForm.IsEditing = false;
                     _transactionForm.IsDeleting = false;
 
-                    await LoadData();
+                    await LoadTransactions(_selectedYear);
+
+                    ApplyFilters();
+
                     await InvokeAsync(StateHasChanged);
                 }
             }
@@ -396,6 +404,7 @@ namespace UI.Pages
                 Name = model.Name ?? string.Empty,
                 Description = model.Description ?? string.Empty,
                 Amount = Math.Abs(model.Amount),
+                OriginalYear = model.Date.Year,
                 Date = model.Date == DateTime.MinValue ? DateTime.Now : model.Date,
                 TransactionType = defaultType,
                 IsModalOpen = true,
@@ -430,6 +439,43 @@ namespace UI.Pages
             }
 
             StateHasChanged();
+        }
+
+        private async Task OnYearChanged()
+        {
+            try
+            {
+                await LoadTransactions(_selectedYear);
+
+                // Comprobar si el mes seleccionado existe en el nuevo año
+                bool currentMonthHasData = _transactions.HasMonthData(_selectedYear, _selectedMonth);
+
+                if (!currentMonthHasData)
+                {
+                    int firstMonthWithData = _transactions.GetFirstMonthWithData(_selectedYear);
+
+                    if (firstMonthWithData > 0)
+                    {
+                        _selectedMonth = firstMonthWithData;
+                    }
+                }
+
+                ApplyFilters();
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync(
+                    "Error al cargar las transacciones del año seleccionado",
+                    ex
+                );
+
+                ToastService.ShowError("Error al cargar las transacciones.");
+
+                _transactions = new List<TransactionModel>();
+                ApplyFilters();
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
     }
 }

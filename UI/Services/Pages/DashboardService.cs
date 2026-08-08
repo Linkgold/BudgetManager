@@ -22,9 +22,9 @@ namespace UI.Services.Pages
             DashboardModel dashboard = new DashboardModel();
 
             List<CategoryModel>? categories = await _apiService.GetCategoriesAsync();
-            List<BudgetModel>? budgets = await _apiService.GetBudgetsAsync();
-            List<TransactionModel>? transactions = await _apiService.GetTransactionsAsync();
-            List<FixedExpenseModel>? fixedExpenses = await _apiService.GetFixedExpensesAsync();  // ✅ NUEVO
+            List<BudgetModel>? budgets = await _apiService.GetBudgetsAsync(year);
+            List<TransactionModel>? transactions = await _apiService.GetTransactionsAsync(year);
+            List<FixedExpenseModel>? fixedExpenses = await _apiService.GetFixedExpensesAsync(year);
 
             if (categories == null || !categories.Any())
             {

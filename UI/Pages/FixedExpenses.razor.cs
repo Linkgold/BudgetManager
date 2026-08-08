@@ -2,6 +2,7 @@
 using UI.Extensions;
 using UI.Extensions.Mappings;
 using UI.Models;
+using UI.Models.Cache;
 using UI.Models.Forms;
 using UI.Services.API;
 using UI.Shared;
@@ -14,6 +15,7 @@ namespace UI.Pages
         // 1. MODELOS Y ESTADO
         // ================================================================
 
+        private readonly CacheDictionary<int, FixedExpenseModel> _fixedExpensesCache = new();
         private List<FixedExpenseModel> _fixedExpenses = new();
         private List<FixedExpenseModel> _filteredFixedExpenses = new();
         private List<CategoryModel> _categories = new();
@@ -26,7 +28,7 @@ namespace UI.Pages
 
         private string _searchTerm = string.Empty;
         private int _selectedCategoryId = 0;
-        private int _selectedYear = 0;  // ✅ 0 = todos los años
+        private int _selectedYear = DateTime.Now.Year;
 
         private string searchTerm
         {
@@ -62,7 +64,6 @@ namespace UI.Pages
                 if (_selectedYear != value)
                 {
                     _selectedYear = value;
-                    ApplyFilters();
                 }
             }
         }
@@ -90,7 +91,7 @@ namespace UI.Pages
 
 
                 // Cargar gastos fijos
-                _fixedExpenses = await APIService.GetFixedExpensesAsync() ?? new List<FixedExpenseModel>();
+                await LoadFixedExpenses(_selectedYear);
 
                 // Inicializar años (2020-2050)
                 _years = new List<int>();
@@ -113,6 +114,21 @@ namespace UI.Pages
             }
         }
 
+        private async Task LoadFixedExpenses(int year)
+        {
+            if (_fixedExpensesCache.TryGetValue(year, out List<FixedExpenseModel>? cached))
+            {
+                _fixedExpenses = cached!;
+                return;
+            }
+
+            List<FixedExpenseModel> fixedExpenses = await APIService.GetFixedExpensesAsync(year) ?? new List<FixedExpenseModel>();
+
+            _fixedExpensesCache.Add(year, fixedExpenses);
+
+            _fixedExpenses = fixedExpenses;
+        }
+
         // ================================================================
         // 5. FILTRADO
         // ================================================================
@@ -121,15 +137,14 @@ namespace UI.Pages
         {
             _filteredFixedExpenses = _fixedExpenses
                 .Where(f => (selectedCategoryId == 0 || f.CategoryId == selectedCategoryId))
-                .Where(f => selectedYear == 0 || f.Year == selectedYear)
+                .Where(f => f.Year == selectedYear)
                 .Where
                 (
                     f => string.IsNullOrEmpty(searchTerm) ||
                     f.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                     (f.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false)
                 )
-                .OrderBy(f => f.Year)
-                .ThenBy(f => f.Month)
+                .OrderBy(f => f.Month)
                 .ThenBy(f => f.CategoryName)
                 .ToList();
         }
@@ -166,11 +181,20 @@ namespace UI.Pages
 
                 if (success)
                 {
+                    _fixedExpensesCache.Remove(_fixedExpenseForm.Year);
+
+                    if (_fixedExpenseForm.IsEditing && _fixedExpenseForm.OriginalYear != _fixedExpenseForm.Year)
+                    {
+                        _fixedExpensesCache.Remove(_fixedExpenseForm.OriginalYear);
+                    }
+
                     _fixedExpenseForm.IsModalOpen = false;
                     _fixedExpenseForm.IsDeleting = false;
                     _fixedExpenseForm.IsEditing = false;
 
-                    await LoadData();
+                    await LoadFixedExpenses(_selectedYear);
+
+                    ApplyFilters();
 
                     await InvokeAsync(StateHasChanged);
                 }
@@ -244,7 +268,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 8. APERTURA DE MODALES
+        // 7. APERTURA DE MODALES
         // ================================================================
 
         private void OpenCreateModal()
@@ -255,7 +279,7 @@ namespace UI.Pages
                 {
                     CategoryId = _categories.FirstOrDefault()?.Id ?? 0,
                     Month = DateTime.Now.Month,
-                    Year = DateTime.Now.Year,
+                    Year = _selectedYear,
                 }, FormMode.Create
             );
 
@@ -287,6 +311,7 @@ namespace UI.Pages
                 Description = fixedExpenseModel.Description,
                 Amount = fixedExpenseModel.Amount,
                 Month = fixedExpenseModel.Month,
+                OriginalYear = fixedExpenseModel.Year,
                 Year = fixedExpenseModel.Year,
                 IsModalOpen = true,
                 IsEditing = mode == FormMode.Edit,
@@ -301,6 +326,32 @@ namespace UI.Pages
             _fixedExpenseForm.IsDeleting = false;
 
             InvokeAsync(StateHasChanged);
+        }
+
+        // ================================================================
+        // 8. MÉTODOS AUXILIARES
+        // ================================================================
+
+        private async Task OnYearChanged()
+        {
+            try
+            {
+                await LoadFixedExpenses(_selectedYear);
+
+                ApplyFilters();
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync("Error al cargar los gastos fijos del año seleccionado", ex);
+
+                ToastService.ShowError("Error al cargar los gastos fijos.");
+
+                _fixedExpenses = new List<FixedExpenseModel>();
+
+                ApplyFilters();
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
     }
 }

@@ -3,6 +3,7 @@ using Shared.DTOs.Request;
 using UI.Extensions;
 using UI.Helpers;
 using UI.Models;
+using UI.Models.Cache;
 using UI.Models.Forms;
 using UI.Services.API;
 using UI.Shared;
@@ -14,7 +15,8 @@ namespace UI.Pages
         // ================================================================
         // 1. MODELOS Y ESTADO
         // ================================================================
-
+        
+        private readonly CacheDictionary<int, BudgetModel> _budgetsCache = new();
         private List<BudgetModel> _allBudgets = new();
         private List<CategoryModel> _allCategories = new();
         private List<CategoryModel> _filteredCategories = new();
@@ -55,7 +57,6 @@ namespace UI.Pages
                 if (_selectedYear != value)
                 {
                     _selectedYear = value;
-                    ApplyFilters();
                 }
             }
         }
@@ -132,7 +133,7 @@ namespace UI.Pages
                 _allCategories = await APIService.GetCategoriesAsync() ?? new List<CategoryModel>();
 
                 // Cargar presupuestos
-                _allBudgets = await APIService.GetBudgetsAsync() ?? new List<BudgetModel>();
+                await LoadBudgets(_selectedYear);
 
                 // Inicializar años (2020-2050)
                 _years = new List<int>();
@@ -157,6 +158,21 @@ namespace UI.Pages
             {
                 ApplyFilters();
             }
+        }
+
+        private async Task LoadBudgets(int year)
+        {
+            if (_budgetsCache.TryGetValue(year, out List<BudgetModel>? cached))
+            {
+                _allBudgets = cached!;
+                return;
+            }
+
+            List<BudgetModel> budgets = await APIService.GetBudgetsAsync(year) ?? new List<BudgetModel>();
+
+            _budgetsCache.Add(year, budgets);
+
+            _allBudgets = budgets;
         }
 
         // ================================================================
@@ -187,11 +203,15 @@ namespace UI.Pages
             ApplyFilters();
         }
 
-        private void SetCurrentYear()
+        private async Task SetCurrentYear()
         {
             _selectedYear = DateTime.Now.Year;
 
+            await LoadBudgets(_selectedYear);
+
             ApplyFilters();
+
+            await InvokeAsync(StateHasChanged);
         }
 
         private void UpdateAvailableCategoriesForCreate()
@@ -246,11 +266,16 @@ namespace UI.Pages
 
                 if (success)
                 {
+                    _budgetsCache.Remove(_budgetForm.Year);
+
                     _budgetForm.IsModalOpen = false;
                     _budgetForm.IsEditing = false;
                     _budgetForm.IsDeleting = false;
 
-                    await LoadData();
+                    await LoadBudgets(_selectedYear);
+
+                    ApplyFilters();
+
                     await InvokeAsync(StateHasChanged);
                 }
             }
@@ -393,6 +418,7 @@ namespace UI.Pages
                 return;
             }
 
+            _budgetsCache.Remove(_budgetForm.Year);
             ToastService.ShowSuccess($"Presupuestos de {_budgetForm.CategoryName} para {_budgetForm.Year} eliminados correctamente.");
         }
 
@@ -440,6 +466,7 @@ namespace UI.Pages
             }
 
             _budgetForm.MonthlyAmounts[month] = newAmount;
+            existingBudget.Amount = newAmount;
 
             return true;
         }
@@ -556,7 +583,7 @@ namespace UI.Pages
             _selectedCategoryId = model.CategoryId;
         }
 
-        private async Task CloseModal()
+        private void CloseModal()
         {
             _budgetForm = new BudgetFormModel
             {
@@ -570,8 +597,6 @@ namespace UI.Pages
                 IsDeleting = false,
                 DefaultAmount = 0,
             };
-
-            await LoadData();
 
             StateHasChanged();
         }
@@ -628,7 +653,7 @@ namespace UI.Pages
             _budgetForm.IsDeleting = false;
             _isConfirmModalOpenDeleteAll = false;
 
-            await LoadData();
+            await LoadBudgets(_selectedYear);
 
             ApplyFilters();
             StateHasChanged();
@@ -674,7 +699,7 @@ namespace UI.Pages
                 .Sum(b => b.Amount);
         }
 
-        private void OnYearChanged(ChangeEventArgs e)
+        private void OnModalYearChanged(ChangeEventArgs e)
         {
             if (e.Value != null && int.TryParse(e.Value.ToString(), out int newYear))
             {
@@ -695,6 +720,31 @@ namespace UI.Pages
 
                 StateHasChanged();
             }
+        }
+
+        private async Task OnYearChanged()
+        {
+            try
+            {
+                await LoadBudgets(_selectedYear);
+
+                ApplyFilters();
+            }
+            catch (Exception ex)
+            {
+                await LogService.LogErrorAsync(
+                    "Error al cargar los presupuestos del año seleccionado",
+                    ex
+                );
+
+                ToastService.ShowError("Error al cargar los presupuestos.");
+
+                _allBudgets = new List<BudgetModel>();
+
+                ApplyFilters();
+            }
+
+            await InvokeAsync(StateHasChanged);
         }
     }
 }

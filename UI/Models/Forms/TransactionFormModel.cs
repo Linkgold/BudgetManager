@@ -11,6 +11,7 @@ namespace UI.Models.Forms
         public string Name { get; set; } = string.Empty;
         public string Description { get; set; } = string.Empty;
         public decimal Amount { get; set; }
+        public int OriginalYear { get; set; }
         public DateTime Date { get; set; } = DateTime.Now;
         public DateTime? MudDate { get => Date; set => Date = value ?? DateTime.Now; }
 

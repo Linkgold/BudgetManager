@@ -34,11 +34,11 @@ namespace API.Controllers
         /// <summary>
         /// Obtiene todos los presupuestos
         /// </summary>
-        [HttpGet]
+        [HttpGet("year/{year}")]
         [ProducesResponseType(typeof(List<BudgetResponseDTO>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllByYear(int year)
         {
-            List<BudgetResponseDTO> budgets = await _budgetService.GetAllAsync();
+            List<BudgetResponseDTO> budgets = await _budgetService.GetAllByYearAsync(year);
 
             return Ok(budgets);
         }
@@ -57,79 +57,6 @@ namespace API.Controllers
             BudgetResponseDTO budget = await _budgetService.GetByIdAsync(id);
 
             return Ok(budget);
-        }
-
-        /// <summary>
-        /// Obtiene todos los presupuestos de una categoría
-        /// </summary>
-        [HttpGet("by-category/{categoryId}")]
-        [ProducesResponseType(typeof(List<BudgetResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByCategory(int categoryId)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            List<BudgetResponseDTO> budgets = await _budgetService.GetByCategoryIdAsync(categoryId);
-
-            return Ok(budgets);
-        }
-
-        /// <summary>
-        /// Obtiene todos los presupuestos de un período (mes/año)
-        /// </summary>
-        [HttpGet("by-period")]
-        [ProducesResponseType(typeof(List<BudgetResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByPeriod([FromQuery] int year, [FromQuery] int month)
-        {
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            List<BudgetResponseDTO> budgets = await _budgetService.GetByPeriodAsync(month, year);
-
-            return Ok(budgets);
-        }
-
-        /// <summary>
-        /// Obtiene un presupuesto por categoría y período
-        /// </summary>
-        [HttpGet("by-category-period")]
-        [ProducesResponseType(typeof(BudgetResponseDTO), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByCategoryAndPeriod([FromQuery] int categoryId, [FromQuery] int year, [FromQuery] int month)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            BudgetResponseDTO budget = await _budgetService.GetByCategoryAndPeriodAsync(categoryId, month, year);
-
-            return Ok(budget);
-        }
-
-        /// <summary>
-        /// Obtiene un resumen completo del presupuesto (incluye estado y cálculos)
-        /// </summary>
-        [HttpGet("summary")]
-        [ProducesResponseType(typeof(BudgetSummaryDTO), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetSummary([FromQuery] int categoryId, [FromQuery] int year, [FromQuery] int month)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            BudgetSummaryDTO summary = await _budgetService.GetSummaryByCategoryAndPeriodAsync(categoryId, month, year);
-
-            return Ok(summary);
         }
 
         // ==================== COMANDOS ====================

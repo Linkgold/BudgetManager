@@ -3,10 +3,10 @@ using Shared.DTOs.Response;
 using Application.Interfaces;
 using AutoMapper;
 using Domain.Entities;
-using Contracts.Enums;
 using Domain.Exceptions;
 using Domain.Interfaces;
 using Domain.ValueObjects;
+using Domain.Interfaces.Managers;
 
 namespace Application.Services
 {
@@ -63,85 +63,14 @@ namespace Application.Services
             return _mapper.Map<BudgetResponseDTO>(budget);
         }
 
-        public async Task<List<BudgetResponseDTO>> GetAllAsync()
+        public async Task<List<BudgetResponseDTO>> GetAllByYearAsync(int year)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
+            if (year < 1900 || year > 2100) throw new ArgumentException("Year must be between 1900 and 2100", nameof(year));
 
-            IEnumerable<Budget> budgets = await _budgetRepository.GetAllAsync(UserId);
+            IEnumerable<Budget> budgets = await _budgetRepository.GetAllByYearAsync(UserId, year);
 
             return _mapper.Map<List<BudgetResponseDTO>>(budgets);
-        }
-
-        public async Task<List<BudgetResponseDTO>> GetByCategoryIdAsync(int categoryId)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-
-            IEnumerable<Budget> budgets = await _budgetRepository.GetByCategoryIdAsync(UserId, categoryId);
-            return _mapper.Map<List<BudgetResponseDTO>>(budgets);
-        }
-
-        public async Task<List<BudgetResponseDTO>> GetByPeriodAsync(int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<Budget> budgets = await _budgetRepository.GetByPeriodAsync(UserId, period);
-
-            return _mapper.Map<List<BudgetResponseDTO>>(budgets);
-        }
-
-        public async Task<BudgetResponseDTO> GetByCategoryAndPeriodAsync(int categoryId, int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(UserId, categoryId, period);
-
-            if (budget == null) throw new KeyNotFoundException($"Budget not found for category {categoryId} in {month}/{year}");
-
-            return _mapper.Map<BudgetResponseDTO>(budget);
-        }
-
-        // ==================== RESUMEN (con cálculos) ====================
-
-        public async Task<BudgetSummaryDTO> GetSummaryByCategoryAndPeriodAsync(int categoryId, int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            Budget? budget = await _budgetRepository.GetByCategoryAndPeriodAsync(UserId, categoryId, period);
-
-            if (budget == null) throw new KeyNotFoundException($"Budget not found for category {categoryId} in {month}/{year}");
-
-            // TODO: Obtener gastos reales (cuando esté implementado)
-            // Por ahora, usamos 0 como total gastado
-            decimal totalSpent = 0m;
-
-            // Calcular estado del presupuesto
-            BudgetStatusEnum status = budget.GetStatus(totalSpent);
-            decimal percentageUsed = budget.GetPercentageUsed(totalSpent);
-            Money remaining = budget.GetRemaining(totalSpent);
-            bool isOverBudget = budget.IsOverBudget(totalSpent);
-
-            return new BudgetSummaryDTO
-            {
-                BudgetId = budget.Id,
-                CategoryId = budget.CategoryId,
-                CategoryName = budget.Category?.Info?.Name ?? "Unknown",
-                Year = year,
-                Month = month,
-                BudgetAmount = budget.MonthlyAmount.Value,
-                TotalSpent = totalSpent,
-                Remaining = remaining.Value,
-                PercentageUsed = percentageUsed,
-                Status = status,
-                IsOverBudget = isOverBudget
-            };
         }
 
         // ==================== COMANDOS ====================

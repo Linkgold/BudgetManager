@@ -1,4 +1,4 @@
-﻿using Domain.Interfaces;
+﻿using Domain.Interfaces.Managers;
 using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Data
