@@ -1,6 +1,7 @@
 ﻿using Shared.DTOs.Request;
 using Shared.DTOs.Response;
 using Shared.DTOs.Response.Data;
+using Shared.DTOs.Response.HasData;
 using UI.Extensions.Mappings;
 using UI.Models;
 using UI.Models.Dashboard;
@@ -314,7 +315,7 @@ namespace UI.Extensions
         }
 
         // ================================================================
-        // DASHBOARD
+        // DATA
         // ================================================================
 
         public static async Task<DashboardModel?> GetDashboardDataAsync(this APIService api, int year)
@@ -327,6 +328,21 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al cargar los datos del dashboard.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<HasDataModel?> GetHasDataAsync(this APIService api)
+        {
+            APIResult<HasDataResponseDTO> result = await api.GetAsync<HasDataResponseDTO>("/api/data/has-data");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToHasDataModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar la información de datos existentes.";
             api.NotifyError(message);
 
             return null;

@@ -1,10 +1,12 @@
 ﻿using Contracts.Enums;
+using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Request;
 using UI.Extensions;
 using UI.Helpers;
 using UI.Models;
 using UI.Models.Cache;
 using UI.Models.Forms;
+using UI.Services;
 using UI.Services.API;
 using UI.Shared;
 
@@ -15,6 +17,10 @@ namespace UI.Pages
         // ================================================================
         // 1. MODELOS Y ESTADO
         // ================================================================
+
+        [Inject]
+        private HasDataService HasDataService { get; set; } = default!;
+        private HasDataModel? _hasData;
 
         private readonly CacheDictionary<int, TransactionModel> _transactionsCache = new();
         private List<TransactionModel> _transactions = new();
@@ -133,6 +139,7 @@ namespace UI.Pages
         protected override async Task OnInitializedAsync()
         {
             await LoadData();
+            _hasData = await HasDataService.GetDataAsync();
         }
 
         // ================================================================
@@ -262,6 +269,8 @@ namespace UI.Pages
                     {
                         _transactionsCache.Remove(_transactionForm.OriginalYear);
                     }
+
+                    await HasDataService.RefreshAsync();
 
                     _transactionForm.IsModalOpen = false;
                     _transactionForm.IsEditing = false;

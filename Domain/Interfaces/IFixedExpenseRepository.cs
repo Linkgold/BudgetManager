@@ -8,6 +8,7 @@ namespace Domain.Interfaces
         // Consultas
         Task<FixedExpense?> GetByIdAsync(int userId, int id);
         Task<IEnumerable<FixedExpense>> GetAllByYearAsync(int userId, int year);
+        Task<IEnumerable<int>> GetDistinctYearsAsync(int userId);
 
         // Comandos
         Task AddAsync(FixedExpense fixedExpense);

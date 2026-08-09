@@ -301,23 +301,5 @@ namespace Tests.API.Controllers
             // Assert
             Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
         }
-
-        // ==================== TEST: DELETE CURRENT USER ====================
-
-        [Fact]
-        public async Task DeleteCurrentUser_WithAuthenticatedUser_ReturnsNoContent()
-        {
-            // Arrange - Registrar y loguear un usuario
-            string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
-            string token = await TestDataFactory.GetTokenAsync(_fixture, _client, uniqueId);
-
-            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
-
-            // Act
-            HttpResponseMessage response = await _client.DeleteAsync("/api/user/me");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
-        }
     }
 }

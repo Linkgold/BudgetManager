@@ -44,7 +44,14 @@
                     <select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged">
                         @foreach (int year in _years)
                         {
-                            <option value="@year">@year</option>
+                            bool hasData = _hasData?.HasFixedExpenseData(year) ?? false;
+                            <option value="@year">
+                                @if (hasData)
+                                {
+                                    <span style="color: var(--color-accent); margin-left: 4px;">● </span>
+                                }
+                                @year
+                            </option>
                         }
                     </select>
                 </div>

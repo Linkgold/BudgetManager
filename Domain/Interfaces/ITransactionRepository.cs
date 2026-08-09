@@ -1,5 +1,4 @@
 ﻿using Domain.Entities;
-using Domain.ValueObjects;
 
 namespace Domain.Interfaces
 {
@@ -8,6 +7,7 @@ namespace Domain.Interfaces
         // Consultas
         Task<Transaction?> GetByIdAsync(int userId, int id);
         Task<IEnumerable<Transaction>> GetAllByYearAsync(int userId, int year);
+        Task<Dictionary<int, List<int>>> GetDistinctYearsAndMonthsAsync(int userId);
 
         // Comandos
         Task AddAsync(Transaction expense);

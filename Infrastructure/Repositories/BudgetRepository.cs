@@ -3,7 +3,6 @@ using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Repositories
 {
@@ -53,6 +52,21 @@ namespace Infrastructure.Repositories
                 .OrderBy(budget => budget.Period.Year)
                 .ThenBy(budget => budget.Period.Month)
                 .ThenBy(budget => budget.Category.Info.Name);
+        }
+
+        public async Task<IEnumerable<int>> GetDistinctYearsAsync(int userId)
+        {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
+            List<int> years = await _dbSet
+                .AsNoTracking()
+                .Where(b => b.UserId == userId)
+                .Select(b => b.Period.Year)
+                .Distinct()
+                .Order()
+                .ToListAsync();
+
+            return years;
         }
 
         public async Task<IEnumerable<Budget>> GetByCategoryIdAsync(int userId, int categoryId)

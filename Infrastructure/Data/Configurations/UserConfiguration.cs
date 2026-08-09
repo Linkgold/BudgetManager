@@ -34,11 +34,6 @@ namespace Infrastructure.Data.Configurations
                     info.HasIndex(i => i.Email)
                         .IsUnique()
                         .HasDatabaseName("IX_Users_Email");
-
-                    // Índice simple para UserName (dentro del OwnsOne)
-                    info.HasIndex(i => i.UserName)
-                        .IsUnique()
-                        .HasDatabaseName("IX_Users_UserName");
                 }
             );
 

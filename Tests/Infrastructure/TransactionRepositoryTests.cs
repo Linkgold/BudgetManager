@@ -1,4 +1,5 @@
-﻿using Domain.Entities;
+﻿using Contracts.Enums;
+using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
@@ -245,6 +246,94 @@ namespace Tests.Infrastructure
         {
             // Act & Assert
             await Assert.ThrowsAsync<ArgumentException>(() => _repository.DeleteAsync(0, 1));
+        }
+
+        // ==================== GET DISTINCT YEARS AND MONTHS ====================
+
+        [Fact]
+        public async Task GetDistinctYearsAndMonthsAsync_WithData_ReturnsDictionary()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user);
+
+            // Crear transacciones en diferentes años y meses
+            await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category, "Compra1", amount: 100.00m, day: 15, month: 1, year: 2023);
+            await TestDataFactory.SeedTransactionAsync(_repository, 2, user, category, "Compra2", amount: 200.00m, day: 20, month: 2, year: 2023);
+            await TestDataFactory.SeedTransactionAsync(_repository, 3, user, category, "Compra3", amount: 150.00m, day: 10, month: 1);
+            await TestDataFactory.SeedTransactionAsync(_repository, 4, user, category, "Compra4", amount: 300.00m, month: 3);
+
+            // Expected
+            Dictionary<int, List<int>> expected = new Dictionary<int, List<int>>
+            {
+                { 2023, new List<int> { 1, 2 } },
+                { 2024, new List<int> { 1, 3 } }
+            };
+
+            // Act
+            Dictionary<int, List<int>> result = await _repository.GetDistinctYearsAndMonthsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected.Count, result.Count);
+            Assert.True(result.ContainsKey(2023));
+            Assert.True(result.ContainsKey(2024));
+            Assert.Equal(expected[2023], result[2023]);
+            Assert.Equal(expected[2024], result[2024]);
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAndMonthsAsync_WithNoData_ReturnsEmptyDictionary()
+        {
+            // Arrange
+            int userId = 1;
+
+            // Act
+            Dictionary<int, List<int>> result = await _repository.GetDistinctYearsAndMonthsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAndMonthsAsync_WithInvalidUserId_ThrowsArgumentException()
+        {
+            // Arrange
+            int invalidUserId = 0;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _repository.GetDistinctYearsAndMonthsAsync(invalidUserId));
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAndMonthsAsync_WithMultipleMonthsInSameYear_ReturnsDistinctMonths()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user);
+
+            // Crear múltiples transacciones en el mismo mes (debe devolver solo una vez)
+            await TestDataFactory.SeedTransactionAsync(_repository, 1, user, category, "Compra1", amount: 100.00m, month: 1);
+            await TestDataFactory.SeedTransactionAsync(_repository, 2, user, category, "Compra2", amount: 200.00m, day: 20, month: 1);
+            await TestDataFactory.SeedTransactionAsync(_repository, 3, user, category, "Compra3", amount: 150.00m, day: 10, month: 2);
+
+            // Expected: solo meses 1 y 2 (distintos)
+            Dictionary<int, List<int>> expected = new Dictionary<int, List<int>>
+            {
+                { 2024, new List<int> { 1, 2 } }
+            };
+
+            // Act
+            Dictionary<int, List<int>> result = await _repository.GetDistinctYearsAndMonthsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Single(result);
+            Assert.True(result.ContainsKey(2024));
+            Assert.Equal(expected[2024], result[2024]);
         }
 
         // ==================== DISPOSE ====================

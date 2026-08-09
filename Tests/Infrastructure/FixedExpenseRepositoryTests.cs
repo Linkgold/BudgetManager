@@ -338,6 +338,112 @@ namespace Tests.Infrastructure
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.DeleteAsync(999, 1));
         }
 
+        // ==================== NUEVOS TESTS: GET DISTINCT YEARS ====================
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithData_ReturnsYearsList()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user, "Suscripciones", nature: CategoryNatureEnum.Expense);
+
+            // Crear gastos fijos en diferentes años
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, "Netflix", "", 15.99m, "EUR", 1, 2023);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Spotify", "", 9.99m, "EUR", 2, 2023);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category, "Disney+", "", 12.99m, "EUR", 1, 2024);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 4, user, category, "Amazon", "", 4.99m, "EUR", 1, 2025);
+
+            // Expected: años 2023, 2024, 2025
+            List<int> expected = new List<int> { 2023, 2024, 2025 };
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected.Count, result.Count());
+            Assert.Equal(expected, result.Order().ToList());
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithNoData_ReturnsEmptyList()
+        {
+            // Arrange
+            int userId = 1;
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithInvalidUserId_ThrowsArgumentException()
+        {
+            // Arrange
+            int invalidUserId = 0;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _repository.GetDistinctYearsAsync(invalidUserId));
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithMultipleYears_ReturnsSortedYears()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user, "Suscripciones");
+
+            // Crear gastos fijos en años desordenados
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, "Netflix", "", 15.99m, "EUR", 1, 2025);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Spotify", "", 9.99m, "EUR", 1, 2023);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category, "Disney+", "", 12.99m, "EUR", 1, 2024);
+
+            // Expected: años ordenados 2023, 2024, 2025
+            List<int> expected = new List<int> { 2023, 2024, 2025 };
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithDifferentUsers_ReturnsOnlyUserYears()
+        {
+            // Arrange
+            int userId1 = 1;
+            int userId2 = 2;
+            User user1 = TestDataFactory.CreateUser(userId1);
+            User user2 = TestDataFactory.CreateUser(userId2, email: "paquito@example.com");
+            Category category1 = TestDataFactory.CreateCategory(1, user1, "Suscripciones");
+            Category category2 = TestDataFactory.CreateCategory(2, user2, "Suscripciones");
+
+            // Gastos fijos para usuario 1: años 2023 y 2024
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user1, category1, "Netflix", "", 15.99m, "EUR", 1, 2023);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user1, category1, "Spotify", "", 9.99m, "EUR", 1, 2024);
+
+            // Gastos fijos para usuario 2: año 2025
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user2, category2, "Disney+", "", 12.99m, "EUR", 1, 2025);
+
+            // Expected para usuario 1: años 2023, 2024
+            List<int> expected = new List<int> { 2023, 2024 };
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected, result);
+            Assert.DoesNotContain(2025, result);
+        }
+
         // ==================== DISPOSE ====================
 
         public void Dispose()

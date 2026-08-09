@@ -5,6 +5,7 @@ using UI.Helpers;
 using UI.Models;
 using UI.Models.Cache;
 using UI.Models.Forms;
+using UI.Services;
 using UI.Services.API;
 using UI.Shared;
 
@@ -15,7 +16,11 @@ namespace UI.Pages
         // ================================================================
         // 1. MODELOS Y ESTADO
         // ================================================================
-        
+
+        [Inject]
+        private HasDataService HasDataService { get; set; } = default!;
+        private HasDataModel? _hasData;
+
         private readonly CacheDictionary<int, BudgetModel> _budgetsCache = new();
         private List<BudgetModel> _allBudgets = new();
         private List<CategoryModel> _allCategories = new();
@@ -119,6 +124,7 @@ namespace UI.Pages
         protected override async Task OnInitializedAsync()
         {
             await LoadData();
+            _hasData = await HasDataService.GetDataAsync();
         }
 
         // ================================================================
@@ -267,6 +273,8 @@ namespace UI.Pages
                 if (success)
                 {
                     _budgetsCache.Remove(_budgetForm.Year);
+
+                    await HasDataService.RefreshAsync();
 
                     _budgetForm.IsModalOpen = false;
                     _budgetForm.IsEditing = false;
@@ -419,6 +427,7 @@ namespace UI.Pages
             }
 
             _budgetsCache.Remove(_budgetForm.Year);
+            await HasDataService.RefreshAsync();
             ToastService.ShowSuccess($"Presupuestos de {_budgetForm.CategoryName} para {_budgetForm.Year} eliminados correctamente.");
         }
 

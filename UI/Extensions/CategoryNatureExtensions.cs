@@ -1,5 +1,4 @@
 ﻿using Contracts.Enums;
-using MudBlazor;
 
 namespace UI.Extensions
 {

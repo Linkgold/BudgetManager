@@ -53,7 +53,7 @@ namespace Application.Services.Data
             IEnumerable<Transaction> transactions = await _transactionRepository.GetAllByYearAsync(UserId, year);
             IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetAllByYearAsync(UserId, year);
 
-            if(categories == null || budgets == null || transactions == null || fixedExpenses == null)
+            if (categories == null || budgets == null || transactions == null || fixedExpenses == null)
             {
                 throw new Exception("Error obtaining dashboard data.");
             }
@@ -182,7 +182,18 @@ namespace Application.Services.Data
         {
             HasDataResponseDTO hasData = new HasDataResponseDTO();
 
-            // TODO: Obtener años con datos
+            // 1. Obtener años y meses con transacciones
+            Dictionary<int, List<int>> transactionMonthsByYear = await _transactionRepository.GetDistinctYearsAndMonthsAsync(UserId);
+
+            hasData.TransactionMonthsByYear = transactionMonthsByYear;
+
+            // 2. Obtener años con presupuestos
+            IEnumerable<int> budgetYears = await _budgetRepository.GetDistinctYearsAsync(UserId);
+            hasData.BudgetYears = budgetYears.Order().ToList();
+
+            // 3. Obtener años con gastos fijos
+            IEnumerable<int> fixedExpenseYears = await _fixedExpenseRepository.GetDistinctYearsAsync(UserId);
+            hasData.FixedExpenseYears = fixedExpenseYears.Order().ToList();
 
             return hasData;
         }

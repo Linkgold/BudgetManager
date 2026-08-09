@@ -371,6 +371,82 @@ namespace Tests.Infrastructure
             await Assert.ThrowsAsync<ArgumentException>(() => _repository.DeleteAsync(0, 1));
         }
 
+        // ==================== GET DISTINCT YEARS ====================
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithData_ReturnsYearsList()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user);
+
+            // Crear presupuestos en diferentes años
+            await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category, 500.00m, "EUR", 1, 2023);
+            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category, 600.00m, "EUR", 2, 2023);
+            await TestDataFactory.SeedBudgetAsync(_repository, 3, user, category, 700.00m, "EUR", 1, 2024);
+            await TestDataFactory.SeedBudgetAsync(_repository, 4, user, category, 800.00m, "EUR", 1, 2025);
+
+            // Expected: años 2023, 2024, 2025
+            List<int> expected = new List<int> { 2023, 2024, 2025 };
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected.Count, result.Count());
+            Assert.Equal(expected, result.Order().ToList());
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithNoData_ReturnsEmptyList()
+        {
+            // Arrange
+            int userId = 1;
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithInvalidUserId_ThrowsArgumentException()
+        {
+            // Arrange
+            int invalidUserId = 0;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _repository.GetDistinctYearsAsync(invalidUserId));
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithMultipleYears_ReturnsSortedYears()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user);
+
+            // Crear presupuestos en años desordenados
+            await TestDataFactory.SeedBudgetAsync(_repository, 1, user, category, 500.00m, "EUR", 1, 2025);
+            await TestDataFactory.SeedBudgetAsync(_repository, 2, user, category, 600.00m, "EUR", 1, 2023);
+            await TestDataFactory.SeedBudgetAsync(_repository, 3, user, category, 700.00m, "EUR", 1, 2024);
+
+            // Expected: años ordenados 2023, 2024, 2025
+            List<int> expected = new List<int> { 2023, 2024, 2025 };
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected, result);
+        }
+
         // ==================== DISPOSE ====================
 
         public void Dispose()

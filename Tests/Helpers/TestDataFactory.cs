@@ -456,6 +456,7 @@ namespace Tests.Helpers
             int categoryId,
             string name,
             decimal amount,
+            TransactionTypeEnum transactionType,
             string currency,
             int day,
             int month,
@@ -468,6 +469,7 @@ namespace Tests.Helpers
                 Name = name,
                 Description = "Test Transaction",
                 Amount = amount,
+                TransactionType = transactionType,
                 Currency = currency,
                 Date = new DateTime(year, month, day)
             };

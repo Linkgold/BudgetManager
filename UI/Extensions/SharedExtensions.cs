@@ -1,7 +1,4 @@
-﻿using UI.Helpers;
-using UI.Models.Dashboard;
-
-namespace UI.Extensions
+﻿namespace UI.Extensions
 {
     public static class SharedExtensions
     {

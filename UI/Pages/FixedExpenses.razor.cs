@@ -1,9 +1,11 @@
-﻿using Shared.DTOs.Request;
+﻿using Microsoft.AspNetCore.Components;
+using Shared.DTOs.Request;
 using UI.Extensions;
 using UI.Extensions.Mappings;
 using UI.Models;
 using UI.Models.Cache;
 using UI.Models.Forms;
+using UI.Services;
 using UI.Services.API;
 using UI.Shared;
 
@@ -14,6 +16,10 @@ namespace UI.Pages
         // ================================================================
         // 1. MODELOS Y ESTADO
         // ================================================================
+
+        [Inject]
+        private HasDataService HasDataService { get; set; } = default!;
+        private HasDataModel? _hasData;
 
         private readonly CacheDictionary<int, FixedExpenseModel> _fixedExpensesCache = new();
         private List<FixedExpenseModel> _fixedExpenses = new();
@@ -75,6 +81,7 @@ namespace UI.Pages
         protected override async Task OnInitializedAsync()
         {
             await LoadData();
+            _hasData = await HasDataService.GetDataAsync();
         }
 
         // ================================================================
@@ -187,6 +194,8 @@ namespace UI.Pages
                     {
                         _fixedExpensesCache.Remove(_fixedExpenseForm.OriginalYear);
                     }
+
+                    await HasDataService.RefreshAsync();
 
                     _fixedExpenseForm.IsModalOpen = false;
                     _fixedExpenseForm.IsDeleting = false;

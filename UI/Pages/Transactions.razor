@@ -54,7 +54,7 @@
 					<select class="form-control form-control-sm" @bind="selectedMonth">
 						@foreach (MonthModel month in MonthHelper.Months)
 						{
-							bool hasData = _transactions.Any(t => t.Date.Month == month.Value && t.Date.Year == _selectedYear);
+							bool hasData = _hasData?.HasTransactionMonthData(selectedYear, month.Value) ?? false;
 
 							<option value="@month.Value">
 								@if (hasData)
@@ -72,7 +72,7 @@
 					<select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged">
 						@foreach (int year in _years)
 						{
-							bool hasData = _transactions.Any(t => t.Date.Year == year);
+							bool hasData = _hasData?.HasTransactionData(year) ?? false;
 							<option value="@year">
 								@if (hasData)
 								{

@@ -2,7 +2,7 @@
 {
     public class HasDataResponseDTO
     {
-        public HasDataTransactionsDTO Transactions { get; set; } = new();
+        public Dictionary<int, List<int>> TransactionMonthsByYear { get; set; } = new();
         public List<int> BudgetYears { get; set; } = [];
         public List<int> FixedExpenseYears { get; set; } = [];
     }

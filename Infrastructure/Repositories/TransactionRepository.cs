@@ -54,6 +54,31 @@ namespace Infrastructure.Repositories
             return transactions;
         }
 
+        public async Task<Dictionary<int, List<int>>> GetDistinctYearsAndMonthsAsync(int userId)
+        {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
+            // Obtener todos los años y meses distintos
+            var result = await _dbSet
+                .AsNoTracking()
+                .Where(t => t.UserId == userId)
+                .Select(t => new { t.Date.Year, t.Date.Month })
+                .Distinct()
+                .OrderBy(x => x.Year)
+                .ThenBy(x => x.Month)
+                .ToListAsync();
+
+            // Agrupar por año
+            Dictionary<int, List<int>> monthsByYear = result
+                .GroupBy(x => x.Year)
+                .ToDictionary(
+                    g => g.Key,
+                    g => g.Select(x => x.Month).Distinct().Order().ToList()
+                );
+
+            return monthsByYear;
+        }
+
         // ==================== VERIFICACIONES ====================
 
         public async Task<bool> ExistsAsync(int userId, int id)

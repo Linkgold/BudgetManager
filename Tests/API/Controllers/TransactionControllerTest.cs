@@ -131,7 +131,7 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, "EUR", 15, 6, 2024);
+            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, TransactionTypeEnum.Expense, "EUR", 15, 6, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/transaction/{transactionId}");
@@ -169,8 +169,8 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 1", 45.75m, "EUR", 15, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 2", 30.00m, "EUR", 20, 6, 2025);
+            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 1", 45.75m, TransactionTypeEnum.Expense, "EUR", 15, 6, 2024);
+            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 2", 30.00m, TransactionTypeEnum.Expense, "EUR", 20, 6, 2025);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync("/api/transaction/year/2024");
@@ -195,7 +195,7 @@ namespace Tests.API.Controllers
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
             int updatedCategoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripción");
-            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, "EUR", 15, 6, 2024);
+            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, TransactionTypeEnum.Expense, "EUR", 15, 6, 2024);
 
             UpdateTransactionRequestDTO request = new UpdateTransactionRequestDTO
             {
@@ -257,7 +257,7 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, "EUR", 15, 6, 2024);
+            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, TransactionTypeEnum.Expense, "EUR", 15, 6, 2024);
 
             // Act
             HttpResponseMessage response = await _client.DeleteAsync($"/api/transaction/{transactionId}");

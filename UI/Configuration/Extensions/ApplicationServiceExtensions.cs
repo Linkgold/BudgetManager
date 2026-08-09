@@ -19,6 +19,8 @@ namespace UI.Configuration.Extensions
 
             services.AddScoped<APIService>();
 
+            services.AddScoped<HasDataService>();
+
             services.AddMudServices();
 
             return services;

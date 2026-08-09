@@ -32,7 +32,14 @@
                     <select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged" style="flex: 1;">
                         @foreach (int year in _years)
                         {
-                            <option value="@year">@year</option>
+                            bool hasData = _hasData?.HasBudgetData(year) ?? false;
+                            <option value="@year">
+                                @if (hasData)
+                                {
+                                    <span style="color: var(--color-accent); margin-left: 4px;">● </span>
+                                }
+                                @year
+                            </option>
                         }
                     </select>
                     <button class="btn btn-outline-accent btn-sm"

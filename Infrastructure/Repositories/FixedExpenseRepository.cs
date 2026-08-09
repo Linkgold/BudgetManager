@@ -50,6 +50,21 @@ namespace Infrastructure.Repositories
             return fixedExpenses;
         }
 
+        public async Task<IEnumerable<int>> GetDistinctYearsAsync(int userId)
+        {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
+            List<int> years = await _dbSet
+                .AsNoTracking()
+                .Where(f => f.UserId == userId)
+                .Select(f => f.ChargePeriod.Year)
+                .Distinct()
+                .Order()
+                .ToListAsync();
+
+            return years;
+        }
+
         // ==================== MÉTODOS DE NEGOCIO ====================
 
         public async Task<bool> ExistsAsync(int userId, int id)
