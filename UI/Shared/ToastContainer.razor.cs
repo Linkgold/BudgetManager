@@ -1,11 +1,11 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using UI.Models.Enum;
 
 namespace UI.Shared
 {
     public partial class ToastContainer
     {
         private string _message = string.Empty;
-        private string _type = "success";
+        private ToastTypeEnum _type = ToastTypeEnum.Success;
 
         protected override void OnInitialized()
         {
@@ -13,7 +13,7 @@ namespace UI.Shared
             ToastService.OnClear += ClearToast;
         }
 
-        private void ShowToast(string message, string type)
+        private void ShowToast(string message, ToastTypeEnum type)
         {
             _message = message;
             _type = type;

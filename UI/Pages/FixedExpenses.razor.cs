@@ -14,22 +14,26 @@ namespace UI.Pages
     public partial class FixedExpenses : BasePage
     {
         // ================================================================
-        // 1. MODELOS Y ESTADO
+        // 1. INYECCIONES
         // ================================================================
 
         [Inject]
         private HasDataService HasDataService { get; set; } = default!;
-        private HasDataModel? _hasData;
 
+        // ================================================================
+        // 2. MODELOS Y ESTADO
+        // ================================================================
+        
         private readonly CacheDictionary<int, FixedExpenseModel> _fixedExpensesCache = new();
         private List<FixedExpenseModel> _fixedExpenses = new();
         private List<FixedExpenseModel> _filteredFixedExpenses = new();
         private List<CategoryModel> _categories = new();
         private FixedExpenseFormModel _fixedExpenseForm = new();
         private List<int> _years = new();
+        private HasDataModel? _hasData;
 
         // ================================================================
-        // 2. FILTROS Y PROPIEDADES CON SETTER
+        // 3. FILTROS Y PROPIEDADES CON SETTER
         // ================================================================
 
         private string _searchTerm = string.Empty;
@@ -75,7 +79,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 3. CICLO DE VIDA
+        // 4. CICLO DE VIDA
         // ================================================================
 
         protected override async Task OnInitializedAsync()
@@ -85,7 +89,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 4. CARGA DE DATOS
+        // 5. CARGA DE DATOS
         // ================================================================
 
         private async Task LoadData()
@@ -137,7 +141,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 5. FILTRADO
+        // 6. FILTRADO
         // ================================================================
 
         private void ApplyFilters()
@@ -164,7 +168,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 6. OPERACIONES CRUD (SAVE)
+        // 7. OPERACIONES CRUD (SAVE)
         // ================================================================
 
         private async Task SaveFixedExpense()
@@ -277,7 +281,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 7. APERTURA DE MODALES
+        // 8. APERTURA DE MODALES
         // ================================================================
 
         private void OpenCreateModal()
@@ -338,7 +342,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 8. MÉTODOS AUXILIARES
+        // 9. MÉTODOS AUXILIARES
         // ================================================================
 
         private async Task OnYearChanged()

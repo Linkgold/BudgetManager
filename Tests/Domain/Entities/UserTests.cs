@@ -151,5 +151,46 @@ namespace Tests.Domain.Entities
             Assert.Empty(user.Budgets);
             Assert.Empty(user.Transactions);
         }
+
+        // ==================== EXCEPTIONS ====================
+
+        [Fact]
+        public void Constructor_WithDefault_ShouldCreateException()
+        {
+            // Act
+            InvalidPasswordException exception = new InvalidPasswordException();
+
+            // Assert
+            Assert.NotNull(exception);
+            Assert.Contains("InvalidPasswordException", exception.Message);
+        }
+
+        [Fact]
+        public void Constructor_WithMessage_ShouldCreateExceptionWithMessage()
+        {
+            // Arrange
+            string expectedMessage = "La contraseña actual es incorrecta.";
+
+            // Act
+            InvalidPasswordException exception = new InvalidPasswordException(expectedMessage);
+
+            // Assert
+            Assert.Equal(expectedMessage, exception.Message);
+        }
+
+        [Fact]
+        public void Constructor_WithMessageAndInnerException_ShouldCreateException()
+        {
+            // Arrange
+            string expectedMessage = "La contraseña actual es incorrecta.";
+            Exception innerException = new Exception("Inner exception");
+
+            // Act
+            InvalidPasswordException exception = new InvalidPasswordException(expectedMessage, innerException);
+
+            // Assert
+            Assert.Equal(expectedMessage, exception.Message);
+            Assert.Equal(innerException, exception.InnerException);
+        }
     }
 }

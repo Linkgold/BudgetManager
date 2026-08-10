@@ -1,8 +1,8 @@
 ﻿@if (!string.IsNullOrEmpty(Message))
 {
-    <div class="toast-container @(Type == "success" ? "toast-success" : "toast-error")">
-        <div class="toast-content">
-            <span class="toast-icon">@(Type == "success" ? "✅" : "❌")</span>
+    <div class="toast-container">
+        <div class="toast-item @GetToastClass()">
+            <span class="toast-icon">@GetToastIcon()</span>
             <span class="toast-message">@Message</span>
             <button class="toast-close" @onclick="Close">✕</button>
         </div>

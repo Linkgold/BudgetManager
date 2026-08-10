@@ -373,22 +373,47 @@ namespace Tests.Application
             _userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
         }
 
+
         [Fact]
-        public async Task ChangePasswordAsync_WithInvalidCurrentPassword_ThrowsUnauthorizedAccessException()
+        public async Task ChangePasswordAsync_WithInvalidCurrentPassword_ThrowsInvalidPasswordException()
         {
             // Arrange
             int userId = 1;
+            string wrongPassword = "WrongPassword";
 
             _currentUserServiceMock
                 .Setup(service => service.UserId)
                 .Returns(userId);
 
             _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(TestDataFactory.CreateUserWithPassword());
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD, userId));
 
             // Act & Assert
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.ChangePasswordAsync("WrongPassword", "NewPassword456!"));
+            await Assert.ThrowsAsync<InvalidPasswordException>(() =>
+                _userService.ChangePasswordAsync(wrongPassword, "NewPassword456!"));
+        }
+
+        [Fact]
+        public async Task ChangePasswordAsync_WithValidCurrentPassword_ShouldUpdatePassword()
+        {
+            // Arrange
+            int userId = 1;
+            string newPassword = "NewPassword456!";
+
+            _currentUserServiceMock
+                .Setup(service => service.UserId)
+                .Returns(userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD, userId));
+
+            // Act
+            await _userService.ChangePasswordAsync(TestDataFactory.DEFAULT_PASSWORD, newPassword);
+
+            // Assert
+            _userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
         }
 
         // ==================== TEST: EXISTS ====================
@@ -426,6 +451,7 @@ namespace Tests.Application
             // Assert
             Assert.False(result);
         }
+
 
         // ==================== DISPOSE ====================
 

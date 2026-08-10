@@ -63,6 +63,11 @@ namespace API.Middleware
                     message = exception.Message;
                     break;
 
+                case InvalidPasswordException _:
+                    statusCode = StatusCodes.Status403Forbidden;
+                    message = exception.Message;
+                    break;
+
                 default:
                     statusCode = StatusCodes.Status500InternalServerError;
                     message = "Ha ocurrido un error inesperado.";

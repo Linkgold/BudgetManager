@@ -14,23 +14,28 @@ namespace UI.Pages
     public partial class Budgets : BasePage
     {
         // ================================================================
-        // 1. MODELOS Y ESTADO
+        // 1. INYECCIONES
         // ================================================================
 
         [Inject]
         private HasDataService HasDataService { get; set; } = default!;
-        private HasDataModel? _hasData;
 
+        // ================================================================
+        // 2. MODELOS Y ESTADO
+        // ================================================================
+        
         private readonly CacheDictionary<int, BudgetModel> _budgetsCache = new();
         private List<BudgetModel> _allBudgets = new();
         private List<CategoryModel> _allCategories = new();
         private List<CategoryModel> _filteredCategories = new();
         private List<CategoryModel> _availableCategoriesForCreate = new();
         private List<int> _years = new();
+        private HasDataModel? _hasData;
+
         private BudgetFormModel _budgetForm = new() { MonthlyAmounts = MonthHelper.Months.ToDictionary(m => m.Value, m => 0m) };
 
         // ================================================================
-        // 2. FILTROS Y PROPIEDADES CON SETTER
+        // 3. FILTROS Y PROPIEDADES CON SETTER
         // ================================================================
 
         private string _searchTerm = string.Empty;
@@ -118,7 +123,7 @@ namespace UI.Pages
         private bool IsCurrentYearSelected => _selectedYear == DateTime.Now.Year;
 
         // ================================================================
-        // 3. CICLO DE VIDA
+        // 4. CICLO DE VIDA
         // ================================================================
 
         protected override async Task OnInitializedAsync()
@@ -128,7 +133,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 4. CARGA DE DATOS
+        // 5. CARGA DE DATOS
         // ================================================================
 
         private async Task LoadData()
@@ -182,7 +187,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 5. FILTRADO
+        // 6. FILTRADO
         // ================================================================
 
         private void ApplyFilters()
@@ -245,7 +250,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 6. OPERACIONES CRUD (SAVE)
+        // 7. OPERACIONES CRUD (SAVE)
         // ================================================================
 
         private async Task SaveBudget()
@@ -486,7 +491,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 7. APERTURA DE MODALES
+        // 8. APERTURA DE MODALES
         // ================================================================
 
         private void OpenCreateModal()
@@ -611,7 +616,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 8. CONFIRMACIONES DE ELIMINACIÓN
+        // 9. CONFIRMACIONES DE ELIMINACIÓN
         // ================================================================
 
         private void OpenDeleteConfirmation(int month)
@@ -676,7 +681,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // 9. MÉTODOS AUXILIARES
+        // 10. MÉTODOS AUXILIARES
         // ================================================================
         private decimal GetBudgetAmount(int categoryId, int month, int year)
         {

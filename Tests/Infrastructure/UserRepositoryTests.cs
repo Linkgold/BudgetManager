@@ -14,6 +14,10 @@ namespace Tests.Infrastructure
         private readonly SqliteConnection _connection;
         private readonly ApplicationDbContext _dbContext;
         private readonly IUserRepository _repository;
+        private readonly ICategoryRepository _categoryRepository;
+        private readonly IBudgetRepository _budgetRepository;
+        private readonly IFixedExpenseRepository _fixedExpenseRepository;
+        private readonly ITransactionRepository _transactionRepository;
 
         public UserRepositoryTests()
         {
@@ -28,6 +32,10 @@ namespace Tests.Infrastructure
             _dbContext.Database.EnsureCreated();
 
             _repository = new UserRepository(_dbContext);
+            _categoryRepository = new CategoryRepository(_dbContext);
+            _budgetRepository = new BudgetRepository(_dbContext);
+            _fixedExpenseRepository = new FixedExpenseRepository(_dbContext);
+            _transactionRepository = new TransactionRepository(_dbContext);
         }
 
         // ==================== TEST: ADD ====================
@@ -198,6 +206,42 @@ namespace Tests.Infrastructure
         {
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.DeleteAsync(999));
+        }
+
+        [Fact]
+        public async Task DeleteAsync_WithUserHavingAllRelations_ShouldDeleteUserAndAllRelatedEntities()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user, "Alimentación");
+            Budget budget = TestDataFactory.CreateBudget(1, user, category);
+            FixedExpense fixedExpense = TestDataFactory.CreateFixedExpense(1, user, category);
+            Transaction transaction = TestDataFactory.CreateTransaction(1, user, category);
+
+            // Persistir todas las entidades
+            await _repository.AddAsync(user);
+            await _categoryRepository.AddAsync(category);
+            await _budgetRepository.AddAsync(budget);
+            await _fixedExpenseRepository.AddAsync(fixedExpense);
+            await _transactionRepository.AddAsync(transaction);
+
+            // Verificar que existen
+            Assert.NotNull(await _repository.GetByIdAsync(userId));
+            Assert.NotNull(await _categoryRepository.GetByIdAsync(userId, category.Id));
+            Assert.NotNull(await _budgetRepository.GetByIdAsync(userId, budget.Id));
+            Assert.NotNull(await _fixedExpenseRepository.GetByIdAsync(userId, fixedExpense.Id));
+            Assert.NotNull(await _transactionRepository.GetByIdAsync(userId, transaction.Id));
+
+            // Act
+            await _repository.DeleteAsync(userId);
+
+            // Assert
+            Assert.Null(await _repository.GetByIdAsync(userId));
+            Assert.Null(await _categoryRepository.GetByIdAsync(userId, category.Id));
+            Assert.Null(await _budgetRepository.GetByIdAsync(userId, budget.Id));
+            Assert.Null(await _fixedExpenseRepository.GetByIdAsync(userId, fixedExpense.Id));
+            Assert.Null(await _transactionRepository.GetByIdAsync(userId, transaction.Id));
         }
 
         // ==================== DISPOSE ====================

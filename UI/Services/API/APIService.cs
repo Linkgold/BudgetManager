@@ -130,6 +130,31 @@ namespace UI.Services.API
             }
         }
 
+        public async Task<APIResult<bool>> PostNoContentAsync<TRequest>(string endpoint, TRequest request) where TRequest : class
+        {
+            try
+            {
+                HttpResponseMessage response = await PostCall(endpoint, request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return APIResult<bool>.Success(true);
+                }
+
+                ErrorResponse? error = await ParseErrorResponse(response);
+                return APIResult<bool>.Failure((int)response.StatusCode, error?.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogErrorAsync($"Error en POST {endpoint}", ex);
+                return APIResult<bool>.Failure(500, "Ocurrió un error inesperado.");
+            }
+        }
+
         public async Task<APIResult<TResponse>> PutAsync<TRequest, TResponse>(string endpoint, TRequest request)
             where TRequest : class
             where TResponse : class
@@ -230,6 +255,15 @@ namespace UI.Services.API
         }
 
         // ================================================================
+        // MÉTODOS PÚBLICOS
+        // ================================================================
+
+        public async Task LogoutAsync() => await _authService.LogoutAsync();
+
+        public void NotifySuccess(string message) => _toastService.ShowSuccess(message);
+        public void NotifyError(string message) => _toastService.ShowError(message);
+
+        // ================================================================
         // MÉTODOS PRIVADOS
         // ================================================================
 
@@ -302,15 +336,6 @@ namespace UI.Services.API
                     StatusCode = (int)response.StatusCode
                 };
             }
-        }
-        public void NotifySuccess(string message)
-        {
-            _toastService.ShowSuccess(message);
-        }
-
-        public void NotifyError(string message)
-        {
-            _toastService.ShowError(message);
         }
     }
 }

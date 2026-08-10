@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Components;
+using UI.Models.Enum;
 
 namespace UI.Shared
 {
@@ -8,7 +9,7 @@ namespace UI.Shared
         public string Message { get; set; } = string.Empty;
 
         [Parameter]
-        public string Type { get; set; } = "success"; // "success" o "error"
+        public ToastTypeEnum Type { get; set; } = ToastTypeEnum.Success;
 
         [Parameter]
         public EventCallback OnClose { get; set; }
@@ -20,6 +21,28 @@ namespace UI.Shared
             {
                 await OnClose.InvokeAsync();
             }
+        }
+
+        private string GetToastClass()
+        {
+            return Type switch
+            {
+                ToastTypeEnum.Success => "toast-success",
+                ToastTypeEnum.Error => "toast-error",
+                ToastTypeEnum.Warning => "toast-warning",
+                _ => "toast-success"
+            };
+        }
+
+        private string GetToastIcon()
+        {
+            return Type switch
+            {
+                ToastTypeEnum.Success => "✅",
+                ToastTypeEnum.Error => "❌",
+                ToastTypeEnum.Warning => "⚠️",
+                _ => "✅"
+            };
         }
     }
 }

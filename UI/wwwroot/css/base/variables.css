@@ -14,6 +14,7 @@
     /* Colores de texto */
     --color-label: #D0D0D0;
     --color-text: #E0E0E0;
+    --color-text-danger:#E0a0a0;
     --color-text-light: #A0A0B0;
     --color-text-muted: #7A7A8A;
     --color-text-inverse: #FFFFFF;
@@ -53,6 +54,7 @@
     /* Colores de texto */
     --color-label: #34495E;
     --color-text: #2C3E50;
+    --color-text-danger: #E74C3C;
     --color-text-light: #7F8C8D;
     --color-text-muted: #95A5A6;
     --color-text-inverse: #FFFFFF;

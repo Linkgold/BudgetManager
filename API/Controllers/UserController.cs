@@ -113,12 +113,27 @@ namespace API.Controllers
         [Authorize]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDTO request)
         {
             if (request == null) return BadRequest("Request cannot be null");
 
             await _userService.ChangePasswordAsync(request.CurrentPassword, request.NewPassword);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// Elimina al usuario autenticado
+        /// </summary>
+        [HttpDelete("me")]
+        [Authorize]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> DeleteCurrentUser()
+        {
+            await _userService.DeleteAsync();
 
             return NoContent();
         }

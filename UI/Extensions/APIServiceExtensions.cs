@@ -347,5 +347,75 @@ namespace UI.Extensions
 
             return null;
         }
+
+        // ================================================================
+        // USER
+        // ================================================================
+
+        public static async Task<UserResponseDTO?> GetCurrentUserAsync(this APIService api)
+        {
+            APIResult<UserResponseDTO> result = await api.GetAsync<UserResponseDTO>("/api/user/me");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data;
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar los datos del usuario.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<UserResponseDTO?> UpdateUserAsync(this APIService api, UpdateUserRequestDTO request)
+        {
+            APIResult<UserResponseDTO> result = await api.PutAsync<UpdateUserRequestDTO, UserResponseDTO>("/api/user/me", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data;
+            }
+
+            string message = result.ErrorMessage ?? "Error al actualizar el perfil.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<bool> ChangePasswordAsync(this APIService api, ChangePasswordRequestDTO request)
+        {
+            APIResult<bool> result = await api.PostNoContentAsync("/api/user/change-password", request);
+
+            if (result.IsSuccess)
+            {
+                return true;
+            }
+
+            if (result.StatusCode == 403)
+            {
+                api.NotifyError("La contraseña actual es incorrecta.");
+                return false;
+            }
+
+            string message = result.ErrorMessage ?? "Error al cambiar la contraseña.";
+            api.NotifyError(message);
+
+            return false;
+        }
+
+        public static async Task<bool> DeleteUserAsync(this APIService api)
+        {
+            APIResult<bool> result = await api.DeleteAsync("/api/user/me");
+
+            if (result.IsSuccess)
+            {
+                return true;
+            }
+
+            string message = result.ErrorMessage ?? "Error al eliminar la cuenta.";
+            api.NotifyError(message);
+
+            return false;
+        }
     }
 }
