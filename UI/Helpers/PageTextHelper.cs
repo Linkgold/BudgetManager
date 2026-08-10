@@ -53,7 +53,8 @@ namespace UI.Helpers
             ["Dashboard"] = new Definitions { Title = "Resumen Anual", Icon = "📈" },
             ["MonthDetail"] = new Definitions { Title = "Resumen de", Icon = "📅" },
             ["Login"] = new Definitions { Title = "Login", Icon = "🔐" },
-            ["Register"] = new Definitions { Title = "Register", Icon = "🔐" }
+            ["Register"] = new Definitions { Title = "Register", Icon = "🔐" },
+            ["Profile"] = new Definitions { Title = "Perfil", Icon = "👤" }
         };
 
         // ================================================================

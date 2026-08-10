@@ -3,6 +3,7 @@
 @import url('base/variables.css');
 
 /* ==================== COMPONENTES ==================== */
+@import url('components/banner.css');
 @import url('components/buttons.css');
 @import url('components/cards.css');
 @import url('components/datepicker.css');

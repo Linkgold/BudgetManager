@@ -31,6 +31,7 @@ namespace UI.Pages
         private List<CategoryModel> _availableCategoriesForCreate = new();
         private List<int> _years = new();
         private HasDataModel? _hasData;
+        private bool _isLoading = true;
 
         private BudgetFormModel _budgetForm = new() { MonthlyAmounts = MonthHelper.Months.ToDictionary(m => m.Value, m => 0m) };
 
@@ -46,6 +47,8 @@ namespace UI.Pages
         private bool _isConfirmModalOpenDeleteAll = false;
         private bool _isConfirmModalOpenDeleteOne = false;
 
+        private bool HasCategories => _allCategories.Any();
+
         private string searchTerm
         {
             get => _searchTerm;
@@ -58,7 +61,7 @@ namespace UI.Pages
                 }
             }
         }
-
+        
         private int selectedYear
         {
             get => _selectedYear;
@@ -130,6 +133,7 @@ namespace UI.Pages
         {
             await LoadData();
             _hasData = await HasDataService.GetDataAsync();
+            _isLoading = false;
         }
 
         // ================================================================

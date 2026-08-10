@@ -32,6 +32,7 @@ namespace UI.Pages
         private TransactionFormModel _transactionForm = new();
         private List<int> _years = new();
         private HasDataModel? _hasData;
+        private bool _isLoading = true;
 
         private decimal _totalAmount = 0m;
 
@@ -45,6 +46,8 @@ namespace UI.Pages
         private int _selectedMonth = DateTime.Now.Month;
         private int _selectedYear = DateTime.Now.Year;
         private int _categoryId = 0;
+
+        private bool HasCategories => _categories.Count != 0;
 
         private string searchTerm
         {
@@ -144,6 +147,7 @@ namespace UI.Pages
         {
             await LoadData();
             _hasData = await HasDataService.GetDataAsync();
+            _isLoading = false;
         }
 
         // ================================================================

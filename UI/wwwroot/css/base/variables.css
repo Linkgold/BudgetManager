@@ -14,7 +14,7 @@
     /* Colores de texto */
     --color-label: #D0D0D0;
     --color-text: #E0E0E0;
-    --color-text-danger:#E0a0a0;
+    --color-text-danger: #E0a0a0;
     --color-text-light: #A0A0B0;
     --color-text-muted: #7A7A8A;
     --color-text-inverse: #FFFFFF;
@@ -37,6 +37,8 @@
     --color-scrollbar-thumb: #4A4A5A;
     --color-scrollbar-thumb-hover: #5A5A6A;
     --color-datepicker: invert(0.8);
+    --color-hover-soft: rgba(100, 180, 255, 0.15);
+    --color-hover-medium: rgba(100, 180, 255, 0.25);
 }
 
 /* Tema claro */
@@ -77,4 +79,6 @@
     --color-scrollbar-thumb: #C0C0C0;
     --color-scrollbar-thumb-hover: #A0A0A0;
     --color-datepicker: invert(0.0);
+    --color-hover-soft: rgba(0, 0, 0, 0.04);
+    --color-hover-medium: rgba(100, 180, 255, 0.25);
 }

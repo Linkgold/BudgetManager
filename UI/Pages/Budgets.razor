@@ -7,268 +7,284 @@
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
         <h4 class="mb-0 page-title">@PageTextHelper.GetPageTitle("Budgets")</h4>
         <div>
-            <button class="btn btn-primary btn-sm me-2" @onclick="OpenCreateModal">
+            <button class="btn btn-primary btn-sm me-2" @onclick="OpenCreateModal" disabled="@(!HasCategories)">
                 @PageTextHelper.GetCreateButtonText("Budgets")
             </button>
         </div>
     </div>
-
-    <!-- Filtros -->
-    <!-- 🔹 Contenedort de Modal -->
-    <div class="table-card-wrapper-budget @_budgetForm.CurrentMode.GetModalWrapperClass(_budgetForm.IsModalOpen)">
-        <div class="card filter-card mb-3">
-            <div class="card-body d-flex flex-wrap align-items-center gap-2">
-                <div style="flex: 1; min-width: 150px; position: relative;">
-                    <input type="text" class="form-control form-control-sm search-input-with-clear"
-                           placeholder="🔍 Buscar categoría..."
-                           @bind="searchTerm"
-                           @bind:event="oninput" />
-                    @if (!string.IsNullOrEmpty(searchTerm))
-                    {
-                        <span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
-                    }
-                </div>
-                <div style="display: flex; align-items: center; gap: 4px; min-width: 150px;">
-                    <select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged" style="flex: 1;">
-                        @foreach (int year in _years)
-                        {
-                            bool hasData = _hasData?.HasBudgetData(year) ?? false;
-                            <option value="@year">
-                                @if (hasData)
-                                {
-                                    <span style="color: var(--color-accent); margin-left: 4px;">● </span>
-                                }
-                                @year
-                            </option>
-                        }
-                    </select>
-                    <button class="btn btn-outline-accent btn-sm"
-                            @onclick="() => SetCurrentYear()"
-                            title="Ir al año actual"
-                            disabled="@(IsCurrentYearSelected)"
-                            style="white-space: nowrap; padding: 4px 8px;">
-                        📅 Actual
-                    </button>
-                </div>
-            </div>
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <span class="spinner-border text-primary" role="status"></span>
+            <p class="mt-2 text-muted">Cargando...</p>
         </div>
-
-        <!-- Modal para crear/editar presupuestos -->
-        <Modal Title="@_budgetForm.CurrentMode.GetModalTitle("Presupuesto")"
-               IsVisible="@_budgetForm.IsModalOpen"
-               IsDeleteMode="@_budgetForm.IsDeleting"
-               OnSave="@SaveBudget"
-               OnClose="@CloseModal"
-               SaveButtonText="@_budgetForm.SaveButtonText"
-               SaveButtonClass="@_budgetForm.SaveButtonClass">
-
-            <!-- 1. Selección de Año y Categoría -->
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label" for="budgetYear">Año</label>
-                        <select id="budgetYear" class="form-control" value="@budgetYear" @onchange="OnModalYearChanged" disabled="@(_budgetForm.IsDeleting || _budgetForm.IsEditing)">
+    }
+    else if (HasCategories)
+    {
+        <!-- Filtros -->
+        <!-- 🔹 Contenedort de Modal -->
+        <div class="table-card-wrapper-budget @_budgetForm.CurrentMode.GetModalWrapperClass(_budgetForm.IsModalOpen)">
+            <div class="card filter-card mb-3">
+                <div class="card-body d-flex flex-wrap align-items-center gap-2">
+                    <div style="flex: 1; min-width: 150px; position: relative;">
+                        <input type="text" class="form-control form-control-sm search-input-with-clear"
+                        placeholder="🔍 Buscar categoría..."
+                        @bind="searchTerm"
+                        @bind:event="oninput" />
+                        @if (!string.IsNullOrEmpty(searchTerm))
+                        {
+                            <span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
+                        }
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 4px; min-width: 150px;">
+                        <select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged" style="flex: 1;">
                             @foreach (int year in _years)
                             {
-                                <option value="@year">@year</option>
+                                bool hasData = _hasData?.HasBudgetData(year) ?? false;
+                                <option value="@year">
+                                    @if (hasData)
+                                    {
+                                        <span style="color: var(--color-accent); margin-left: 4px;">● </span>
+                                    }
+                                    @year
+                                </option>
                             }
                         </select>
+                        <button class="btn btn-outline-accent btn-sm"
+                        @onclick="() => SetCurrentYear()"
+                        title="Ir al año actual"
+                        disabled="@(IsCurrentYearSelected)"
+                        style="white-space: nowrap; padding: 4px 8px;">
+                            📅 Actual
+                        </button>
                     </div>
                 </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label" for="budgetCategory">Categoría</label>
-                        <select id="budgetCategory" class="form-control" value="@selectedCategoryId" @onchange="OnCategoryChanged" disabled="@(_budgetForm.IsDeleting || _budgetForm.IsEditing)">
-                            @if (_budgetForm.IsEditing || _budgetForm.IsDeleting)
-                            {
-                                // 🔥 En edición/eliminación: mostrar todas las categorías
-                                @foreach (CategoryModel category in _allCategories)
+            </div>
+
+            <!-- Modal para crear/editar presupuestos -->
+            <Modal Title="@_budgetForm.CurrentMode.GetModalTitle("Presupuesto")"
+            IsVisible="@_budgetForm.IsModalOpen"
+            IsDeleteMode="@_budgetForm.IsDeleting"
+            OnSave="@SaveBudget"
+            OnClose="@CloseModal"
+            SaveButtonText="@_budgetForm.SaveButtonText"
+            SaveButtonClass="@_budgetForm.SaveButtonClass">
+
+                <!-- 1. Selección de Año y Categoría -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="budgetYear">Año</label>
+                            <select id="budgetYear" class="form-control" value="@budgetYear" @onchange="OnModalYearChanged" disabled="@(_budgetForm.IsDeleting || _budgetForm.IsEditing)">
+                                @foreach (int year in _years)
                                 {
-                                    <option value="@category.Id">@category.Name</option>
+                                    <option value="@year">@year</option>
                                 }
-                            }
-                            else
-                            {
-                                // 🔥 En creación: solo categorías sin presupuesto
-                                if (_availableCategoriesForCreate.Any())
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="budgetCategory">Categoría</label>
+                            <select id="budgetCategory" class="form-control" value="@selectedCategoryId" @onchange="OnCategoryChanged" disabled="@(_budgetForm.IsDeleting || _budgetForm.IsEditing)">
+                                @if (_budgetForm.IsEditing || _budgetForm.IsDeleting)
                                 {
-                                    @foreach (CategoryModel category in _availableCategoriesForCreate)
+                                    // 🔥 En edición/eliminación: mostrar todas las categorías
+                                    @foreach (CategoryModel category in _allCategories)
                                     {
                                         <option value="@category.Id">@category.Name</option>
                                     }
                                 }
                                 else
                                 {
-                                    <option value="0">No hay categorías disponibles</option>
+                                    // 🔥 En creación: solo categorías sin presupuesto
+                                    if (_availableCategoriesForCreate.Any())
+                                    {
+                                        @foreach (CategoryModel category in _availableCategoriesForCreate)
+                                        {
+                                            <option value="@category.Id">@category.Name</option>
+                                        }
+                                    }
+                                    else
+                                    {
+                                        <option value="0">No hay categorías disponibles</option>
+                                    }
                                 }
-                            }
-                        </select>
+                            </select>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- 2. Importe por defecto y acción "Aplicar a todos" -->
-            @if (!_budgetForm.IsDeleting)
-            {
-                <div class="row mt-2">
-                    <div class="col-md-12">
-                        <div class="form-group">
-                            <label class="form-label" for="@PageTextHelper.BUDGET_DEFAULT_AMOUNT_ID">Importe (aplicar a todos)</label>
-                            <div class="d-flex gap-2">
-                                <input type="number" id="@PageTextHelper.BUDGET_DEFAULT_AMOUNT_ID" class="form-control"
+                <!-- 2. Importe por defecto y acción "Aplicar a todos" -->
+                @if (!_budgetForm.IsDeleting)
+                {
+                    <div class="row mt-2">
+                        <div class="col-md-12">
+                            <div class="form-group">
+                                <label class="form-label" for="@PageTextHelper.BUDGET_DEFAULT_AMOUNT_ID">Importe (aplicar a todos)</label>
+                                <div class="d-flex gap-2">
+                                    <input type="number" id="@PageTextHelper.BUDGET_DEFAULT_AMOUNT_ID" class="form-control"
                                     @bind="_budgetForm.DefaultAmount" 
-                                       @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, PageTextHelper.BUDGET_DEFAULT_AMOUNT_ID))"
+                                    @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, PageTextHelper.BUDGET_DEFAULT_AMOUNT_ID))"
                                     step="1.00" min="0" placeholder="0.00" 
                                     disabled="@_budgetForm.IsDeleting" />
-                                <button class="btn btn-outline-primary btn-sm w-100"
-                                        @onclick="() => 
+                                    <button class="btn btn-outline-primary btn-sm w-100"
+                                    @onclick="() => 
                                         { 
                                             _budgetForm.ApplyAmountToAllMonths(); 
                                             StateHasChanged(); 
                                         }"
-                                        disabled="@_budgetForm.IsDeleting">
-                                    📋 Aplicar a todos los meses
-                                </button>
+                                    disabled="@_budgetForm.IsDeleting">
+                                        📋 Aplicar a todos los meses
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            }
-            <!-- 3. Tabla de meses (con scroll si es necesario) -->
-            <div class="mt-3 budget-month-table">
-                <table class="table table-sm mb-0">
-                    <thead>
-                        <tr>
-                            <th style="width: 30%;">Mes</th>
-                            <th style="width: 70%;">Importe</th>
-                            @if (_budgetForm.IsEditing || _budgetForm.IsDeleting)
-                            {
-                                <th style="width: 15%;" class="text-center">Acción</th>
-                            }
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (MonthModel month in MonthHelper.Months)
-                        {
-                            <tr>
-                                <td><span class="fw-semibold">@month.Name</span></td>
-                                <td>
-                                    @if (_budgetForm.IsDeleting && _budgetForm.MonthlyAmounts[month.Value] == 0m)
-                                    {
-                                        <div class="form-control form-control-sm text-muted" style="cursor: default; background-color: var(--color-surface); border: 1px solid var(--color-border);">—</div>
-                                    }
-                                    else
-                                    {
-                                        <input type="number" class="form-control form-control-sm"
-                                               step="1.00" min="0" placeholder="0.00"
-                                               id="@($"{PageTextHelper.BUDGET_MONTH_AMOUNT_PREFIX}_{month.Value}")"
-                                               @bind="_budgetForm.MonthlyAmounts[month.Value]"
-                                               @bind:event="oninput"
-                                               @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, $"{PageTextHelper.BUDGET_MONTH_AMOUNT_PREFIX}_{month.Value}"))"
-                                               disabled="@_budgetForm.IsDeleting" />
-                                    }
-                                </td>
-                                @if (_budgetForm.IsEditing || _budgetForm.IsDeleting)
-                                {
-                                <td class="text-center">
-                                        @if (_budgetForm.IsDeleting && _budgetForm.MonthlyAmounts[month.Value] > 0)
-                                    {
-                                        <button class="btn btn-outline-danger btn-sm"
-                                                @onclick="() => OpenDeleteConfirmation(month.Value)"
-                                                title="Eliminar este mes">
-                                            🗑️
-                                        </button>
-                                    }
-                                    else if (_budgetForm.IsEditing && _budgetForm.HasMonthChanged(month.Value))
-                                    {
-                                        <button class="btn btn-outline-primary btn-sm"
-                                                @onclick="() => UpdateSingleMonthAsync(month.Value)"
-                                                title="Actualizar este mes">
-                                            💾
-                                        </button>
-                                    }
-                                </td>
-                                }
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 4. Resumen rápido -->
-            <div class="mt-2 budget-total-label text-muted small">
-                Total presupuesto anual: <span class="fw-bold">@CurrencyHelper.FormatCurrency(_budgetForm.TotalAnnualBudget)</span>
-            </div>
-        </Modal>
-
-        <!-- Tabla de presupuestos (vista anual) -->
-        <div class="card table-card">
-            <div class="card-body p-0">
-                <div class="table-responsive" style="overflow-x: auto; overflow-y: visible;">
-                    <table class="budgets-table table table-hover mb-0">
+                }
+                <!-- 3. Tabla de meses (con scroll si es necesario) -->
+                <div class="mt-3 budget-month-table">
+                    <table class="table table-sm mb-0">
                         <thead>
                             <tr>
-                                <th class="text-start">Categoría</th>
-                                @foreach (MonthModel month in MonthHelper.Months)
+                                <th style="width: 30%;">Mes</th>
+                                <th style="width: 70%;">Importe</th>
+                                @if (_budgetForm.IsEditing || _budgetForm.IsDeleting)
                                 {
-                                    <th class="text-center" style="min-width: 50px;">@month.ShortName</th>
+                                    <th style="width: 15%;" class="text-center">Acción</th>
                                 }
-                                <th class="text-end" style="min-width: 80px;">Total</th>
-                                <th class="text-end" style="min-width: 100px; width: 100px;">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @if (_filteredCategories.Any())
-                            {
-                                @foreach (CategoryModel category in _filteredCategories)
-                                {
-                                    <tr>
-                                        <td class="text-start">@category.Name</td>
-                                        @foreach (MonthModel month in MonthHelper.Months)
-                                        {
-                                            decimal amount = GetBudgetAmount(category.Id, month.Value, selectedYear);
-                                            <td class="text-center">@(amount > 0 ? amount.ToString("C", new System.Globalization.CultureInfo("es-ES")) : "—")</td>
-                                        }
-                                        <td class="text-end">@GetCategoryTotal(category.Id, selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
-                                        <td class="text-end">
-                                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(category.Id, selectedYear)">
-                                                ✏️
-                                            </button>
-                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteModal(category.Id, selectedYear)">
-                                                🗑️
-                                            </button>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                            else
+                            @foreach (MonthModel month in MonthHelper.Months)
                             {
                                 <tr>
-                                    <td colspan="@(MonthHelper.Months.Count + 3)" class="text-center text-muted py-3">
-                                        @PageTextHelper.GetEmptyMessage("Budgets")
+                                    <td><span class="fw-semibold">@month.Name</span></td>
+                                    <td>
+                                        @if (_budgetForm.IsDeleting && _budgetForm.MonthlyAmounts[month.Value] == 0m)
+                                        {
+                                            <div class="form-control form-control-sm text-muted" style="cursor: default; background-color: var(--color-surface); border: 1px solid var(--color-border);">—</div>
+                                        }
+                                        else
+                                        {
+                                            <input type="number" class="form-control form-control-sm"
+                                            step="1.00" min="0" placeholder="0.00"
+                                            id="@($"{PageTextHelper.BUDGET_MONTH_AMOUNT_PREFIX}_{month.Value}")"
+                                            @bind="_budgetForm.MonthlyAmounts[month.Value]"
+                                            @bind:event="oninput"
+                                            @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, $"{PageTextHelper.BUDGET_MONTH_AMOUNT_PREFIX}_{month.Value}"))"
+                                            disabled="@_budgetForm.IsDeleting" />
+                                        }
                                     </td>
+                                    @if (_budgetForm.IsEditing || _budgetForm.IsDeleting)
+                                    {
+                                        <td class="text-center">
+                                            @if (_budgetForm.IsDeleting && _budgetForm.MonthlyAmounts[month.Value] > 0)
+                                            {
+                                                <button class="btn btn-outline-danger btn-sm"
+                                                @onclick="() => OpenDeleteConfirmation(month.Value)"
+                                                title="Eliminar este mes">
+                                                    🗑️
+                                                </button>
+                                            }
+                                            else if (_budgetForm.IsEditing && _budgetForm.HasMonthChanged(month.Value))
+                                            {
+                                                <button class="btn btn-outline-primary btn-sm"
+                                                @onclick="() => UpdateSingleMonthAsync(month.Value)"
+                                                title="Actualizar este mes">
+                                                    💾
+                                                </button>
+                                            }
+                                        </td>
+                                    }
                                 </tr>
                             }
                         </tbody>
-                        <tfoot>
-                            <tr class="table-secondary fw-bold">
-                                <td class="text-start">TOTAL</td>
-                                @foreach (MonthModel month in MonthHelper.Months)
-                                {
-                                    <td class="text-center">@GetMonthTotal(month.Value, selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
-                                }
-                                <td class="text-end">@GetTotal(selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
-                                <td></td>
-                            </tr>
-                        </tfoot>
                     </table>
                 </div>
-            </div>
-            <div class="card-footer text-muted small">
-                @PageTextHelper.GetBudgetFooterMessage(_filteredCategories.Count(), selectedYear)
+
+                <!-- 4. Resumen rápido -->
+                <div class="mt-2 budget-total-label text-muted small">
+                    Total presupuesto anual: <span class="fw-bold">@CurrencyHelper.FormatCurrency(_budgetForm.TotalAnnualBudget)</span>
+                </div>
+            </Modal>
+
+            <!-- Tabla de presupuestos (vista anual) -->
+            <div class="card table-card">
+                <div class="card-body p-0">
+                    <div class="table-responsive" style="overflow-x: auto; overflow-y: visible;">
+                        <table class="budgets-table table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-start">Categoría</th>
+                                    @foreach (MonthModel month in MonthHelper.Months)
+                                    {
+                                        <th class="text-center" style="min-width: 50px;">@month.ShortName</th>
+                                    }
+                                    <th class="text-end" style="min-width: 80px;">Total</th>
+                                    <th class="text-end" style="min-width: 100px; width: 100px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_filteredCategories.Any())
+                                {
+                                    @foreach (CategoryModel category in _filteredCategories)
+                                    {
+                                        <tr>
+                                            <td class="text-start">@category.Name</td>
+                                            @foreach (MonthModel month in MonthHelper.Months)
+                                            {
+                                                decimal amount = GetBudgetAmount(category.Id, month.Value, selectedYear);
+                                                <td class="text-center">@(amount > 0 ? amount.ToString("C", new System.Globalization.CultureInfo("es-ES")) : "—")</td>
+                                            }
+                                            <td class="text-end">@GetCategoryTotal(category.Id, selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
+                                            <td class="text-end">
+                                                <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(category.Id, selectedYear)">
+                                                    ✏️
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteModal(category.Id, selectedYear)">
+                                                    🗑️
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
+                                {
+                                    <tr>
+                                        <td colspan="@(MonthHelper.Months.Count + 3)" class="text-center text-muted py-3">
+                                            @PageTextHelper.GetEmptyMessage("Budgets")
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-secondary fw-bold">
+                                    <td class="text-start">TOTAL</td>
+                                    @foreach (MonthModel month in MonthHelper.Months)
+                                    {
+                                        <td class="text-center">@GetMonthTotal(month.Value, selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
+                                    }
+                                    <td class="text-end">@GetTotal(selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
+                                    <td></td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-muted small">
+                    @PageTextHelper.GetBudgetFooterMessage(_filteredCategories.Count(), selectedYear)
+                </div>
             </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <InfoBanner Title="No hay categorías disponibles"
+                    Message="Para crear presupuestos, primero necesitas crear al menos una categoría."
+                    ButtonText="@($"Ir a {PageTextHelper.GetPageTitle("Categories")}")"
+                    ButtonUrl="/categories" />
+    }
 </div>
 
 <!-- Modal de confirmación para eliminación individual -->

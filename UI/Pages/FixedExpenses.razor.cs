@@ -31,6 +31,7 @@ namespace UI.Pages
         private FixedExpenseFormModel _fixedExpenseForm = new();
         private List<int> _years = new();
         private HasDataModel? _hasData;
+        private bool _isLoading = true;
 
         // ================================================================
         // 3. FILTROS Y PROPIEDADES CON SETTER
@@ -78,6 +79,8 @@ namespace UI.Pages
             }
         }
 
+        private bool HasExpenseOrMixedCategories => _categories.Count != 0;
+
         // ================================================================
         // 4. CICLO DE VIDA
         // ================================================================
@@ -86,6 +89,7 @@ namespace UI.Pages
         {
             await LoadData();
             _hasData = await HasDataService.GetDataAsync();
+            _isLoading = false;
         }
 
         // ================================================================
