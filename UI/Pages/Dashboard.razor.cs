@@ -11,8 +11,17 @@ namespace UI.Pages
 {
     public partial class Dashboard : BasePage
     {
+        // ================================================================
+        // 1. INYECCIONES
+        // ================================================================
+
         [Inject]
         private HasDataService HasDataService { get; set; } = default!;
+
+
+        // ================================================================
+        // 2. MODELOS Y ESTADO
+        // ================================================================
 
         private readonly CacheDictionary<int, DashboardModel> _dashboardCache = new();
 
@@ -21,7 +30,12 @@ namespace UI.Pages
         private List<MonthModel> _months = new();
         private List<int> _years = new();
         private HasDataModel? _hasData;
+        private int? _hoverMonth = null;
         private bool _isLoading = true;
+
+        // ================================================================
+        // 3. CICLO DE VIDA
+        // ================================================================
 
         protected override async Task OnInitializedAsync()
         {
@@ -38,6 +52,10 @@ namespace UI.Pages
 
             _isLoading = false;
         }
+
+        // ================================================================
+        // 4. CARGA DE DATOS
+        // ================================================================
 
         private async Task LoadData()
         {
@@ -64,27 +82,34 @@ namespace UI.Pages
             }
         }
 
-        private async Task OnYearChanged()
-        {
-            await LoadData();
-        }
+        // ================================================================
+        // 5. NAVEGACIÓN Y HOVER
+        // ================================================================
 
         private void NavigateToMonth(int month)
         {
             NavigationManager.NavigateTo($"/monthly/{month}/{_currentYear}");
         }
 
-        private int? _hoverMonth = null;
-
         private void SetHoverMonth(int? month)
         {
             _hoverMonth = month;
+
             StateHasChanged();
         }
 
         private string GetColumnHoverClass(int month)
         {
             return _hoverMonth == month ? "column-hover" : "";
+        }
+
+        // ================================================================
+        // 6. EVENTOS
+        // ================================================================
+
+        private async Task OnYearChanged()
+        {
+            await LoadData();
         }
     }
 }

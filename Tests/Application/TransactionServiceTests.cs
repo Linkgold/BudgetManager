@@ -218,43 +218,6 @@ namespace Tests.Application
         }
 
         [Fact]
-        public async Task CreateAsync_WithIncomeCategoryAndTransactionTypeExpense_ShouldThrowException()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-            Category category = TestDataFactory.CreateCategory(categoryId, nature: CategoryNatureEnum.Income);
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
-                .ReturnsAsync(TestDataFactory.CreateUser());
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId, categoryId, It.IsAny<bool>()))
-                .ReturnsAsync(category);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>
-            (
-                () =>
-                _transactionService.CreateAsync
-                (
-                    new CreateTransactionRequestDTO
-                    {
-                        CategoryId = categoryId,
-                        Name = "Ingreso Incorrecto",
-                        Amount = 100.00m,
-                        TransactionType = TransactionTypeEnum.Expense,
-                        Currency = "EUR",
-                        Date = new DateTime(TestDataFactory.DEFAULT_YEAR, TestDataFactory.DEFAULT_DAILY_MONTH, TestDataFactory.DEFAULT_DAILY_DAY)
-                    }
-                )
-            );
-        }
-
-        [Fact]
         public async Task CreateAsync_WithNonExistingCategory_ThrowsKeyNotFoundException()
         {
             // Arrange

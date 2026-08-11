@@ -2,11 +2,29 @@
 {
     public class DashboardMonthTotalsModel
     {
-        public int Month { get; set; }
-        public string Name { get; set; } = string.Empty;
-        public decimal TotalBudget { get; set; }
-        public decimal TotalSpent { get; set; }
-        public decimal AccumulatedBudget { get; set; }
-        public decimal AccumulatedSpent { get; set; }
+        public int Month { get; }
+        public string Name { get; } = string.Empty;
+        public decimal TotalBudget { get; }
+        public decimal TotalSpent { get; }
+        public decimal AccumulatedBudget { get; }
+        public decimal AccumulatedSpent { get; }
+
+        public DashboardMonthTotalsModel
+        (
+            int month, 
+            string name, 
+            decimal totalBudget, 
+            decimal totalSpent, 
+            decimal accumulatedBudget, 
+            decimal accumulatedSpent
+        )
+        {
+            Month = month;
+            Name = name;
+            TotalBudget = totalBudget;
+            TotalSpent = totalSpent;
+            AccumulatedBudget = accumulatedBudget;
+            AccumulatedSpent = accumulatedSpent;
+        }
     }
 }

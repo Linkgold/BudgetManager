@@ -314,6 +314,16 @@ namespace UI.Services.API
             {
                 string content = await response.Content.ReadAsStringAsync();
 
+                // 🔥 Si la respuesta está vacía, devolver un ErrorResponse por defecto
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return new ErrorResponse
+                    {
+                        StatusCode = (int)response.StatusCode,
+                        Message = response.ReasonPhrase ?? "Error en la petición",
+                        Timestamp = DateTime.UtcNow
+                    };
+                }
 
                 if ((int)response.StatusCode >= 400 && (int)response.StatusCode < 500)
                 {

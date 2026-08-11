@@ -80,5 +80,18 @@ namespace UI.Extensions
                 }
             }
         }
+
+        public static string GetStatusCircleClass(this CategoryNatureEnum nature, decimal spent, decimal budget)
+        {
+            string textClass = nature.GetStatusClass(spent, budget);
+
+            return textClass switch
+            {
+                "text-success" => "green",
+                "text-warning" => "yellow",
+                "text-danger" => "red",
+                _ => "green"
+            };
+        }
     }
 }

@@ -4,18 +4,26 @@ namespace UI.Models.Dashboard
 {
     public class DashboardCategoryModel
     {
-        public string CategoryName { get; set; } = string.Empty;
-        public CategoryNatureEnum Nature { get; set; }
-        public List<DashboardCategoryMonthModel> MonthlyData { get; set; } = new();
-        public decimal TotalBudget { get; set; }
-        public decimal TotalSpent { get; set; }
+        public string CategoryName { get; } = string.Empty;
+        public CategoryNatureEnum Nature { get; }
+        public List<DashboardCategoryMonthModel> MonthlyData { get; } = new();
+        public decimal TotalBudget { get; }
+        public decimal TotalSpent { get; }
 
-        public DashboardCategoryModel()
+        public DashboardCategoryModel
+        (
+            string categoryName, 
+            CategoryNatureEnum nature, 
+            List<DashboardCategoryMonthModel> monthlyData, 
+            decimal totalBudget, 
+            decimal totalSpent
+        )
         {
-            /*for (int i = 0; i <= 12; i++)
-            {
-                MonthlyData.Add(new DashboardCategoryMonthModel());
-            }*/
+            CategoryName = categoryName;
+            Nature = nature;
+            MonthlyData = monthlyData;
+            TotalBudget = totalBudget;
+            TotalSpent = totalSpent;
         }
     }
 }

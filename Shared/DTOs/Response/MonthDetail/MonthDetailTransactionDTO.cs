@@ -10,6 +10,5 @@ namespace Shared.DTOs.Response.MonthDetail
         public decimal Amount { get; set; }
         public DateTime Date { get; set; }
         public TransactionTypeEnum TransactionType { get; set; }
-        public decimal DisplayAmount { get; set; }
     }
 }

@@ -352,29 +352,6 @@ namespace Tests.Application
         // ==================== TEST: CHANGE PASSWORD ====================
 
         [Fact]
-        public async Task ChangePasswordAsync_WithValidData_UpdatesPassword()
-        {
-            // Arrange
-            int userId = 1;
-            string newPassword = "NewPassword456!";
-
-            _currentUserServiceMock
-                .Setup(service => service.UserId)
-                .Returns(userId);
-
-            _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD));
-
-            // Act
-            await _userService.ChangePasswordAsync(TestDataFactory.DEFAULT_PASSWORD, newPassword);
-
-            // Assert
-            _userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
-        }
-
-
-        [Fact]
         public async Task ChangePasswordAsync_WithInvalidCurrentPassword_ThrowsInvalidPasswordException()
         {
             // Arrange

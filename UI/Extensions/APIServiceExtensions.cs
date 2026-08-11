@@ -2,9 +2,11 @@
 using Shared.DTOs.Response;
 using Shared.DTOs.Response.Data;
 using Shared.DTOs.Response.HasData;
+using Shared.DTOs.Response.MonthDetail;
 using UI.Extensions.Mappings;
 using UI.Models;
 using UI.Models.Dashboard;
+using UI.Models.MonthDetail;
 using UI.Services.API;
 
 namespace UI.Extensions
@@ -328,6 +330,21 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al cargar los datos del dashboard.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<AnnualDetailModel?> GetAnnualDetailAsync(this APIService api, int year)
+        {
+            APIResult<AnnualDetailResponseDTO> result = await api.GetAsync<AnnualDetailResponseDTO>($"/api/data/annualdetail/{year}");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToAnnualDetailModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar los datos anuales.";
             api.NotifyError(message);
 
             return null;

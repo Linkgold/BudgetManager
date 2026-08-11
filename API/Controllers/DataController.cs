@@ -26,10 +26,10 @@ public class DataController : ControllerBase
     }
 
     // ✅ MonthDetail
-    [HttpGet("monthdetail/{year}/{month}")]
-    public async Task<IActionResult> GetMonthDetail(int year, int month)
+    [HttpGet("annualdetail/{year}")]
+    public async Task<IActionResult> GetAnnualDetail(int year)
     {
-        MonthDetailResponseDTO result = await _dataService.GetMonthDetailAsync(year, month);
+        AnnualDetailResponseDTO result = await _dataService.GetAnnualDetailAsync(year);
         return Ok(result);
     }
 

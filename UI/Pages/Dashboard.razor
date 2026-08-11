@@ -35,7 +35,7 @@
     {
         <div class="card dashboard-card">
             <div class="card-header dashboard-card-header py-2">
-                <small class="fw-bold">📊 Gastos reales vs Presupuestos por Categoría</small>
+                <small class="fw-bold">📊 Movimientos ejecutados vs presupuestos por categoría</small>
             </div>
             <div class="card-body p-0">
                 <div class="dashboard-table-wrapper">
@@ -90,11 +90,11 @@
                                             {
                                                 <div>
                                                     <span class="@category.Nature.GetStatusClass(data.Spent, data.Budget)">
-                                                        @CurrencyHelper.FormatCurrency(data.Spent.GetDisplaySpent())
+                                                        @CurrencyHelper.FormatCurrency(data.DisplaySpent)
                                                     </span>
                                                 </div>
                                                 <div>
-                                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(data.Budget.GetDisplaySpent())</span>
+                                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(data.DisplayBudget)</span>
                                                 </div>
                                             }
                                             else
@@ -106,7 +106,7 @@
                                     <td class="text-end">
                                         <div>
                                             <span class="@category.Nature.GetStatusClass(category.TotalSpent, category.TotalBudget)">
-                                                @CurrencyHelper.FormatCurrency(category.TotalSpent.GetDisplaySpent())
+                                                @CurrencyHelper.FormatCurrency(category.TotalSpent)
                                             </span>
                                         </div>
                                         <div>

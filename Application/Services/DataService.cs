@@ -17,7 +17,6 @@ namespace Application.Services.Data
         private readonly IBudgetRepository _budgetRepository;
         private readonly ITransactionRepository _transactionRepository;
         private readonly IFixedExpenseRepository _fixedExpenseRepository;
-        private readonly IMapper _mapper;
 
         public DataService
         (
@@ -34,7 +33,6 @@ namespace Application.Services.Data
             _budgetRepository = budgetRepository;
             _transactionRepository = transactionRepository;
             _fixedExpenseRepository = fixedExpenseRepository;
-            _mapper = mapper;
         }
 
         private int UserId => _currentUserService.UserId;
@@ -102,25 +100,25 @@ namespace Application.Services.Data
                         .Sum(t => t.TransactionType == TransactionTypeEnum.Income ? t.Amount.Value : -t.Amount.Value);
 
                     // Total presupuesto del mes (presupuesto + gasto fijo)
-                    decimal totalBudget = budget + fixedExpense;
-                    decimal totalSpent = spent;
+                    decimal calculatedMonthBudget = budget + fixedExpense;
+                    decimal calculatedMonthSpent = spent;
 
                     // Guardar datos del mes
                     categoryDto.MonthlyData.Add(new DashboardCategoryMonthDTO
                     {
                         Month = month,
-                        Budget = totalBudget,
-                        Spent = totalSpent
+                        Budget = calculatedMonthBudget,
+                        Spent = calculatedMonthSpent
                     });
 
                     // Acumular totales de la categoría
-                    categoryDto.TotalBudget += totalBudget;
-                    categoryDto.TotalSpent += totalSpent;
+                    categoryDto.TotalBudget += calculatedMonthBudget;
+                    categoryDto.TotalSpent += calculatedMonthSpent;
 
                     // Acumular totales del mes (todas las categorías)
                     DashboardMonthTotalsDTO monthDto = months.First(m => m.Month == month);
-                    monthDto.TotalBudget += totalBudget;
-                    monthDto.TotalSpent += totalSpent;
+                    monthDto.TotalBudget += calculatedMonthBudget;
+                    monthDto.TotalSpent += calculatedMonthSpent;
                 }
 
                 dashboard.Categories.Add(categoryDto);
@@ -165,13 +163,108 @@ namespace Application.Services.Data
         // MONTH DETAIL
         // ================================================================
 
-        public async Task<MonthDetailResponseDTO> GetMonthDetailAsync(int year, int month)
+        public async Task<AnnualDetailResponseDTO> GetAnnualDetailAsync(int year)
         {
-            MonthDetailResponseDTO monthDetail = new MonthDetailResponseDTO();
+            if (year < 1900 || year > 2100)
+                throw new ArgumentException("Year must be between 1900 and 2100", nameof(year));
 
-            // TODO: Obtener datos del mes
+            // 1. Obtener datos del año
+            IEnumerable<Category> categories = await _categoryRepository.GetAllAsync(UserId);
+            IEnumerable<Budget> budgets = await _budgetRepository.GetAllByYearAsync(UserId, year);
+            IEnumerable<Transaction> transactions = await _transactionRepository.GetAllByYearAsync(UserId, year);
+            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetAllByYearAsync(UserId, year);
 
-            return monthDetail;
+            if (categories == null)
+            {
+                throw new Exception("Error obtaining annual detail data.");
+            }
+
+            // 2. Inicializar respuesta
+            AnnualDetailResponseDTO response = new AnnualDetailResponseDTO
+            {
+                Year = year,
+                Months = new List<MonthDetailResponseDTO>()
+            };
+
+            // 3. Procesar cada mes (1 a 12)
+            for (int month = 1; month <= 12; month++)
+            {
+                MonthDetailResponseDTO monthResponse = new MonthDetailResponseDTO
+                {
+                    Month = month,
+                    Categories = new List<MonthDetailCategoryDTO>()
+                };
+
+                decimal totalBudget = 0m;
+                decimal totalSpent = 0m;
+
+                // 4. Procesar cada categoría para el mes actual
+                foreach (Category category in categories)
+                {
+                    // Presupuesto de la categoría para este mes
+                    decimal budget = budgets
+                        .Where(b => b.CategoryId == category.Id && b.Period.Month == month && b.Period.Year == year)
+                        .Sum(b => b.Category.Nature == CategoryNatureEnum.Income ? b.MonthlyAmount.Value : -b.MonthlyAmount.Value);
+
+                    // Gastos fijos de la categoría para este mes
+                    decimal fixedExpense = fixedExpenses
+                        .Where(f => f.CategoryId == category.Id && f.ChargePeriod.Month == month && f.ChargePeriod.Year == year)
+                        .Sum(f => -f.Amount.Value);
+
+                    // Transacciones de la categoría para este mes
+                    decimal spent = transactions
+                        .Where(t => t.CategoryId == category.Id && t.Date.Month == month && t.Date.Year == year)
+                        .Sum(t => t.TransactionType == TransactionTypeEnum.Income ? t.Amount.Value : -t.Amount.Value);
+
+                    // Solo incluir categorías que tengan presupuesto, gasto fijo o transacciones
+                    if (budget != 0 || spent != 0 || fixedExpense != 0)
+                    {
+                        decimal totalBudgetCategory = budget + fixedExpense;
+                        decimal totalSpentCategory = spent;
+
+                        totalBudget += totalBudgetCategory;
+                        totalSpent += totalSpentCategory;
+
+                        MonthDetailCategoryDTO categoryDto = new MonthDetailCategoryDTO
+                        {
+                            CategoryId = category.Id,
+                            CategoryName = category.Info.Name,
+                            Nature = category.Nature,
+                            Budget = totalBudgetCategory,
+                            Spent = totalSpentCategory,
+                            Transactions = new List<MonthDetailTransactionDTO>()
+                        };
+
+                        // Obtener transacciones de esta categoría para el mes
+                        List<Transaction> categoryTransactions = transactions
+                            .Where(t => t.CategoryId == category.Id && t.Date.Month == month && t.Date.Year == year)
+                            .OrderBy(t => t.Date.Day)
+                            .ToList();
+
+                        foreach (Transaction transaction in categoryTransactions)
+                        {
+                            categoryDto.Transactions.Add(new MonthDetailTransactionDTO
+                            {
+                                Id = transaction.Id,
+                                Name = transaction.Info.Name,
+                                Description = transaction.Info.Description ?? string.Empty,
+                                Amount = transaction.Amount.Value,
+                                Date = transaction.Date.ToDateTime(),
+                                TransactionType = transaction.TransactionType
+                            });
+                        }
+
+                        monthResponse.Categories.Add(categoryDto);
+                    }
+                }
+
+                monthResponse.TotalBudget = totalBudget;
+                monthResponse.TotalSpent = totalSpent;
+
+                response.Months.Add(monthResponse);
+            }
+
+            return response;
         }
 
         // ================================================================

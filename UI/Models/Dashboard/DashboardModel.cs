@@ -1,6 +1,7 @@
 ﻿using Shared.DTOs.Response.Dashboard;
 using Shared.DTOs.Response.Data;
 using UI.Helpers;
+using UI.Pages;
 
 namespace UI.Models.Dashboard
 {
@@ -11,51 +12,57 @@ namespace UI.Models.Dashboard
 
         public static DashboardModel FromDTO(DashboardResponseDTO dto)
         {
-            DashboardModel model = new DashboardModel();
-
             // 1. Mapear categorías
+            List<DashboardCategoryModel> categories = new List<DashboardCategoryModel>();
+
             foreach (DashboardCategoryDTO categoryDto in dto.Categories)
             {
-                DashboardCategoryModel categoryModel = new DashboardCategoryModel
-                {
-                    CategoryName = categoryDto.CategoryName,
-                    Nature = categoryDto.Nature,
-                    TotalBudget = categoryDto.TotalBudget,
-                    TotalSpent = categoryDto.TotalSpent
-                };
-
+                List<DashboardCategoryMonthModel> monthlyData = new List<DashboardCategoryMonthModel>();
+                
                 // Mapear datos mensuales
                 foreach (DashboardCategoryMonthDTO monthDto in categoryDto.MonthlyData)
                 {
-                    categoryModel.MonthlyData.Add(new DashboardCategoryMonthModel());
-
-                    categoryModel.MonthlyData[monthDto.Month - 1] = new DashboardCategoryMonthModel
-                    {
-                        Month = monthDto.Month,
-                        Budget = monthDto.Budget,
-                        Spent = monthDto.Spent
-                    };
+                    monthlyData.Add
+                    (
+                        new DashboardCategoryMonthModel
+                        (
+                            monthDto.Month, 
+                            monthDto.Budget, 
+                            monthDto.Spent, 
+                            categoryDto.Nature
+                        )
+                    );
                 }
 
-                model.Categories.Add(categoryModel);
+                categories.Add
+                (
+                    new DashboardCategoryModel
+                    (
+                        categoryDto.CategoryName, 
+                        categoryDto.Nature, 
+                        monthlyData, 
+                        categoryDto.TotalBudget, 
+                        categoryDto.TotalSpent
+                    )
+                );
             }
 
             // 2. Mapear meses (totales + acumulados)
+            List<DashboardMonthTotalsModel> months = new List<DashboardMonthTotalsModel>();
+
             foreach (DashboardMonthTotalsDTO monthDto in dto.Months)
             {
-                // Mes con totales
-                model.Months.Add(new DashboardMonthTotalsModel
-                {
-                    Month = monthDto.Month,
-                    Name = MonthHelper.GetMonthName(monthDto.Month),
-                    TotalBudget = monthDto.TotalBudget,
-                    TotalSpent = monthDto.TotalSpent,
-                    AccumulatedBudget = monthDto.AccumulatedBudget,
-                    AccumulatedSpent = monthDto.AccumulatedSpent
-                });
+                months.Add(new DashboardMonthTotalsModel(
+                    monthDto.Month,
+                    MonthHelper.GetMonthName(monthDto.Month),
+                    monthDto.TotalBudget,
+                    monthDto.TotalSpent,
+                    monthDto.AccumulatedBudget,
+                    monthDto.AccumulatedSpent
+                ));
             }
 
-            return model;
+            return new DashboardModel { Categories = categories, Months = months };
         }
     }
 }

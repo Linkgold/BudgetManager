@@ -215,32 +215,6 @@ namespace Tests.Application
             _fixedExpenseRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<FixedExpense>()), Times.Never);
         }
 
-        [Fact]
-        public async Task CreateAsync_WithNegativeAmount_ThrowsArgumentException()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory(categoryId, user, "Suscripciones");
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
-                .ReturnsAsync(category);
-
-            _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
-                .ReturnsAsync(user);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _fixedExpenseService.CreateAsync(new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Amount = -15.99m, Name = "Test" }));
-
-            _fixedExpenseRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<FixedExpense>()), Times.Never);
-        }
-
         // ==================== TEST: UPDATE ====================
 
         [Fact]

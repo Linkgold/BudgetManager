@@ -7,7 +7,7 @@ namespace Application.Interfaces
     public interface IDataService
     {
         Task<DashboardResponseDTO> GetDashboardDataAsync(int year);
-        Task<MonthDetailResponseDTO> GetMonthDetailAsync(int year, int month);
+        Task<AnnualDetailResponseDTO> GetAnnualDetailAsync(int year);
         Task<HasDataResponseDTO> GetHasDataAsync();
     }
 }
