@@ -124,30 +124,30 @@
         <!-- Tarjetas de resumen -->
         <div class="row mt-3 align-items-stretch">
             <div class="col-md-4 mb-2">
-                <div class="card summary-card h-100">
+                <div class="card summary-card h-100 @(_currentMonthData.TotalBudget >= 0 ? "card-success" : "card-danger")">
                     <div class="card-body text-center">
                         <div class="summary-label">Previsión neta</div>
-                        <div class="summary-number @(_currentMonthData.TotalBudget >= 0 ? "text-success" : "text-danger")">
+                        <div class="summary-number">
                             @FormatCurrency(_currentMonthData.TotalBudget)
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 mb-2">
-                <div class="card summary-card expense h-100">
+                <div class="card summary-card expense h-100 @(_currentMonthData.TotalSpent >= 0 ? "card-success" : "card-danger")">
                     <div class="card-body text-center">
                         <div class="summary-label">Real neto</div>
-                        <div class="summary-number @(_currentMonthData.TotalSpent >= 0 ? "text-success" : "text-danger")">
+                        <div class="summary-number">
                             @FormatCurrency(_currentMonthData.TotalSpent)
                         </div>
                     </div>
                 </div>
             </div>
             <div class="col-md-4 mb-2">
-                <div class="card summary-card @(_currentMonthData.TotalDifference >= 0 ? "income" : "expense") h-100">
+                <div class="card summary-card @(_currentMonthData.TotalDifference >= 0 ? "income" : "expense") h-100 @(_currentMonthData.TotalDifference >= 0 ? "card-success" : "card-danger")">
                     <div class="card-body text-center">
                         <div class="summary-label">Desviación</div>
-                        <div class="summary-number @(_currentMonthData.TotalDifference >= 0 ? "text-success" : "text-danger")">
+                        <div class="summary-number">
                             @FormatCurrency(_currentMonthData.TotalDifference)
                         </div>
                         <small class="summary-percent">@(Math.Abs(_currentMonthData.PercentageUsed).ToString("F1"))% utilizado</small>

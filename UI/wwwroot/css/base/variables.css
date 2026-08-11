@@ -30,8 +30,8 @@
     --color-warning: #F1C40F;
     --color-secondary: #2C3E50;
     /* Sombras */
-    --shadow-color: rgba(0, 0, 0, 0.4);
-    --shadow-light: rgba(0, 0, 0, 0.2);
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --shadow-light: rgba(0, 0, 0, 0.3);
     /* Scrollbar */
     --color-scrollbar-track: #2D2D3F;
     --color-scrollbar-thumb: #4A4A5A;
@@ -72,8 +72,8 @@
     --color-warning: #F1C40F;
     --color-secondary: #2C3E50;
     /* Sombras */
-    --shadow-color: rgba(0, 0, 0, 0.1);
-    --shadow-light: rgba(0, 0, 0, 0.05);
+    --shadow-color: rgba(0, 0, 0, 0.6);
+    --shadow-light: rgba(0, 0, 0, 0.3);
     /* Scrollbar */
     --color-scrollbar-track: #FFFFFF;
     --color-scrollbar-thumb: #C0C0C0;

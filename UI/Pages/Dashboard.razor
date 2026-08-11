@@ -117,9 +117,9 @@
                             }
                         </tbody>
                         <tfoot>
-                            <!-- Fila TOTAL MES -->
+                            <!-- Fila NETO MES -->
                             <tr class="table-secondary fw-bold">
-                                <td class="text-start">TOTAL MES</td>
+                                <td class="text-start">NETO MES</td>
                                 @foreach (DashboardMonthTotalsModel month in _dashboardData.Months)
                                 {
                                     <td class="text-center month-cell @GetColumnHoverClass(month.Month)"
@@ -143,9 +143,9 @@
                                 <td class="text-end" />
                             </tr>
 
-                            <!-- Fila ACUMULADO -->
+                            <!-- Fila NETO ACUMULADO -->
                             <tr class="table-secondary fw-bold">
-                                <td class="text-start">ACUMULADO</td>
+                                <td class="text-start">NETO ACUMULADO</td>
                                 @foreach (DashboardMonthTotalsModel accumulated in _dashboardData.Months)
                                 {
                                     <td class="text-center month-cell @GetColumnHoverClass(accumulated.Month)"
