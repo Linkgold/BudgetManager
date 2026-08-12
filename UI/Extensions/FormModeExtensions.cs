@@ -1,51 +1,51 @@
-﻿using UI.Models;
+﻿using UI.Models.Forms;
 
 namespace UI.Extensions
 {
     public static class FormModeExtensions
     {
-        public static string GetButtonClass(this FormMode mode)
+        public static string GetButtonClass(this FormModeEnum mode)
         {
             return mode switch
             {
-                FormMode.Create => "btn-primary",
-                FormMode.Edit => "btn-primary",
-                FormMode.Delete => "btn-danger",
+                FormModeEnum.Create => "btn-primary",
+                FormModeEnum.Edit => "btn-primary",
+                FormModeEnum.Delete => "btn-danger",
                 _ => "btn-primary"
             };
         }
 
-        public static string GetButtonText(this FormMode mode)
+        public static string GetButtonText(this FormModeEnum mode)
         {
             return mode switch
             {
-                FormMode.Create => "Guardar",
-                FormMode.Edit => "Guardar",
-                FormMode.Delete => "Eliminar",
+                FormModeEnum.Create => "Guardar",
+                FormModeEnum.Edit => "Guardar",
+                FormModeEnum.Delete => "Eliminar",
                 _ => "Guardar"
             };
         }
 
-        public static string GetModalTitle(this FormMode mode, string entityName)
+        public static string GetModalTitle(this FormModeEnum mode, string entityName)
         {
             return mode switch
             {
-                FormMode.Create => $"➕ Añadir {entityName}",
-                FormMode.Edit => $"✏️ Editar {entityName}",
-                FormMode.Delete => $"🗑️ Eliminar {entityName}",
+                FormModeEnum.Create => $"➕ Añadir {entityName}",
+                FormModeEnum.Edit => $"✏️ Editar {entityName}",
+                FormModeEnum.Delete => $"🗑️ Eliminar {entityName}",
                 _ => entityName
             };
         }
 
-        public static string GetModalWrapperClass(this FormMode mode, bool isModalOpen)
+        public static string GetModalWrapperClass(this FormModeEnum mode, bool isModalOpen)
         {
             if (!isModalOpen) return string.Empty;
 
             return mode switch
             {
-                FormMode.Delete => "modal-open-delete",
-                FormMode.Edit => "modal-open",
-                FormMode.Create => "modal-open",
+                FormModeEnum.Delete => "modal-open-delete",
+                FormModeEnum.Edit => "modal-open",
+                FormModeEnum.Create => "modal-open",
                 _ => "modal-open"
             };
         }

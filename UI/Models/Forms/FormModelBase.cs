@@ -1,6 +1,6 @@
 ﻿using UI.Extensions;
 
-namespace UI.Models
+namespace UI.Models.Forms
 {
     public abstract class FormModelBase
     {
@@ -9,13 +9,13 @@ namespace UI.Models
         public bool IsDeleting { get; set; }
         public bool IsModalOpen { get; set; }
 
-        public FormMode CurrentMode
+        public FormModeEnum CurrentMode
         {
             get
             {
-                if (IsDeleting) return FormMode.Delete;
-                if (IsEditing) return FormMode.Edit;
-                return FormMode.Create;
+                if (IsDeleting) return FormModeEnum.Delete;
+                if (IsEditing) return FormModeEnum.Edit;
+                return FormModeEnum.Create;
             }
         }
 

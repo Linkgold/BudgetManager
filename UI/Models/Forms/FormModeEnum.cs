@@ -1,6 +1,6 @@
-﻿namespace UI.Models
+﻿namespace UI.Models.Forms
 {
-    public enum FormMode
+    public enum FormModeEnum
     {
         Create,
         Edit,

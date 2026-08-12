@@ -207,26 +207,26 @@ namespace UI.Pages
 
         private void OpenCreateModal()
         {
-            FillFormFromModel(new CategoryModel { Nature = CategoryNatureEnum.Expense }, FormMode.Create);
+            FillFormFromModel(new CategoryModel { Nature = CategoryNatureEnum.Expense }, FormModeEnum.Create);
 
             InvokeAsync(StateHasChanged);
         }
 
         private void OpenEditModal(CategoryModel category)
         {
-            FillFormFromModel(category, FormMode.Edit);
+            FillFormFromModel(category, FormModeEnum.Edit);
 
             InvokeAsync(StateHasChanged);
         }
 
         private async Task OpenDeleteModal(CategoryModel category)
         {
-            FillFormFromModel(category, FormMode.Delete);
+            FillFormFromModel(category, FormModeEnum.Delete);
 
             StateHasChanged();
         }
 
-        private void FillFormFromModel(CategoryModel model, FormMode mode)
+        private void FillFormFromModel(CategoryModel model, FormModeEnum mode)
         {
             _categoryForm = new CategoryFormModel
             {
@@ -235,8 +235,8 @@ namespace UI.Pages
                 Description = model.Description,
                 Nature = model.Nature,
                 IsModalOpen = true,
-                IsEditing = mode == FormMode.Edit,
-                IsDeleting = mode == FormMode.Delete
+                IsEditing = mode == FormModeEnum.Edit,
+                IsDeleting = mode == FormModeEnum.Delete
             };
         }
 

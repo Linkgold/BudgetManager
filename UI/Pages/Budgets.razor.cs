@@ -509,7 +509,7 @@ namespace UI.Pages
                     Year = selectedYear,
                     CategoryId = _availableCategoriesForCreate.FirstOrDefault()?.Id ?? 0
                 },
-                FormMode.Create
+                FormModeEnum.Create
             );
 
             StateHasChanged();
@@ -521,7 +521,7 @@ namespace UI.Pages
 
             if (model != null)
             {
-                FillFormFromModel(model, FormMode.Edit);
+                FillFormFromModel(model, FormModeEnum.Edit);
                 InvokeAsync(StateHasChanged);
             }
 
@@ -534,7 +534,7 @@ namespace UI.Pages
 
             if (model != null)
             {
-                FillFormFromModel(model, FormMode.Delete);
+                FillFormFromModel(model, FormModeEnum.Delete);
                 StateHasChanged();
             }
         }
@@ -564,11 +564,11 @@ namespace UI.Pages
             };
         }
 
-        private void FillFormFromModel(BudgetModel model, FormMode mode)
+        private void FillFormFromModel(BudgetModel model, FormModeEnum mode)
         {
             Dictionary<int, decimal> monthlyAmounts;
 
-            if (mode == FormMode.Create)
+            if (mode == FormModeEnum.Create)
             {
                 monthlyAmounts = MonthHelper.Months.ToDictionary(month => month.Value, month => 0m);
             }
@@ -593,8 +593,8 @@ namespace UI.Pages
                 MonthlyAmounts = monthlyAmounts,
                 OriginalMonthlyAmounts = new Dictionary<int, decimal>(monthlyAmounts),
                 IsModalOpen = true,
-                IsEditing = mode == FormMode.Edit,
-                IsDeleting = mode == FormMode.Delete
+                IsEditing = mode == FormModeEnum.Edit,
+                IsDeleting = mode == FormModeEnum.Delete
             };
 
             _budgetYear = model.Year;

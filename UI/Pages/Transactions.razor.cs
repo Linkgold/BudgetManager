@@ -1,5 +1,6 @@
 ﻿using Contracts.Enums;
 using Microsoft.AspNetCore.Components;
+using MudBlazor;
 using Shared.DTOs.Request;
 using UI.Extensions;
 using UI.Helpers;
@@ -29,12 +30,16 @@ namespace UI.Pages
         private List<TransactionModel> _transactions = new();
         private List<TransactionModel> _filteredTransactions = new();
         private List<CategoryModel> _categories = new();
-        private TransactionFormModel _transactionForm = new();
         private List<int> _years = new();
         private HasDataModel? _hasData;
         private bool _isLoading = true;
 
         private decimal _totalAmount = 0m;
+
+        // Modal
+        private bool _isTransactionModalOpen = false;
+        private FormModeEnum _modalMode;
+        private TransactionModel? _transactionToModal = null;
 
         // ================================================================
         // 3. FILTROS Y PROPIEDADES CON SETTER
@@ -45,7 +50,6 @@ namespace UI.Pages
         private string _selectedType = string.Empty;
         private int _selectedMonth = DateTime.Now.Month;
         private int _selectedYear = DateTime.Now.Year;
-        private int _categoryId = 0;
 
         private bool HasCategories => _categories.Count != 0;
 
@@ -71,7 +75,6 @@ namespace UI.Pages
                 {
                     _selectedCategoryId = value;
                     ApplyFilters();
-                    UpdateTypeSelector();
                 }
             }
         }
@@ -111,31 +114,6 @@ namespace UI.Pages
                 {
                     _selectedYear = value;
                 }
-            }
-        }
-
-        private int CategoryId
-        {
-            get => _categoryId;
-            set
-            {
-                if (_categoryId != value)
-                {
-                    _categoryId = value;
-                    _transactionForm.CategoryId = value;
-                    OnCategoryChanged();
-                }
-            }
-        }
-
-        private bool ShowTypeSelector
-        {
-            get
-            {
-                if (_transactionForm.IsDeleting) return false;
-                if (_transactionForm.CategoryId <= 0) return false;
-
-                return _transactionForm.CategoryNature == CategoryNatureEnum.Mixed;
             }
         }
 
@@ -181,13 +159,15 @@ namespace UI.Pages
             }
         }
 
-        private async Task LoadTransactions(int year)
+        private async Task LoadTransactions(int year, bool forceRefresh = false)
         {
-            if (_transactionsCache.TryGetValue(year, out List<TransactionModel>? cached))
+            if (!forceRefresh && _transactionsCache.TryGetValue(year, out List<TransactionModel>? cached))
             {
                 _transactions = cached!;
                 return;
             }
+
+            _transactionsCache.Remove(year);
 
             List<TransactionModel> transactions = await APIService.GetTransactionsAsync(year) ?? new List<TransactionModel>();
 
@@ -244,128 +224,8 @@ namespace UI.Pages
             ApplyFilters();
         }
 
-        private void UpdateTypeSelector() => StateHasChanged();
-
         // ================================================================
-        // 7. OPERACIONES CRUD (SAVE)
-        // ================================================================
-
-        private async Task SaveTransaction()
-        {
-            try
-            {
-                bool success = false;
-
-                if (_transactionForm.IsDeleting)
-                {
-                    success = await DeleteTransactionAsync();
-                }
-                else if (_transactionForm.IsEditing)
-                {
-                    success = await UpdateTransactionAsync();
-                }
-                else
-                {
-                    success = await CreateTransactionAsync();
-                }
-
-                if (success)
-                {
-                    _transactionsCache.Remove(_transactionForm.Date.Year);
-
-                    if (_transactionForm.IsEditing && _transactionForm.OriginalYear != _transactionForm.Date.Year)
-                    {
-                        _transactionsCache.Remove(_transactionForm.OriginalYear);
-                    }
-
-                    await HasDataService.RefreshAsync();
-
-                    _transactionForm.IsModalOpen = false;
-                    _transactionForm.IsEditing = false;
-                    _transactionForm.IsDeleting = false;
-
-                    await LoadTransactions(_selectedYear);
-
-                    ApplyFilters();
-
-                    await InvokeAsync(StateHasChanged);
-                }
-            }
-            catch (Exception ex)
-            {
-                await LogService.LogErrorAsync($"Error en SaveTransaction", ex);
-                ToastService.ShowError("Ocurrió un error inesperado.");
-            }
-        }
-
-        private async Task<bool> CreateTransactionAsync()
-        {
-            decimal finalAmount = _transactionForm.Amount;
-
-            CreateTransactionRequestDTO request = new()
-            {
-                CategoryId = _transactionForm.CategoryId,
-                Name = _transactionForm.Name,
-                Description = _transactionForm.Description,
-                Amount = finalAmount,
-                TransactionType = _transactionForm.TransactionType,
-                Date = _transactionForm.Date
-            };
-
-            TransactionModel? result = await APIService.CreateTransactionAsync(request);
-            
-            if (result != null)
-            {
-                ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] creada correctamente.");
-                
-                return true;
-            }
-
-            return false;
-        }
-
-        private async Task<bool> UpdateTransactionAsync()
-        {
-            decimal finalAmount = _transactionForm.Amount;
-
-            UpdateTransactionRequestDTO request = new()
-            {
-                CategoryId = _transactionForm.CategoryId,
-                Name = _transactionForm.Name,
-                Description = _transactionForm.Description,
-                Amount = finalAmount,
-                TransactionType = _transactionForm.TransactionType,
-                Date = _transactionForm.Date
-            };
-
-            TransactionModel? result = await APIService.UpdateTransactionAsync(_transactionForm.Id, request);
-            
-            if (result != null)
-            {
-                ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] actualizada correctamente.");
-                
-                return true;
-            }
-
-            return false;
-        }
-
-        private async Task<bool> DeleteTransactionAsync()
-        {
-            bool success = await APIService.DeleteTransactionAsync(_transactionForm.Id, _transactionForm.Name);
-            
-            if (success)
-            {
-                ToastService.ShowSuccess($"Transacción [{_transactionForm.Name}] eliminada correctamente.");
-
-                return true;
-            }
-
-            return false;
-        }
-
-        // ================================================================
-        // 8. APERTURA DE MODALES
+        // 7. APERTURA DE MODALES
         // ================================================================
 
         private void OpenCreateModal()
@@ -375,88 +235,63 @@ namespace UI.Pages
             // ✅ Determinar la fecha por defecto según los filtros
             DateTime defaultDate = MonthHelper.GetDefaultDate(_selectedMonth, _selectedYear);
 
-            FillFormFromModel
-            (
-                new TransactionModel
-                {
-                    CategoryId = defaultCategory?.Id ?? 0,
-                    Date = defaultDate,
-                    Amount = 0m
-                },
-                FormMode.Create
-            );
+            _transactionToModal = new TransactionModel
+            {
+                CategoryId = defaultCategory?.Id ?? 0,
+                Date = defaultDate,
+                Amount = 0m
+            };
+
+            _modalMode = FormModeEnum.Create;
+
+            _isTransactionModalOpen = true;
 
             InvokeAsync(StateHasChanged);
         }
 
         private void OpenEditModal(TransactionModel transaction)
         {
-            FillFormFromModel(transaction, FormMode.Edit);
+            _transactionToModal = transaction;
+            _modalMode = FormModeEnum.Edit;
+            _isTransactionModalOpen = true;
             InvokeAsync(StateHasChanged);
         }
 
         private void OpenDeleteModal(TransactionModel transaction)
         {
-            FillFormFromModel(transaction, FormMode.Delete);
+            _transactionToModal = transaction;
+            _modalMode = FormModeEnum.Delete;
+            _isTransactionModalOpen = true;
             InvokeAsync(StateHasChanged);
         }
 
-        private void FillFormFromModel(TransactionModel model, FormMode mode)
+        private async Task OnTransactionModalSaved()
         {
-            CategoryModel? category = _categories.FirstOrDefault(c => c.Id == model.CategoryId);
+            _isTransactionModalOpen = false;
+            _transactionToModal = null;
 
-            TransactionTypeEnum defaultType = TransactionTypeEnum.Expense;
+            // Refrescar caché de HasData
+            await HasDataService.RefreshAsync();
+            _hasData = await HasDataService.GetDataAsync();
 
-            if (category != null)
-            {
-                defaultType = category.Nature.GetDefaultTransactionTypeForCategory();
-            }
+            // Recargar datos
+            await LoadTransactions(_selectedYear, true);
 
-            _transactionForm = new TransactionFormModel
-            {
-                Id = model.Id,
-                CategoryId = model.CategoryId,
-                CategoryName = model.CategoryName,
-                CategoryNature = category?.Nature ?? CategoryNatureEnum.Expense,
-                Name = model.Name ?? string.Empty,
-                Description = model.Description ?? string.Empty,
-                Amount = Math.Abs(model.Amount),
-                OriginalYear = model.Date.Year,
-                Date = model.Date == DateTime.MinValue ? DateTime.Now : model.Date,
-                TransactionType = defaultType,
-                IsModalOpen = true,
-                IsEditing = mode == FormMode.Edit,
-                IsDeleting = mode == FormMode.Delete
-            };
-
-            _categoryId = model.CategoryId;
+            ApplyFilters();
+            StateHasChanged();
         }
 
-        private void CloseModal()
+        private async Task OnTransactionModalCancelled()
         {
-            _transactionForm.IsModalOpen = false;
-            _transactionForm.IsEditing = false;
-            _transactionForm.IsDeleting = false;
-            _categoryId = 0;
-
-            InvokeAsync(StateHasChanged);
-        }
-
-        // ================================================================
-        // 9. MÉTODOS AUXILIARES
-        // ================================================================
-        private void OnCategoryChanged()
-        {
-            CategoryModel? category = _categories.FirstOrDefault(c => c.Id == _transactionForm.CategoryId);
-
-            if (category != null)
-            {
-                _transactionForm.CategoryNature = category.Nature;
-                _transactionForm.TransactionType = category.Nature.GetDefaultTransactionTypeForCategory();
-            }
+            _isTransactionModalOpen = false;
+            _transactionToModal = null;
 
             StateHasChanged();
         }
+
+        // ================================================================
+        // 8. MÉTODOS AUXILIARES
+        // ================================================================
 
         private async Task OnYearChanged()
         {
@@ -481,10 +316,7 @@ namespace UI.Pages
             }
             catch (Exception ex)
             {
-                await LogService.LogErrorAsync(
-                    "Error al cargar las transacciones del año seleccionado",
-                    ex
-                );
+                await LogService.LogErrorAsync("Error al cargar las transacciones del año seleccionado", ex);
 
                 ToastService.ShowError("Error al cargar las transacciones.");
 

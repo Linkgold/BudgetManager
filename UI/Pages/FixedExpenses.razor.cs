@@ -297,7 +297,7 @@ namespace UI.Pages
                     CategoryId = _categories.FirstOrDefault()?.Id ?? 0,
                     Month = DateTime.Now.Month,
                     Year = _selectedYear,
-                }, FormMode.Create
+                }, FormModeEnum.Create
             );
 
             InvokeAsync(StateHasChanged);
@@ -305,19 +305,19 @@ namespace UI.Pages
 
         private void OpenEditModal(FixedExpenseModel fixedExpense)
         {
-            FillFormFromModel(fixedExpense, FormMode.Edit);
+            FillFormFromModel(fixedExpense, FormModeEnum.Edit);
 
             InvokeAsync(StateHasChanged);
         }
 
         private async Task OpenDeleteModal(FixedExpenseModel fixedExpense)
         {
-            FillFormFromModel(fixedExpense, FormMode.Delete);
+            FillFormFromModel(fixedExpense, FormModeEnum.Delete);
 
             StateHasChanged();
         }
 
-        private void FillFormFromModel(FixedExpenseModel fixedExpenseModel, FormMode mode)
+        private void FillFormFromModel(FixedExpenseModel fixedExpenseModel, FormModeEnum mode)
         {
             _fixedExpenseForm = new FixedExpenseFormModel
             {
@@ -331,8 +331,8 @@ namespace UI.Pages
                 OriginalYear = fixedExpenseModel.Year,
                 Year = fixedExpenseModel.Year,
                 IsModalOpen = true,
-                IsEditing = mode == FormMode.Edit,
-                IsDeleting = mode == FormMode.Delete
+                IsEditing = mode == FormModeEnum.Edit,
+                IsDeleting = mode == FormModeEnum.Delete
             };
         }
 

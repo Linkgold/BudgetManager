@@ -24,133 +24,160 @@
     }
     else if (_currentMonthData != null && _currentMonthData.Categories.Any())
     {
-        <!-- Tarjeta principal -->
-        <div class="card monthly-card">
-            <div class="card-header monthly-card-header py-2">
-                <small class="fw-bold">📊 Presupuestos vs movimientos ejecutados por categoría</small>
-            </div>
-            <div class="card-body p-1">
-                <div class="table-wrapper">
-                    <table class="data-table table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th style="width: 30px;"></th>
-                                <th style="text-align: left;">Categoría</th>
-                                <th class="text-end">Presupuesto</th>
-                                <th class="text-end">Ejecutado</th>
-                                <th class="text-end">Diferencia</th>
-                                <th class="text-center">Estado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in _currentMonthData.Categories)
-                            {
-                                <tr @onclick="() => ToggleExpand(item.CategoryName)" style="cursor: pointer;">
-                                    <td class="text-center">
-                                        <span class="expand-icon">@(_expandedCategories.ContainsKey(item.CategoryName) && _expandedCategories[item.CategoryName] ? "▼" : "▶")</span>
-                                    </td>
-                                    <td style="text-align: left;">
-                                        <span class="transaction-count">@item.Transactions.Count</span>
-                                        <span>@item.CategoryName</span>
-                                    </td>
-                                    <td class="text-end">@FormatCurrency(item.DisplayBudget)</td>
-                                    <td class="text-end">@FormatCurrency(item.DisplaySpent)</td>
-                                    <td class="text-end"">
-                                        <span class="@item.Nature.GetStatusClass(item.Spent, item.Budget)">
-                                            @(item.Difference >= 0 ? "+" : "")@FormatCurrency(item.Difference)
-                                        </span>
-                                    </td>
-                                    <td class="text-center">
-                                        <span class="status-circle @item.Nature.GetStatusCircleClass(item.Spent, item.Budget)"></span>
-                                    </td>
+        <!-- 🔹 Contenedort de Modal -->
+        <div class="table-card-wrapper">
+            <!-- Tarjeta principal -->
+            <div class="card monthly-card">
+                <div class="card-header monthly-card-header py-2">
+                    <small class="fw-bold">📊 Presupuestos vs movimientos ejecutados por categoría</small>
+                </div>
+                <div class="card-body p-1">
+                    <div class="table-wrapper">
+                        <table class="data-table table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th style="width: 30px;">
+                                        <button class="btn btn-outline-primary btn-sm ms-2" @onclick:stopPropagation @onclick="() => OpenCreateTransactionModal()" style="padding: 0 6px; font-size: 0.7rem;">
+                                            ➕
+                                        </button>
+                                    </th>
+                                    <th style="text-align: left;">Categoría</th>
+                                    <th class="text-end">Presupuesto</th>
+                                    <th class="text-end">Ejecutado</th>
+                                    <th class="text-end">Diferencia</th>
+                                    <th class="text-center">Estado</th>
                                 </tr>
-
-                                @if (_expandedCategories.ContainsKey(item.CategoryName) && _expandedCategories[item.CategoryName])
+                            </thead>
+                            <tbody>
+                                @foreach (var item in _currentMonthData.Categories)
                                 {
-                                    <tr class="transaction-row">
-                                        <td colspan="6" style="padding: 0;">
-                                            <div class="transaction-container">
-                                                <table class="table table-sm table-borderless mb-0" style="width: auto; min-width: 300px;">
-                                                    <thead>
-                                                        <tr>
-                                                            <th style="width: 40px; white-space: nowrap;">Día</th>
-                                                            <th style="white-space: nowrap;">Concepto</th>
-                                                            @if (item.Transactions.Any(t => !string.IsNullOrWhiteSpace(t.Description)))
+                                    <tr @onclick="() => ToggleExpand(item.CategoryName)" style="cursor: pointer;">
+                                        <td class="text-center">
+                                            <span class="expand-icon">@(_expandedCategories.ContainsKey(item.CategoryName) && _expandedCategories[item.CategoryName] ? "▼" : "▶")</span>
+                                        </td>
+                                        <td style="text-align: left;">
+                                            <span class="transaction-count">@item.Transactions.Count</span>
+                                            <span>@item.CategoryName</span>
+                                        </td>
+                                        <td class="text-end">@FormatCurrency(item.DisplayBudget)</td>
+                                        <td class="text-end">@FormatCurrency(item.DisplaySpent)</td>
+                                        <td class="text-end"">
+                                            <span class="@item.Nature.GetStatusClass(item.Spent, item.Budget)">
+                                                @(item.Difference >= 0 ? "+" : "")@FormatCurrency(item.Difference)
+                                            </span>
+                                        </td>
+                                        <td class="text-center">
+                                            <span class="status-circle @item.Nature.GetStatusCircleClass(item.Spent, item.Budget)"></span>
+                                        </td>
+                                    </tr>
+
+                                    @if (_expandedCategories.ContainsKey(item.CategoryName) && _expandedCategories[item.CategoryName])
+                                    {
+                                        <tr class="transaction-row">
+                                            <td colspan="6" style="padding: 0;">
+                                                <div class="transaction-container">
+                                                    <table class="table table-sm table-borderless mb-0" style="width: auto; min-width: 300px;">
+                                                        <thead>
+                                                            <tr>
+                                                                <th style="width: 40px; white-space: nowrap;">Día</th>
+                                                                <th style="white-space: nowrap;">Concepto</th>
+                                                                @if (item.Transactions.Any(t => !string.IsNullOrWhiteSpace(t.Description)))
+                                                                {
+                                                                    <th style="white-space: nowrap;">Descripción</th>
+                                                                }
+                                                                <th class="text-end" style="white-space: nowrap; width: 100px;">Importe</th>
+                                                                <th style="white-space: nowrap; width: 80px; text-align: center;">Acciones</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody>
+                                                            @if (item.Transactions.Any())
                                                             {
-                                                                <th style="white-space: nowrap;">Descripción</th>
+                                                                @foreach (var t in item.Transactions)
+                                                                {
+                                                                    <tr>
+                                                                        <td style="white-space: nowrap;">@t.Date.Day</td>
+                                                                        <td style="white-space: nowrap;">@t.Name</td>
+                                                                        @if (item.Transactions.Any(tx => !string.IsNullOrWhiteSpace(tx.Description)))
+                                                                        {
+                                                                            <td style="white-space: nowrap;">@t.Description</td>
+                                                                        }
+                                                                        <td class="text-end @(t.IsExpense ? "text-danger" : "text-success")" style="white-space: nowrap;">
+                                                                            @(t.IsExpense ? "-" : "+")@FormatCurrency(t.DisplayAmount)
+                                                                        </td>
+                                                                        <td style="white-space: nowrap;">
+                                                                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditTransactionModal(FindTransaction(t.Id)!)">
+                                                                                ✏️
+                                                                            </button>
+                                                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteTransactionModal(FindTransaction(t.Id)!)">
+                                                                                🗑️
+                                                                            </button>
+                                                                        </td>
+                                                                    </tr>
+                                                                }
                                                             }
-                                                            <th class="text-end" style="white-space: nowrap; width: 100px;">Importe</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        @if (item.Transactions.Any())
-                                                        {
-                                                            @foreach (var t in item.Transactions)
+                                                            else
                                                             {
                                                                 <tr>
-                                                                    <td style="white-space: nowrap;">@t.Date.Day</td>
-                                                                    <td style="white-space: nowrap;">@t.Name</td>
-                                                                    @if (item.Transactions.Any(tx => !string.IsNullOrWhiteSpace(tx.Description)))
-                                                                    {
-                                                                        <td style="white-space: nowrap;">@t.Description</td>
-                                                                    }
-                                                                    <td class="text-end @(t.IsExpense ? "text-danger" : "text-success")" style="white-space: nowrap;">
-                                                                        @(t.IsExpense ? "-" : "+")@FormatCurrency(t.DisplayAmount)
+                                                                    <td colspan="@(item.Transactions.Any(t => !string.IsNullOrWhiteSpace(t.Description)) ? 4 : 3)" class="text-center text-muted py-1" style="font-size: 0.75rem;">
+                                                                        No hay transacciones para esta categoría.
                                                                     </td>
                                                                 </tr>
                                                             }
-                                                        }
-                                                        else
-                                                        {
-                                                            <tr>
-                                                                <td colspan="@(item.Transactions.Any(t => !string.IsNullOrWhiteSpace(t.Description)) ? 4 : 3)" class="text-center text-muted py-1" style="font-size: 0.75rem;">
-                                                                    No hay transacciones para esta categoría.
-                                                                </td>
-                                                            </tr>
-                                                        }
-                                                    </tbody>
-                                                </table>
-                                            </div>
-                                        </td>
-                                    </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    }
                                 }
-                            }
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
+        
+            <!-- 🔥 Modal de transacciones -->
+            <TransactionModal IsVisible="@_isTransactionModalOpen"
+                              Categories="@_categories"
+                              TransactionReceived="@_transactionToModal"
+                              Mode="_modalMode"
+                              DefaultYear="@Year"
+                              DefaultMonth="@Month"
+                              OnTransactionSaved="OnTransactionModalSaved"
+                              OnTransactionCancelled="OnTransactionModalCancelled" />
 
-        <!-- Tarjetas de resumen -->
-        <div class="row mt-3 align-items-stretch">
-            <div class="col-md-4 mb-2">
-                <div class="card summary-card h-100 @(_currentMonthData.TotalBudget >= 0 ? "card-success" : "card-danger")">
-                    <div class="card-body text-center">
-                        <div class="summary-label">Previsión neta</div>
-                        <div class="summary-number">
-                            @FormatCurrency(_currentMonthData.TotalBudget)
+        
+            <!-- Tarjetas de resumen -->
+            <div class="row mt-3 align-items-stretch">
+                <div class="col-md-4 mb-2">
+                    <div class="card summary-card h-100 @(_currentMonthData.TotalBudget >= 0 ? "card-success" : "card-danger")">
+                        <div class="card-body text-center">
+                            <div class="summary-label">Previsión neta</div>
+                            <div class="summary-number">
+                                @FormatCurrency(_currentMonthData.TotalBudget)
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4 mb-2">
-                <div class="card summary-card expense h-100 @(_currentMonthData.TotalSpent >= 0 ? "card-success" : "card-danger")">
-                    <div class="card-body text-center">
-                        <div class="summary-label">Real neto</div>
-                        <div class="summary-number">
-                            @FormatCurrency(_currentMonthData.TotalSpent)
+                <div class="col-md-4 mb-2">
+                    <div class="card summary-card expense h-100 @(_currentMonthData.TotalSpent >= 0 ? "card-success" : "card-danger")">
+                        <div class="card-body text-center">
+                            <div class="summary-label">Real neto</div>
+                            <div class="summary-number">
+                                @FormatCurrency(_currentMonthData.TotalSpent)
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div class="col-md-4 mb-2">
-                <div class="card summary-card @(_currentMonthData.TotalDifference >= 0 ? "income" : "expense") h-100 @(_currentMonthData.TotalDifference >= 0 ? "card-success" : "card-danger")">
-                    <div class="card-body text-center">
-                        <div class="summary-label">Desviación</div>
-                        <div class="summary-number">
-                            @FormatCurrency(_currentMonthData.TotalDifference)
+                <div class="col-md-4 mb-2">
+                    <div class="card summary-card @(_currentMonthData.TotalDifference >= 0 ? "income" : "expense") h-100 @(_currentMonthData.TotalDifference >= 0 ? "card-success" : "card-danger")">
+                        <div class="card-body text-center">
+                            <div class="summary-label">Desviación</div>
+                            <div class="summary-number">
+                                @FormatCurrency(_currentMonthData.TotalDifference)
+                            </div>
+                            <small class="summary-percent">@(Math.Abs(_currentMonthData.PercentageUsed).ToString("F1"))% utilizado</small>
                         </div>
-                        <small class="summary-percent">@(Math.Abs(_currentMonthData.PercentageUsed).ToString("F1"))% utilizado</small>
                     </div>
                 </div>
             </div>

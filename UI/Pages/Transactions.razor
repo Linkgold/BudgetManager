@@ -95,98 +95,15 @@
 				</div>
 			</div>
 
-			<!-- Modal -->
-			<Modal Title="@_transactionForm.CurrentMode.GetModalTitle("Transacción")"
-			IsVisible="@_transactionForm.IsModalOpen"
-			IsDeleteMode="@_transactionForm.IsDeleting"
-			OnSave="@SaveTransaction"
-			OnClose="@CloseModal"
-			SaveButtonText="@_transactionForm.SaveButtonText"
-			SaveButtonClass="@_transactionForm.SaveButtonClass">
-
-				<!-- Línea 1: Categoría + Tipo + Fecha -->
-				<div class="row">
-					<div class="col-md-5">
-						<div class="form-group">
-							<label class="form-label" for="transactionCategory">Categoría</label>
-							<select id="transactionCategory" class="form-control" @bind="CategoryId" disabled="@_transactionForm.IsDeleting">
-								@foreach (CategoryModel category in _categories)
-								{
-									<option value="@category.Id">@category.Name</option>
-								}
-							</select>
-						</div>
-					</div>
-					<div class="col-md-3">
-						<div class="form-group">
-							<label class="form-label" for="transactionType">Tipo</label>
-							@if (ShowTypeSelector)
-							{
-								<select id="transactionType" class="form-control" @bind="_transactionForm.TransactionType" disabled="@_transactionForm.IsDeleting">
-									<option value="@TransactionTypeEnum.Expense">💳 Gasto</option>
-									<option value="@TransactionTypeEnum.Income">💰 Ingreso</option>
-								</select>
-							}
-							else
-							{
-								<input type="text" id="transactionType" class="form-control input-disabled" value="@_transactionForm.CategoryNature.GetFixedTypeLabel()" disabled />
-							}
-						</div>
-					</div>
-					<div class="col-md-4">
-						<div class="form-group">
-							<label class="form-label" for="transactionDate">Fecha</label>
-							<MudDatePicker @bind-Date="_transactionForm.MudDate"
-							Editable="true"
-							ImmediateText="true"
-							DateFormat="dd/MM/yyyy"
-							Placeholder="DD/MM/YYYY"
-							Variant="Variant.Outlined"
-							Margin="Margin.Dense"
-							Disabled="@_transactionForm.IsDeleting"
-							Id="transactionDate"
-							Class="mud-date-picker-custom" />
-						</div>
-					</div>
-				</div>
-
-				<!-- Línea 2: Concepto + Importe -->
-				<div class="row mt-2">
-					<div class="col-md-6">
-						<div class="form-group">
-							<label class="form-label" for="transactionName">Concepto</label>
-							<input type="text" id="transactionName" class="form-control" 
-							@bind="_transactionForm.Name" 
-							placeholder="Ej. Compra supermercado"
-							disabled="@_transactionForm.IsDeleting" />
-						</div>
-					</div>
-					<div class="col-md-6">
-						<div class="form-group">
-							<label class="form-label" for="@PageTextHelper.TRANSACTION_AMOUNT_ID">Importe (€)</label>
-							<input type="number" id="@PageTextHelper.TRANSACTION_AMOUNT_ID" 
-							class="form-control" 
-							@bind="_transactionForm.Amount"
-							@onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, PageTextHelper.TRANSACTION_AMOUNT_ID))"
-							step="1.00" min="0" placeholder="0.00" 
-							disabled="@_transactionForm.IsDeleting" />
-						</div>
-					</div>
-				</div>
-
-				<!-- Línea 3: Descripción -->
-				<div class="row mt-2">
-					<div class="col-12">
-						<div class="form-group">
-							<label class="form-label" for="transactionDescription">Descripción</label>
-							<input type="text" id="transactionDescription" class="form-control" 
-							@bind="_transactionForm.Description" 
-							placeholder="Ej. Carrefour 15/06/2024" 
-							disabled="@_transactionForm.IsDeleting" />
-						</div>
-					</div>
-				</div>
-			</Modal>
+			<!-- 🔥 Modal de transacciones -->
+			<TransactionModal IsVisible="@_isTransactionModalOpen"
+							  Categories="@_categories"
+							  TransactionReceived="@_transactionToModal"
+							  Mode="_modalMode"
+							  DefaultYear="@_selectedYear"
+							  DefaultMonth="@_selectedMonth"
+							  OnTransactionSaved="OnTransactionModalSaved" 
+							  OnTransactionCancelled="OnTransactionModalCancelled" />
 
 			<!-- Tabla -->
 			<div class="card table-card">
@@ -198,6 +115,7 @@
 									<th class="text-start">Fecha</th>
 									<th class="text-start">Categoría</th>
 									<th class="text-start">Concepto</th>
+									<th class="text-start">Descripción</th>
 									<th class="text-end">Importe</th>
 									<th class="text-end" style="width: 100px;">Acciones</th>
 								</tr>
@@ -211,6 +129,7 @@
 											<td class="text-start">@item.Date.ToString("dd/MM/yyyy")</td>
 											<td class="text-start">@item.CategoryName</td>
 											<td class="text-start">@item.Name</td>
+											<td class="text-start">@item.Description</td>
 											<td class="text-end @item.GetDisplayClass()">@item.GetFormattedDisplay()</td>
 											<td class="text-end">
 												<button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(item)">
@@ -226,7 +145,7 @@
 								else
 								{
 									<tr>
-										<td colspan="5" class="text-center text-muted py-3">
+										<td colspan="6" class="text-center text-muted py-3">
 											@PageTextHelper.GetEmptyMessage("Transactions")
 										</td>
 									</tr>
@@ -234,7 +153,7 @@
 							</tbody>
 							<tfoot>
 								<tr class="table-secondary fw-bold">
-									<td colspan="3" class="text-end">Total:</td>
+									<td colspan="4" class="text-end">Total:</td>
 									<td class="text-end @_totalAmount.GetDisplayClass()">
 										@_totalAmount.GetTotalFormattedDisplay()
 									</td>
