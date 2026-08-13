@@ -7,7 +7,7 @@
 <div class="container mt-3">
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
         <div class="d-flex align-items-center gap-2 flex-wrap">
-            <h4 class="mb-0 dashboard-title" style="white-space: nowrap;">📈 Resumen Anual</h4>
+            <h4 class="mb-0 dashboard-title" style="white-space: nowrap;">@PageTextHelper.GetPageTitle("Dashboard")</h4>
             <select class="form-control form-control-sm" @bind="_currentYear" @bind:after="OnYearChanged" style="min-width: 100px; width: auto;">
                 @foreach (int year in _years)
                 {
@@ -21,33 +21,25 @@
                     </option>
                 }
             </select>
+            <button class="btn btn-outline-accent btn-sm"
+                    @onclick="() => SetCurrentYear()"
+                    title="Ir al año actual"
+                    disabled="@(IsCurrentYearSelected)"
+                    style="white-space: nowrap; padding: 4px 8px;">
+                📌 Ir al año actual
+            </button>
         </div>
         <a href="/monthly" class="btn btn-outline-primary btn-sm" style="white-space: nowrap;">📅 Ver mes actual</a>
     </div>
-    @if (_isLoading)
-    {
-        <div class="text-center py-5">
-            <span class="spinner-border text-primary" role="status"></span>
-            <p class="mt-2 text-muted">Cargando...</p>
-        </div>
-    }
-    else
+    @if (!_isLoading)
     {
         <div class="card dashboard-card">
-            <div class="card-header dashboard-card-header py-2">
+            <div class="card-header py-2">
                 <small class="fw-bold">📊 Movimientos ejecutados vs presupuestos por categoría</small>
             </div>
             <div class="card-body p-0">
-                <div class="dashboard-table-wrapper">
+                <div class="table-wrapper">
                     <table class="dashboard-table">
-                        <colgroup>
-                            <col style="min-width: 120px; max-width: 150px;"> <!-- Categoría -->
-                            @foreach (MonthModel month in _months)
-                            {
-                                <col class="month-col" data-month="@month.Value" />
-                            }
-                            <col style="min-width: 100px;"> <!-- Total -->
-                        </colgroup>
                         <thead>
                             <tr>
                                 <th class="text-center">Categoría</th>
@@ -65,112 +57,133 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (DashboardCategoryModel category in _dashboardData.Categories)
+                            @if (_dashboardData.HasData)
+                            {
+                                @foreach (DashboardCategoryModel category in _dashboardData.Categories)
+                                {
+                                    <tr>
+                                        <td class="text-start">
+                                            <div>
+                                                <span class="badge @category.Nature.GetBadgeClass()">
+                                                    <span class="nature-icon">@category.Nature.GetIcon()</span>
+                                                    @category.Nature.GetDisplayName()
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span class="fw-semibold">@category.CategoryName</span>
+                                            </div>
+                                        </td>
+                                        @foreach (MonthModel month in _months)
+                                        {
+                                            DashboardCategoryMonthModel? data = category.MonthlyData.FirstOrDefault(m => m.Month == month.Value);
+                                            <td class="category-cell text-center month-cell @GetColumnHoverClass(month.Value)"
+                                                @onclick="() => NavigateToMonth(month.Value)"
+                                                @onmouseenter="() => SetHoverMonth(month.Value)"
+                                                @onmouseleave="() => SetHoverMonth(null)">
+                                                @if (data != null)
+                                                {
+                                                    <div>
+                                                        <span class="@category.Nature.GetStatusClass(data.Spent, data.Budget)">
+                                                            @data.DisplaySpent.FormatCurrency()
+                                                        </span>
+                                                    </div>
+                                                    <div>
+                                                        <span class="fw-bold">@data.DisplayBudget.FormatCurrency()</span>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted" style="font-size: 0.6rem;">—</span>
+                                                }
+                                            </td>
+                                        }
+                                        <td class="text-end">
+                                            <div>
+                                                <span class="@category.Nature.GetStatusClass(category.TotalSpent, category.TotalBudget)">
+                                                    @category.TotalSpent.FormatCurrency()
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span class="fw-bold">@category.TotalBudget.FormatCurrency()</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            else
                             {
                                 <tr>
-                                    <td class="text-start">
-                                        <div>
-                                            <span class="badge @category.Nature.GetBadgeClass()">
-                                                <span class="nature-icon">@category.Nature.GetIcon()</span>
-                                                @category.Nature.GetDisplayName()
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="fw-semibold">@category.CategoryName</span>
-                                        </div>
-                                    </td>
-                                    @foreach (MonthModel month in _months)
-                                    {
-                                        DashboardCategoryMonthModel? data = category.MonthlyData.FirstOrDefault(m => m.Month == month.Value);
-                                        <td class="category-cell text-center month-cell @GetColumnHoverClass(month.Value)"
-                                            @onclick="() => NavigateToMonth(month.Value)"
-                                            @onmouseenter="() => SetHoverMonth(month.Value)"
-                                            @onmouseleave="() => SetHoverMonth(null)">
-                                            @if (data != null)
-                                            {
-                                                <div>
-                                                    <span class="@category.Nature.GetStatusClass(data.Spent, data.Budget)">
-                                                        @CurrencyHelper.FormatCurrency(data.DisplaySpent)
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <span class="fw-bold">@CurrencyHelper.FormatCurrency(data.DisplayBudget)</span>
-                                                </div>
-                                            }
-                                            else
-                                            {
-                                                <span class="text-muted" style="font-size: 0.6rem;">—</span>
-                                            }
-                                        </td>
-                                    }
-                                    <td class="text-end">
-                                        <div>
-                                            <span class="@category.Nature.GetStatusClass(category.TotalSpent, category.TotalBudget)">
-                                                @CurrencyHelper.FormatCurrency(category.TotalSpent)
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="fw-bold">@CurrencyHelper.FormatCurrency(category.TotalBudget)</span>
-                                        </div>
+                                    <td colspan="@(_months.Count + 2)">
+                                        @PageTextHelper.GetEmptyStateHtml("Dashboard")
                                     </td>
                                 </tr>
                             }
                         </tbody>
                         <tfoot>
-                            <!-- Fila NETO MES -->
-                            <tr class="table-secondary fw-bold">
-                                <td class="text-start">NETO MES</td>
-                                @foreach (DashboardMonthTotalsModel month in _dashboardData.Months)
-                                {
-                                    <td class="text-center month-cell @GetColumnHoverClass(month.Month)"
+                            @if (_dashboardData.HasData)
+                            {
+                                <!-- Fila NETO MES -->
+                                <tr class="table-secondary fw-bold">
+                                    <td class="text-start">NETO MES</td>
+                                    @foreach (DashboardMonthTotalsModel month in _dashboardData.Months)
+                                    {
+                                        <td class="text-center month-cell @GetColumnHoverClass(month.Month)"
                                         @onclick="() => NavigateToMonth(month.Month)"
                                         @onmouseenter="() => SetHoverMonth(month.Month)"
                                         @onmouseleave="() => SetHoverMonth(null)">
-                                        <div>
-                                            <span class="@month.TotalSpent.GetDisplayClass()">
-                                                @CurrencyHelper.FormatCurrency(month.TotalSpent)
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <!-- ✅ Color según el signo del valor -->
-                                            <span class="@month.TotalBudget.GetDisplayClass()">
-                                                @CurrencyHelper.FormatCurrency(month.TotalBudget)
-                                            </span>
-                                        </div>
-                                    </td>
-                                }
-                                <!-- Total general -->
-                                <td class="text-end" />
-                            </tr>
+                                            <div>
+                                                <span class="@month.TotalSpent.GetDisplayClass()">
+                                                    @month.TotalSpent.FormatCurrency()
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <!-- ✅ Color según el signo del valor -->
+                                                <span class="@month.TotalBudget.GetDisplayClass()">
+                                                    @month.TotalBudget.FormatCurrency()
+                                                </span>
+                                            </div>
+                                        </td>
+                                    }
+                                    <!-- Total general -->
+                                    <td class="text-end" />
+                                </tr>
 
-                            <!-- Fila NETO ACUMULADO -->
-                            <tr class="table-secondary fw-bold">
-                                <td class="text-start">NETO ACUMULADO</td>
-                                @foreach (DashboardMonthTotalsModel accumulated in _dashboardData.Months)
-                                {
-                                    <td class="text-center month-cell @GetColumnHoverClass(accumulated.Month)"
+                                <!-- Fila NETO ACUMULADO -->
+                                <tr class="table-secondary fw-bold">
+                                    <td class="text-start">NETO ACUMULADO</td>
+                                    @foreach (DashboardMonthTotalsModel accumulated in _dashboardData.Months)
+                                    {
+                                        <td class="text-center month-cell @GetColumnHoverClass(accumulated.Month)"
                                         @onclick="() => NavigateToMonth(accumulated.Month)"
                                         @onmouseenter="() => SetHoverMonth(accumulated.Month)"
                                         @onmouseleave="() => SetHoverMonth(null)">
-                                        <div>
-                                            <span class="@accumulated.AccumulatedSpent.GetDisplayClass()">
-                                                @CurrencyHelper.FormatCurrency(accumulated.AccumulatedSpent)
-                                            </span>
-                                        </div>
-                                        <div>
-                                            <span class="@accumulated.AccumulatedBudget.GetDisplayClass()">
-                                                @CurrencyHelper.FormatCurrency(accumulated.AccumulatedBudget)
-                                            </span>
-                                        </div>
-                                    </td>
-                                }
-                                <!-- Total general -->
-                                <td class="text-end" />
-                            </tr>
+                                            <div>
+                                                <span class="@accumulated.AccumulatedSpent.GetDisplayClass()">
+                                                    @accumulated.AccumulatedSpent.FormatCurrency()
+                                                </span>
+                                            </div>
+                                            <div>
+                                                <span class="@accumulated.AccumulatedBudget.GetDisplayClass()">
+                                                    @accumulated.AccumulatedBudget.FormatCurrency()
+                                                </span>
+                                            </div>
+                                        </td>
+                                    }
+                                    <!-- Total general -->
+                                    <td class="text-end" />
+                                </tr>
+                            }
                         </tfoot>
                     </table>
                 </div>
             </div>
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <span class="spinner-border text-primary" role="status"></span>
+            <p class="mt-2 text-muted">Cargando...</p>
         </div>
     }
 </div>

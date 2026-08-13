@@ -33,6 +33,8 @@ namespace UI.Pages
         private int? _hoverMonth = null;
         private bool _isLoading = true;
 
+        private bool IsCurrentYearSelected => _currentYear == DateTime.Now.Year;
+
         // ================================================================
         // 3. CICLO DE VIDA
         // ================================================================
@@ -109,6 +111,12 @@ namespace UI.Pages
 
         private async Task OnYearChanged()
         {
+            await LoadData();
+        }
+
+        private async Task SetCurrentYear()
+        {
+            _currentYear = DateTime.Now.Year;
             await LoadData();
         }
     }

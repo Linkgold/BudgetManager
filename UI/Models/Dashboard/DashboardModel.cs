@@ -10,6 +10,8 @@ namespace UI.Models.Dashboard
         public List<DashboardCategoryModel> Categories { get; set; } = new();
         public List<DashboardMonthTotalsModel> Months { get; set; } = new();
 
+        public bool HasData => Categories.Any(c => c.MonthlyData.Any(m => m.Budget != 0 || m.Spent != 0));
+
         public static DashboardModel FromDTO(DashboardResponseDTO dto)
         {
             // 1. Mapear categorías

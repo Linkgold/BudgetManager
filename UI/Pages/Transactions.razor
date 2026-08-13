@@ -1,5 +1,4 @@
 ﻿@page "/transactions"
-@using Contracts.Enums
 @attribute [Authorize]
 @inherits BasePage
 
@@ -92,6 +91,13 @@
 							}
 						</select>
 					</div>
+					<button class="btn btn-outline-accent btn-sm"
+							@onclick="() => SetCurrentDate()"
+							title="Ir a la fecha actual"
+							disabled="@(IsCurrentDateSelected)"
+							style="white-space: nowrap; padding: 4px 8px;">
+						📌 Ir a la fecha actual
+					</button>
 				</div>
 			</div>
 
@@ -130,7 +136,7 @@
 											<td class="text-start">@item.CategoryName</td>
 											<td class="text-start">@item.Name</td>
 											<td class="text-start">@item.Description</td>
-											<td class="text-end @item.GetDisplayClass()">@item.GetFormattedDisplay()</td>
+											<td class="text-end @item.GetDisplayAmount().GetDisplayClass()">@item.DisplayAmount.FormatCurrencyWithSign()</td>
 											<td class="text-end">
 												<button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(item)">
 													✏️
@@ -146,7 +152,7 @@
 								{
 									<tr>
 										<td colspan="6" class="text-center text-muted py-3">
-											@PageTextHelper.GetEmptyMessage("Transactions")
+											@PageTextHelper.GetEmptyStateHtml("Transactions")
 										</td>
 									</tr>
 								}
@@ -155,7 +161,7 @@
 								<tr class="table-secondary fw-bold">
 									<td colspan="4" class="text-end">Total:</td>
 									<td class="text-end @_totalAmount.GetDisplayClass()">
-										@_totalAmount.GetTotalFormattedDisplay()
+										@_totalAmount.FormatCurrencyWithSign()
 									</td>
 									<td></td>
 								</tr>

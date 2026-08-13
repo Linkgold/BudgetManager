@@ -13,7 +13,5 @@ namespace UI.Models.MonthDetail
 
         // Propiedades calculadas
         public decimal DisplayAmount => TransactionType == TransactionTypeEnum.Income ? Amount : -Amount;
-        public bool IsIncome => TransactionType == TransactionTypeEnum.Income;
-        public bool IsExpense => TransactionType == TransactionTypeEnum.Expense;
     }
 }

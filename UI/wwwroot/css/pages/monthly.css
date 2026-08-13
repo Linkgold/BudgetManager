@@ -23,12 +23,6 @@
     box-shadow: 0 2px 10px var(--shadow-color) !important;
 }
 
-.monthly-card-header {
-    background-color: #2C3E50 !important;
-    color: #FFFFFF !important;
-    border-bottom: 1px solid var(--color-border) !important;
-}
-
 .monthly-card .card-body {
     background-color: var(--color-card) !important;
 }

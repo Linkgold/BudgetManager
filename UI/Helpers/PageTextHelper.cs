@@ -1,4 +1,5 @@
-﻿using Microsoft.JSInterop;
+﻿using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 
 namespace UI.Helpers
 {
@@ -61,6 +62,20 @@ namespace UI.Helpers
         // MÉTODOS DE TEXTO
         // ================================================================
 
+        private static string GetEmptyMessage(string page, string extraData = "")
+        {
+            return page switch
+            {
+                "Categories" => "No hay categorías que coincidan con los filtros.",
+                "Transactions" => "No hay transacciones que coincidan con los filtros.",
+                "Budgets" => "No hay presupuestos para el año seleccionado.",
+                "FixedExpenses" => "No hay gastos fijos que coincidan con los filtros.",
+                "Dashboard" => "No hay datos disponibles para mostrar.",
+                "MonthDetail" => string.IsNullOrWhiteSpace(extraData) ? "No hay datos disponibles para mostrar en el mes seleccionado." : $"No hay datos para {extraData}",
+                _ => "No hay elementos que coincidan con los filtros."
+            };
+        }
+
         public static string GetPageTitle(string page)
         {
             if (!PageConfig.TryGetValue(page, out Definitions config))
@@ -79,18 +94,6 @@ namespace UI.Helpers
             }
 
             return $"➕ Añadir {config.EntityName}";
-        }
-
-        public static string GetEmptyMessage(string page)
-        {
-            return page switch
-            {
-                "Categories" => "No hay categorías que coincidan con los filtros.",
-                "Transactions" => "No hay transacciones que coincidan con los filtros.",
-                "Budgets" => "No hay presupuestos para el año seleccionado.",
-                "FixedExpenses" => "No hay gastos fijos que coincidan con los filtros.",
-                _ => "No hay elementos que coincidan con los filtros."
-            };
         }
 
         public static string GetFooterMessage(int filteredCount, int totalCount, string page) => filteredCount > 0 ? $"Mostrando {filteredCount} de {totalCount} {ResolveEntityName("Budgets", filteredCount)}" : GetEmptyMessage(page);
@@ -128,6 +131,26 @@ namespace UI.Helpers
                 // 🔍 Log para depuración
                 Console.WriteLine($"❌ Error en SelectAllText: {ex.Message}");
             }
+        }
+
+        public static RenderFragment GetEmptyStateHtml(string page, string extraData = "")
+        {
+            string icon = "🔍";
+            string message = GetEmptyMessage(page, extraData);
+
+            return builder =>
+            {
+                builder.OpenElement(0, "div");
+                builder.AddAttribute(1, "class", "text-center text-muted py-4");
+
+                builder.OpenElement(2, "span");
+                builder.AddAttribute(3, "class", "empty-state-icon");
+                builder.AddContent(4, icon);
+                builder.CloseElement();
+
+                builder.AddContent(5, message);
+                builder.CloseElement();
+            };
         }
     }
 }

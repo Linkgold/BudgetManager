@@ -167,7 +167,7 @@
                                             <td class="text-start">@item.CategoryName</td>
                                             <td class="text-start">@item.Name</td>
                                             <td class="text-start">@item.Description</td>
-                                            <td class="text-end">@CurrencyHelper.FormatCurrency(item.Amount)</td>
+                                            <td class="text-end">@item.Amount.FormatCurrency()</td>
                                             <td class="text-center">@MonthHelper.GetMonthName(item.Month)</td>
                                             <td class="text-center">@item.Year</td>
                                             <td class="text-end">
@@ -185,7 +185,7 @@
                                 {
                                     <tr>
                                         <td colspan="7" class="text-center text-muted py-3">
-                                            @PageTextHelper.GetEmptyMessage("FixedExpenses")
+                                            @PageTextHelper.GetEmptyStateHtml("FixedExpenses")
                                         </td>
                                     </tr>
                                 }

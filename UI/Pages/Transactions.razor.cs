@@ -51,6 +51,8 @@ namespace UI.Pages
         private int _selectedMonth = DateTime.Now.Month;
         private int _selectedYear = DateTime.Now.Year;
 
+        private bool IsCurrentDateSelected => _selectedYear == DateTime.Now.Year && _selectedMonth == DateTime.Now.Month;
+
         private bool HasCategories => _categories.Count != 0;
 
         private string searchTerm
@@ -292,6 +294,14 @@ namespace UI.Pages
         // ================================================================
         // 8. MÉTODOS AUXILIARES
         // ================================================================
+
+        private async Task SetCurrentDate()
+        {
+            _selectedYear = DateTime.Now.Year;
+            _selectedMonth = DateTime.Now.Month;
+
+            await OnYearChanged();
+        }
 
         private async Task OnYearChanged()
         {

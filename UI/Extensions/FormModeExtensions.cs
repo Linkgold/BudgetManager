@@ -37,17 +37,6 @@ namespace UI.Extensions
             };
         }
 
-        public static string GetModalWrapperClass(this FormModeEnum mode, bool isModalOpen)
-        {
-            if (!isModalOpen) return string.Empty;
-
-            return mode switch
-            {
-                FormModeEnum.Delete => "modal-open-delete",
-                FormModeEnum.Edit => "modal-open",
-                FormModeEnum.Create => "modal-open",
-                _ => "modal-open"
-            };
-        }
+        public static string GetModalWrapperClass(this FormModeEnum mode, bool isModalOpen) => !isModalOpen ? string.Empty : mode == FormModeEnum.Delete ? "modal-open-delete" : "modal-open";
     }
 }

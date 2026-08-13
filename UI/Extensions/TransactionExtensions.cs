@@ -1,5 +1,5 @@
 ﻿using Contracts.Enums;
-using UI.Helpers;
+using UI.Extensions;
 using UI.Models;
 
 namespace UI.Extensions
@@ -38,17 +38,7 @@ namespace UI.Extensions
                 _ => TransactionTypeEnum.Expense
             };
         }
-
-        public static string GetDisplayClass(this TransactionModel transaction) => transaction.GetDisplayAmount() >= 0 ? "text-success" : "text-danger";
-
-        public static string GetFormattedDisplay(this TransactionModel transaction)
-        {
-            decimal displayAmount = transaction.GetDisplayAmount();
-            string sign = displayAmount >= 0 ? "+" : "-";
-
-            return $"{sign}{CurrencyHelper.FormatCurrency(Math.Abs(displayAmount))}";
-        }
-
+       
         public static decimal GetTotalDisplayAmount(this IEnumerable<TransactionModel> transactions)
         {
             decimal total = 0m;
@@ -74,7 +64,5 @@ namespace UI.Extensions
         }
 
         public static bool HasMonthData(this IEnumerable<TransactionModel> transactions, int year, int month) => transactions.Any(t => t.Date.Year == year && t.Date.Month == month);
-
-        public static string GetTotalFormattedDisplay(this decimal amount) => $"{(amount >= 0 ? "+" : " - ")}{CurrencyHelper.FormatCurrency(Math.Abs(amount))}";
     }
 }

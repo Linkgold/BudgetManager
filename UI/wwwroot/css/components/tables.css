@@ -60,9 +60,9 @@
     }
 
 .table-wrapper {
-    overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 4px !important;
+    width: 100%;
+    overflow-x: auto;
+    position: relative;
 }
 
 .card {

@@ -55,7 +55,7 @@
                         title="Ir al año actual"
                         disabled="@(IsCurrentYearSelected)"
                         style="white-space: nowrap; padding: 4px 8px;">
-                            📅 Actual
+                            📌 Ir al año actual
                         </button>
                     </div>
                 </div>
@@ -205,7 +205,7 @@
 
                 <!-- 4. Resumen rápido -->
                 <div class="mt-2 budget-total-label text-muted small">
-                    Total presupuesto anual: <span class="fw-bold">@CurrencyHelper.FormatCurrency(_budgetForm.TotalAnnualBudget)</span>
+                    Total presupuesto anual: <span class="fw-bold">@_budgetForm.TotalAnnualBudget.FormatCurrency()</span>
                 </div>
             </Modal>
 
@@ -253,7 +253,7 @@
                                 {
                                     <tr>
                                         <td colspan="@(MonthHelper.Months.Count + 3)" class="text-center text-muted py-3">
-                                            @PageTextHelper.GetEmptyMessage("Budgets")
+                                            @PageTextHelper.GetEmptyStateHtml("Budgets")
                                         </td>
                                     </tr>
                                 }

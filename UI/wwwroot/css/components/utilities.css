@@ -146,3 +146,12 @@ input:-moz-autofill {
     width: 2rem;
     height: 2rem;
 }
+
+/* 🔥 ICONO DE ESTADO VACÍO */
+
+.empty-state-icon {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 8px;
+    opacity: 0.7;
+}
