@@ -40,7 +40,7 @@ namespace UI.Extensions
         /// <summary>
         /// Obtiene la clase CSS para el color del estado del gasto según la naturaleza
         /// </summary>
-        public static string GetStatusClass(this CategoryNatureEnum nature, decimal spent, decimal budget)
+        public static string GetPercentageStatusClass(this CategoryNatureEnum nature, decimal spent, decimal budget)
         {
             spent = Math.Abs(spent);
             budget = Math.Abs(budget);
@@ -83,7 +83,7 @@ namespace UI.Extensions
 
         public static string GetStatusCircleClass(this CategoryNatureEnum nature, decimal spent, decimal budget)
         {
-            string textClass = nature.GetStatusClass(spent, budget);
+            string textClass = nature.GetPercentageStatusClass(spent, budget);
 
             return textClass switch
             {
@@ -91,6 +91,15 @@ namespace UI.Extensions
                 "text-warning" => "yellow",
                 "text-danger" => "red",
                 _ => "green"
+            };
+        }
+
+        public static string GetStatusClass(this CategoryNatureEnum nature)
+        {
+            return nature switch
+            {
+                CategoryNatureEnum.Income => "text-success",
+                _ => "text-danger"
             };
         }
     }

@@ -57,7 +57,7 @@
                                             <td class="text-end">@item.DisplayBudget.FormatCurrency()</td>
                                             <td class="text-end">@item.DisplaySpent.FormatCurrency()</td>
                                             <td class="text-end">
-                                                <span class="@item.Nature.GetStatusClass(item.Spent, item.Budget)">
+                                                <span class="@item.Nature.GetPercentageStatusClass(item.Spent, item.Budget)">
                                                     @item.Difference.FormatCurrencyWithSign()
                                                 </span>
                                             </td>

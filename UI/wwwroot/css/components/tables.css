@@ -39,14 +39,6 @@
             background-color: var(--color-table-hover) !important;
         }
 
-    .data-table .text-success {
-        color: var(--color-success) !important;
-    }
-
-    .data-table .text-danger {
-        color: var(--color-error) !important;
-    }
-
     .data-table .text-muted {
         color: var(--color-text-muted) !important;
     }

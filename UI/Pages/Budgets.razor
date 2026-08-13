@@ -231,13 +231,29 @@
                                     @foreach (CategoryModel category in _filteredCategories)
                                     {
                                         <tr>
-                                            <td class="text-start">@category.Name</td>
+                                            <td class="text-start">
+                                                <span class="badge @category.Nature.GetBadgeClass()">
+                                                    <span class="nature-icon">@category.Nature.GetIcon()</span>
+                                                    @category.Nature.GetDisplayName()
+                                                </span>
+                                                <div>
+                                                    <span class="fw-semibold">@category.Name</span>
+                                                </div>
+                                            </td>
                                             @foreach (MonthModel month in MonthHelper.Months)
                                             {
                                                 decimal amount = GetBudgetAmount(category.Id, month.Value, selectedYear);
-                                                <td class="text-center">@(amount > 0 ? amount.ToString("C", new System.Globalization.CultureInfo("es-ES")) : "—")</td>
+                                                <td class="text-center">
+                                                    <span class=@category.Nature.GetStatusClass()>
+                                                        @amount.FormatValidAmount()
+                                                    </span>
+                                                </td>
                                             }
-                                            <td class="text-end">@GetCategoryTotal(category.Id, selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
+                                            <td class="text-end">
+                                                <span class=@category.Nature.GetStatusClass()>
+                                                    @GetCategoryTotal(category.Id, selectedYear).FormatCurrency()
+                                                </span>
+                                            </td>
                                             <td class="text-end">
                                                 <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(category.Id, selectedYear)">
                                                     ✏️
@@ -263,10 +279,23 @@
                                     <td class="text-start">TOTAL</td>
                                     @foreach (MonthModel month in MonthHelper.Months)
                                     {
-                                        <td class="text-center">@GetMonthTotal(month.Value, selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
+                                        decimal totalMonth = @GetMonthTotal(month.Value, selectedYear);
+
+                                        <td class="text-center">
+                                            <span class=@totalMonth.GetDisplayClass()>
+                                                @totalMonth.FormatCurrency()
+                                            </span>
+                                        </td>
                                     }
-                                    <td class="text-end">@GetTotal(selectedYear).ToString("C", new System.Globalization.CultureInfo("es-ES"))</td>
-                                    <td></td>
+                                    @{
+                                        decimal totalAnnual = GetTotal(selectedYear);
+
+                                        <td class="text-end">
+                                            <span class=@totalAnnual.GetDisplayClass()>
+                                                @totalAnnual.FormatCurrency()
+                                            </span>
+                                        </td>
+                                    }
                                 </tr>
                             </tfoot>
                         </table>
