@@ -180,7 +180,7 @@
                             <div class="summary-number">
                                 @_currentMonthData?.TotalDifference.FormatCurrency()
                             </div>
-                            <small class="summary-percent">@Math.Abs(_currentMonthData?.PercentageUsed ?? 0).FormatPercentage() utilizado</small>
+                            <small class="summary-percent">@_currentMonthData?.PercentageUsed.FormatPercentage() ejecutado</small>
                         </div>
                     </div>
                 </div>

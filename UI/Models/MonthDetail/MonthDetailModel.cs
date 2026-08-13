@@ -11,7 +11,7 @@ namespace UI.Models.MonthDetail
 
         // Propiedades calculadas
         public decimal TotalDifference => Categories.Sum(c => c.Difference);
-        public decimal PercentageUsed => TotalBudget > 0 ? (TotalSpent / TotalBudget) * 100 : 0;
+        public decimal PercentageUsed => TotalBudget != 0 ? (TotalSpent / TotalBudget) * 100 : 0;
         public string MonthName => MonthHelper.GetMonthName(Month);
     }
 }

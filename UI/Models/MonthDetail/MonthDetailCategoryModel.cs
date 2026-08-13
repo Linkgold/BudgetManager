@@ -13,17 +13,22 @@ namespace UI.Models.MonthDetail
 
         // Propiedades calculadas
         public decimal DisplayBudget => Math.Abs(Budget);
-        public decimal DisplaySpent => Math.Abs(Spent);
+        public decimal DisplaySpent => Nature == CategoryNatureEnum.Mixed && Spent > 0 ? -Spent : Math.Abs(Spent);
         public decimal Difference
         {
             get
             {
                 if (Nature == CategoryNatureEnum.Income)
                 {
-                    return Spent - Budget;  // Ingreso: real vs presupuesto
+                    return Spent - Budget;
                 }
 
-                return Math.Abs(Budget) - Math.Abs(Spent);  // Gasto: presupuesto vs real
+                if (Nature == CategoryNatureEnum.Mixed && Spent > 0)
+                {
+                    return Math.Abs(Budget) + Spent;
+                }
+
+                return Math.Abs(Budget) - Math.Abs(Spent);
             }
         }
     }
