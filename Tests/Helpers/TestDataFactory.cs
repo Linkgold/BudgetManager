@@ -3,10 +3,6 @@ using Contracts.Enums;
 using Domain.Entities;
 using Domain.Interfaces;
 using Domain.ValueObjects;
-using Infrastructure.Data;
-using Infrastructure.Repositories;
-using Microsoft.Data.Sqlite;
-using Microsoft.EntityFrameworkCore;
 using Moq;
 using Shared.DTOs.Request;
 using Shared.DTOs.Response;
@@ -45,6 +41,7 @@ namespace Tests.Helpers
         public const string DEFAULT_ENTITY_INFO_DESCRIPTION = "Gastos de supermercado";
         public const decimal DEFAULT_MONEY_AMOUNT = 100.00m;
         public const string DEFAULT_CURRENCY = "EUR";
+        public const TransactionTypeEnum DEFAULT_TRANSACTION_TYPE = TransactionTypeEnum.Expense;
 
         // ==================== USUARIOS ====================
 
@@ -80,7 +77,7 @@ namespace Tests.Helpers
         /// <summary>
         /// Crea una categoría de prueba con usuario
         /// </summary>
-        public static Category CreateCategory(int id = 1, User user = null, string name = DEFAULT_CATEGORY_NAME, string description = DEFAULT_CATEGORY_DESCRIPTION, CategoryNatureEnum nature = DEFAULT_CATEGORY_NATURE)
+        public static Category CreateCategory(int id = 1, User? user = null, string name = DEFAULT_CATEGORY_NAME, string description = DEFAULT_CATEGORY_DESCRIPTION, CategoryNatureEnum nature = DEFAULT_CATEGORY_NATURE)
         {
             user ??= CreateUser(1);
             EntityInfo info = CreateEntityInfo(name, description);
@@ -93,7 +90,7 @@ namespace Tests.Helpers
         /// <summary>
         /// Crea una lista de categorías de prueba
         /// </summary>
-        public static List<Category> CreateCategories(int count = 3, User user = null)
+        public static List<Category> CreateCategories(int count = 3, User? user = null)
         {
             user ??= CreateUser(1);
             List<Category> categories = new List<Category>();
@@ -112,8 +109,8 @@ namespace Tests.Helpers
         public static FixedExpense CreateFixedExpense
         (
             int id = 1,
-            User user = null,
-            Category category = null,
+            User? user = null,
+            Category? category = null,
             string name = DEFAULT_FIXED_EXPENSE_NAME,
             string description = DEFAULT_FIXED_EXPENSE_DESCRIPTION,
             decimal amount = DEFAULT_FIXED_EXPENSE_AMOUNT,
@@ -194,11 +191,12 @@ namespace Tests.Helpers
         public static Transaction CreateTransaction
         (
             int id = 1,
-            User user = null,
-            Category category = null,
+            User? user = null,
+            Category? category = null,
             string name = DEFAULT_TRANSACTION_NAME,
             string description = DEFAULT_TRANSACTION_DESCRIPTION,
             decimal amount = DEFAULT_TRANSACTION_AMOUNT,
+            TransactionTypeEnum transactionType = DEFAULT_TRANSACTION_TYPE,
             string currency = DEFAULT_CURRENCY,
             int day = DEFAULT_DAILY_DAY,
             int month = DEFAULT_DAILY_MONTH,
@@ -210,13 +208,13 @@ namespace Tests.Helpers
             EntityInfo info = CreateEntityInfo(name, description);
             Money money = CreateMoney(amount, currency);
             DailyPeriod date = CreateDailyPeriod(day, month, year);
-            Transaction transaction = CreateTransactionWithoutId(user, category, info, money, date);
+            Transaction transaction = CreateTransactionWithoutId(user, category, info, money, transactionType, date);
             typeof(Transaction).GetProperty("Id")?.SetValue(transaction, id);
 
             return transaction;
         }
 
-        public static Transaction CreateTransactionWithoutAutoCreation(User user, Category category, EntityInfo info, Money money, DailyPeriod date) => new(user, category, info, money, date);
+        public static Transaction CreateTransactionWithoutAutoCreation(User user, Category category, EntityInfo info, Money money, TransactionTypeEnum transactionType, DailyPeriod date) => new(user, category, info, money, transactionType, date);
 
         public static Transaction CreateTransactionWithoutId
         (
@@ -224,8 +222,9 @@ namespace Tests.Helpers
             Category? category = null,
             EntityInfo? info = null,
             Money? money = null,
+            TransactionTypeEnum? transactionType = null,
             DailyPeriod? date = null
-        ) => new(user ?? CreateUser(), category ?? CreateCategory(), info ?? CreateEntityInfo(), money ?? CreateMoney(), date ?? CreateDailyPeriod());
+        ) => new(user ?? CreateUser(), category ?? CreateCategory(), info ?? CreateEntityInfo(), money ?? CreateMoney(), transactionType ?? DEFAULT_TRANSACTION_TYPE, date ?? CreateDailyPeriod());
 
         // ==================== VALUE OBJECTS ====================
 
@@ -336,13 +335,14 @@ namespace Tests.Helpers
             string name = DEFAULT_TRANSACTION_NAME,
             string description = DEFAULT_TRANSACTION_DESCRIPTION,
             decimal amount = DEFAULT_TRANSACTION_AMOUNT,
+            TransactionTypeEnum transactionType = DEFAULT_TRANSACTION_TYPE,
             string currency = DEFAULT_CURRENCY,
             int day = DEFAULT_DAILY_DAY,
             int month = DEFAULT_DAILY_MONTH,
             int year = DEFAULT_YEAR
         )
         {
-            Transaction transaction = CreateTransaction(id, user, category, name, description, amount, currency, day, month, year);
+            Transaction transaction = CreateTransaction(id, user, category, name, description, amount, transactionType, currency, day, month, year);
 
             await repository.AddAsync(transaction);
 
@@ -369,8 +369,8 @@ namespace Tests.Helpers
         {
             mock.Setup(service => service.UserId).Returns(0);
             mock.Setup(service => service.IsAuthenticated).Returns(false);
-            mock.Setup(service => service.UserName).Returns((string)null);
-            mock.Setup(service => service.Email).Returns((string)null);
+            mock.Setup(service => service.UserName).Returns((string?)null);
+            mock.Setup(service => service.Email).Returns((string?)null);
         }
 
         // MÉTODOS PARA API
@@ -456,6 +456,7 @@ namespace Tests.Helpers
             int categoryId,
             string name,
             decimal amount,
+            TransactionTypeEnum transactionType,
             string currency,
             int day,
             int month,
@@ -468,6 +469,7 @@ namespace Tests.Helpers
                 Name = name,
                 Description = "Test Transaction",
                 Amount = amount,
+                TransactionType = transactionType,
                 Currency = currency,
                 Date = new DateTime(year, month, day)
             };

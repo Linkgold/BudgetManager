@@ -84,5 +84,12 @@ namespace UI.Services
 
             NotifyAuthenticationStateChanged(Task.FromResult(new AuthenticationState(principal)));
         }
+
+        public async Task RefreshUserAsync()
+        {
+            AuthenticationState newState = await GetAuthenticationStateAsync();
+
+            NotifyAuthenticationStateChanged(Task.FromResult(newState));
+        }
     }
 }

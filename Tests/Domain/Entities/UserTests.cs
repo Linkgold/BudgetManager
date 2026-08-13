@@ -35,7 +35,7 @@ namespace Tests.Domain.Entities
         public void Constructor_WithNullUserInfo_ShouldThrowArgumentNullException()
         {
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(null, "hashed_password"));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(null!, "hashed_password"));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -47,7 +47,7 @@ namespace Tests.Domain.Entities
             UserInfo userInfo = TestDataFactory.CreateUserInfo();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(userInfo, null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new User(userInfo, null!));
             Assert.Equal("passwordHash", exception.ParamName);
         }
 
@@ -89,7 +89,7 @@ namespace Tests.Domain.Entities
             User user = TestDataFactory.CreateUser();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.Update(null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.Update(null!));
             Assert.Equal("info", exception.ParamName);
         }
 
@@ -117,7 +117,7 @@ namespace Tests.Domain.Entities
             User user = TestDataFactory.CreateUser();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.UpdatePassword(null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => user.UpdatePassword(null!));
             Assert.Equal("passwordHash", exception.ParamName);
         }
 
@@ -150,6 +150,47 @@ namespace Tests.Domain.Entities
             Assert.Empty(user.FixedExpenses);
             Assert.Empty(user.Budgets);
             Assert.Empty(user.Transactions);
+        }
+
+        // ==================== EXCEPTIONS ====================
+
+        [Fact]
+        public void Constructor_WithDefault_ShouldCreateException()
+        {
+            // Act
+            InvalidPasswordException exception = new InvalidPasswordException();
+
+            // Assert
+            Assert.NotNull(exception);
+            Assert.Contains("InvalidPasswordException", exception.Message);
+        }
+
+        [Fact]
+        public void Constructor_WithMessage_ShouldCreateExceptionWithMessage()
+        {
+            // Arrange
+            string expectedMessage = "La contraseña actual es incorrecta.";
+
+            // Act
+            InvalidPasswordException exception = new InvalidPasswordException(expectedMessage);
+
+            // Assert
+            Assert.Equal(expectedMessage, exception.Message);
+        }
+
+        [Fact]
+        public void Constructor_WithMessageAndInnerException_ShouldCreateException()
+        {
+            // Arrange
+            string expectedMessage = "La contraseña actual es incorrecta.";
+            Exception innerException = new Exception("Inner exception");
+
+            // Act
+            InvalidPasswordException exception = new InvalidPasswordException(expectedMessage, innerException);
+
+            // Assert
+            Assert.Equal(expectedMessage, exception.Message);
+            Assert.Equal(innerException, exception.InnerException);
         }
     }
 }

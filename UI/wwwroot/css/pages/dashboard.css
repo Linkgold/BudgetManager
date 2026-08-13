@@ -1,60 +1,237 @@
-﻿/* ==================== DASHBOARD ANUAL ==================== */
+﻿/* ==================== DASHBOARD - ESTILOS ESPECÍFICOS ==================== */
 
-/* 🔥 Título */
 .dashboard-title {
     color: var(--color-text) !important;
 }
 
-/* 🔥 Tarjeta principal */
 .dashboard-card {
     background-color: var(--color-card) !important;
     border: 1px solid var(--color-border) !important;
     box-shadow: 0 2px 10px var(--shadow-color) !important;
 }
 
-.dashboard-card-header {
-    background-color: #2C3E50 !important;
-    color: #FFFFFF !important;
-    border-bottom: 1px solid var(--color-border) !important;
-}
-
 .dashboard-card .card-body {
+    border-top: none !important;
     background-color: var(--color-card) !important;
+    padding: 0 !important;
 }
 
-/* 🔥 Primera columna (meses) - específico del dashboard */
-.dashboard-table tbody td:first-child,
-.dashboard-table thead th:first-child {
-    font-weight: 600;
-    text-align: left;
-    padding-left: 6px;
-    min-width: 80px;
-    max-width: 120px;
-    white-space: nowrap;
+.dashboard-table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 800px;
+    background-color: var(--color-surface) !important;
 }
 
-.dashboard-table .category-cell {
-    padding: 2px 4px;
-    min-width: 60px;
-}
+    /* 🔥 Posicionamiento relativo para pseudoelementos */
+    .dashboard-table th,
+    .dashboard-table td {
+        position: relative;
+    }
 
-/* 🔥 Responsive adicional */
-@media (max-width: 768px) {
+    /* 🔥 CABECERA */
     .dashboard-table thead th {
-        padding: 4px 2px;
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+        font-weight: 500 !important;
+        padding: 6px 8px !important;
+        text-align: center;
+        white-space: nowrap;
+        position: sticky;
+        top: 0;
+        z-index: 20;
     }
 
+        .dashboard-table thead th:first-child {
+            z-index: 30;
+            left: 0;
+            text-align: left;
+            background-color: var(--color-secondary) !important;
+            color: var(--color-text-inverse) !important;
+        }
+
+        .dashboard-table thead th:last-child {
+            z-index: 30;
+            right: 0;
+            text-align: right;
+            background-color: var(--color-secondary) !important;
+            color: var(--color-text-inverse) !important;
+        }
+
+    /* 🔥 COLUMNAS FIJAS (Categoría y Total) */
+    .dashboard-table th:first-child,
+    .dashboard-table td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 10;
+        background-color: var(--color-surface) !important;
+        min-width: 120px;
+        max-width: 150px;
+    }
+
+    .dashboard-table th:last-child,
+    .dashboard-table td:last-child {
+        position: sticky;
+        right: 0;
+        z-index: 10;
+        background-color: var(--color-surface) !important;
+        min-width: 100px;
+    }
+
+    /* 🔥 PIE DE TABLA - COLUMNAS FIJAS */
+    .dashboard-table tfoot td:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 5;
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+    }
+
+    .dashboard-table tfoot td:last-child {
+        position: sticky;
+        right: 0;
+        z-index: 5;
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+    }
+
+    /* 🔥 PSEUDOELEMENTOS PARA BORDES FIJOS EN COLUMNAS STICKY */
+
+    /* Borde derecho de la columna Categoría */
+    .dashboard-table th:first-child::after,
+    .dashboard-table td:first-child::after {
+        content: '';
+        position: absolute;
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: var(--color-border-light);
+        pointer-events: none;
+    }
+
+    /* Borde izquierdo de la columna Total */
+    .dashboard-table th:last-child::before,
+    .dashboard-table td:last-child::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background-color: var(--color-border-light);
+        pointer-events: none;
+    }
+
+    /* 🔥 EL RESTO DE CELDAS SIN BORDE LATERAL */
+    .dashboard-table td:not(:first-child):not(:last-child),
+    .dashboard-table th:not(:first-child):not(:last-child) {
+        border-left: none !important;
+        border-right: none !important;
+    }
+
+    /* 🔥 CUERPO */
     .dashboard-table tbody td {
-        padding: 3px 2px;
+        padding: 8px 10px !important;
+        border-bottom: 1px solid var(--color-border-light) !important;
+        color: var(--color-text) !important;
+        background-color: transparent !important;
+        vertical-align: middle;
+        white-space: nowrap !important;
     }
 
-    .dashboard-table .category-cell {
-        min-width: 40px;
+    .dashboard-table tbody tr {
+        background-color: var(--color-surface) !important;
     }
 
-    .dashboard-table tbody td:first-child,
-    .dashboard-table thead th:first-child {
-        min-width: 60px;
-        max-width: 80px;
+        .dashboard-table tbody tr:nth-child(even) {
+            background-color: var(--color-table-stripe) !important;
+        }
+
+        .dashboard-table tbody tr:hover {
+            background-color: var(--color-table-hover) !important;
+        }
+
+        .dashboard-table tbody tr:last-child td {
+            border-bottom: 2px solid var(--color-border-light) !important;
+        }
+
+    /* 🔥 PIE DE TABLA (TOTALES) */
+    .dashboard-table tfoot td {
+        background-color: var(--color-secondary) !important;
+        color: var(--color-text-inverse) !important;
+        border-top: none !important;
+        font-weight: 600 !important;
+        padding: 8px 6px !important;
     }
+
+        .dashboard-table tfoot td div {
+            white-space: nowrap !important;
+        }
+
+    /* 🔥 COLORES DE TEXTO */
+    .dashboard-table .text-success {
+        color: var(--color-success) !important;
+    }
+
+    .dashboard-table .text-danger {
+        color: var(--color-error) !important;
+    }
+
+    .dashboard-table .fw-bold {
+        font-weight: 600 !important;
+    }
+
+    .dashboard-table .text-muted {
+        color: var(--color-text-muted) !important;
+    }
+
+    /* 🔥 BADGE DE NATURALEZA */
+    .dashboard-table .nature-badge {
+        font-size: 0.55rem !important;
+        padding: 1px 6px !important;
+        border-radius: 10px !important;
+        font-weight: 500 !important;
+    }
+
+    /* 🔥 ELIMINAR HOVER DE FILAS */
+    .dashboard-table tbody tr:hover {
+        background-color: transparent !important;
+    }
+
+    /* 🔥 HOVER EN COLUMNA - cuando la celda tiene la clase column-hover */
+    .dashboard-table .column-hover {
+        background-color: var(--color-hover-soft) !important;
+    }
+
+    /* 🔥 Asegurar que el hover también se aplica a celdas de cabecera y pie */
+    .dashboard-table thead .column-hover,
+    .dashboard-table tfoot .column-hover {
+        background-color: var(--color-hover-medium) !important;
+    }
+
+/* 🔥 Celdas de mes clickeables */
+.month-cell {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+/* 🔥 Encabezados de mes clickeables */
+.month-header {
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+/* 🔥 Asegurar que las filas alternas mantengan su color base cuando no hay hover */
+.dashboard-table tbody tr:nth-child(even) .month-cell:not(.column-hover) {
+    background-color: var(--color-table-stripe) !important;
+}
+
+.dashboard-table tbody tr .month-cell:not(.column-hover) {
+    background-color: var(--color-surface) !important;
+}
+
+/* 🔥 Cambiar color del texto en la cabecera durante el hover */
+.dashboard-table thead .month-header.column-hover {
+    color: var(--color-text) !important;
 }

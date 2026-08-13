@@ -15,7 +15,7 @@ namespace Application.Interfaces
         Task<CategoryResponseDTO> UpdateAsync(int id, UpdateCategoryRequestDTO request);
         Task DeleteAsync(int id);
 
-        // Validaciones
+        // Verificaciones
         Task<bool> ExistsAsync(int id);
         Task<bool> ExistsByNameAsync(string name);
         Task<bool> CanDeleteAsync(int id);

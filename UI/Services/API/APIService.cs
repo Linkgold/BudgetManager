@@ -43,6 +43,33 @@ namespace UI.Services.API
         // MÉTODOS GENÉRICOS CON AUTENTICACIÓN
         // ================================================================
 
+        public async Task<APIResult<T>> GetAsync<T>(string endpoint) where T : class
+        {
+            try
+            {
+                HttpResponseMessage response = await GetCall(endpoint);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    T? data = await response.Content.ReadFromJsonAsync<T>(_jsonOptions);
+                    return APIResult<T>.Success(data!);
+                }
+
+                ErrorResponse? error = await ParseErrorResponse(response);
+
+                return APIResult<T>.Failure((int)response.StatusCode, error?.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogErrorAsync($"Error en GET {endpoint}", ex);
+
+                return APIResult<T>.Failure(500, "Ocurrió un error inesperado.");
+            }
+        }
         public async Task<APIResult<List<T>>> GetListAsync<T>(string endpoint) where T : class
         {
             try
@@ -100,6 +127,31 @@ namespace UI.Services.API
                 await _logService.LogErrorAsync($"Error en POST {endpoint}", ex);
 
                 return APIResult<TResponse>.Failure(500, "Ocurrió un error inesperado.");
+            }
+        }
+
+        public async Task<APIResult<bool>> PostNoContentAsync<TRequest>(string endpoint, TRequest request) where TRequest : class
+        {
+            try
+            {
+                HttpResponseMessage response = await PostCall(endpoint, request);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    return APIResult<bool>.Success(true);
+                }
+
+                ErrorResponse? error = await ParseErrorResponse(response);
+                return APIResult<bool>.Failure((int)response.StatusCode, error?.Message);
+            }
+            catch (UnauthorizedAccessException)
+            {
+                throw;
+            }
+            catch (Exception ex)
+            {
+                await _logService.LogErrorAsync($"Error en POST {endpoint}", ex);
+                return APIResult<bool>.Failure(500, "Ocurrió un error inesperado.");
             }
         }
 
@@ -203,6 +255,15 @@ namespace UI.Services.API
         }
 
         // ================================================================
+        // MÉTODOS PÚBLICOS
+        // ================================================================
+
+        public async Task LogoutAsync() => await _authService.LogoutAsync();
+
+        public void NotifySuccess(string message) => _toastService.ShowSuccess(message);
+        public void NotifyError(string message) => _toastService.ShowError(message);
+
+        // ================================================================
         // MÉTODOS PRIVADOS
         // ================================================================
 
@@ -253,6 +314,16 @@ namespace UI.Services.API
             {
                 string content = await response.Content.ReadAsStringAsync();
 
+                // 🔥 Si la respuesta está vacía, devolver un ErrorResponse por defecto
+                if (string.IsNullOrWhiteSpace(content))
+                {
+                    return new ErrorResponse
+                    {
+                        StatusCode = (int)response.StatusCode,
+                        Message = response.ReasonPhrase ?? "Error en la petición",
+                        Timestamp = DateTime.UtcNow
+                    };
+                }
 
                 if ((int)response.StatusCode >= 400 && (int)response.StatusCode < 500)
                 {
@@ -275,15 +346,6 @@ namespace UI.Services.API
                     StatusCode = (int)response.StatusCode
                 };
             }
-        }
-        public void NotifySuccess(string message)
-        {
-            _toastService.ShowSuccess(message);
-        }
-
-        public void NotifyError(string message)
-        {
-            _toastService.ShowError(message);
         }
     }
 }

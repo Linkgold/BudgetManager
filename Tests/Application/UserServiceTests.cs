@@ -352,7 +352,27 @@ namespace Tests.Application
         // ==================== TEST: CHANGE PASSWORD ====================
 
         [Fact]
-        public async Task ChangePasswordAsync_WithValidData_UpdatesPassword()
+        public async Task ChangePasswordAsync_WithInvalidCurrentPassword_ThrowsInvalidPasswordException()
+        {
+            // Arrange
+            int userId = 1;
+            string wrongPassword = "WrongPassword";
+
+            _currentUserServiceMock
+                .Setup(service => service.UserId)
+                .Returns(userId);
+
+            _userRepositoryMock
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD, userId));
+
+            // Act & Assert
+            await Assert.ThrowsAsync<InvalidPasswordException>(() =>
+                _userService.ChangePasswordAsync(wrongPassword, "NewPassword456!"));
+        }
+
+        [Fact]
+        public async Task ChangePasswordAsync_WithValidCurrentPassword_ShouldUpdatePassword()
         {
             // Arrange
             int userId = 1;
@@ -363,32 +383,14 @@ namespace Tests.Application
                 .Returns(userId);
 
             _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD));
+                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
+                .ReturnsAsync(TestDataFactory.CreateUserWithPassword(TestDataFactory.DEFAULT_PASSWORD, userId));
 
             // Act
             await _userService.ChangePasswordAsync(TestDataFactory.DEFAULT_PASSWORD, newPassword);
 
             // Assert
             _userRepositoryMock.Verify(repo => repo.UpdateAsync(It.IsAny<User>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task ChangePasswordAsync_WithInvalidCurrentPassword_ThrowsUnauthorizedAccessException()
-        {
-            // Arrange
-            int userId = 1;
-
-            _currentUserServiceMock
-                .Setup(service => service.UserId)
-                .Returns(userId);
-
-            _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId))
-                .ReturnsAsync(TestDataFactory.CreateUserWithPassword());
-
-            // Act & Assert
-            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _userService.ChangePasswordAsync("WrongPassword", "NewPassword456!"));
         }
 
         // ==================== TEST: EXISTS ====================
@@ -426,6 +428,7 @@ namespace Tests.Application
             // Assert
             Assert.False(result);
         }
+
 
         // ==================== DISPOSE ====================
 

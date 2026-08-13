@@ -12,6 +12,7 @@ using Domain.ValueObjects;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Tests.Helpers;
+using Domain.Interfaces.Managers;
 
 namespace Tests.Application
 {
@@ -119,184 +120,17 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _budgetRepositoryMock
-                .Setup(repo => repo.GetAllAsync(userId))
+                .Setup(repo => repo.GetAllByYearAsync(userId, It.IsAny<int>()))
                 .ReturnsAsync(budgets);
 
             // Act
-            List<BudgetResponseDTO> result = await _budgetService.GetAllAsync();
+            List<BudgetResponseDTO> result = await _budgetService.GetAllByYearAsync(2023);
 
             // Assert
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);
             Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, result[0].Amount);
             Assert.Equal(secondBudgetAmount, result[1].Amount);
-        }
-
-        // ==================== TEST: GET BY CATEGORY ====================
-
-        [Fact]
-        public async Task GetByCategoryIdAsync_WithExistingCategory_ReturnsBudgets()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            Budget budget1 = TestDataFactory.CreateBudget(1);
-            Budget budget2 = TestDataFactory.CreateBudget(2);
-            List<Budget> budgets = new List<Budget> { budget1, budget2 };
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(userId, categoryId))
-                .ReturnsAsync(true);
-
-            _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryIdAsync(userId, categoryId))
-                .ReturnsAsync(budgets);
-
-            // Act
-            List<BudgetResponseDTO> result = await _budgetService.GetByCategoryIdAsync(categoryId);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            _budgetRepositoryMock.Verify(repo => repo.GetByCategoryIdAsync(userId, categoryId), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetByCategoryIdAsync_WithNonExistingCategory_ThrowsKeyNotFoundException()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 999;
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(userId, categoryId))
-                .ReturnsAsync(false);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.GetByCategoryIdAsync(categoryId));
-        }
-
-        // ==================== TEST: GET BY PERIOD ====================
-
-        [Fact]
-        public async Task GetByPeriodAsync_ReturnsBudgetsForPeriod()
-        {
-            // Arrange
-            int userId = 1;
-            Budget budget1 = TestDataFactory.CreateBudget(1);
-            Budget budget2 = TestDataFactory.CreateBudget(2);
-            List<Budget> budgets = new List<Budget> { budget1, budget2 };
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _budgetRepositoryMock
-                .Setup(repo => repo.GetByPeriodAsync(userId, It.IsAny<MonthlyPeriod>()))
-                .ReturnsAsync(budgets);
-
-            // Act
-            List<BudgetResponseDTO> result = await _budgetService.GetByPeriodAsync(TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-        }
-
-        // ==================== TEST: GET BY CATEGORY AND PERIOD ====================
-
-        [Fact]
-        public async Task GetByCategoryAndPeriodAsync_WithExistingBudget_ReturnsBudget()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            Budget budget = TestDataFactory.CreateBudget(1);
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
-                .ReturnsAsync(budget);
-
-            // Act
-            BudgetResponseDTO result = await _budgetService.GetByCategoryAndPeriodAsync(categoryId, TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, result.Amount);
-            Assert.Equal(TestDataFactory.DEFAULT_YEAR, result.Year);
-            Assert.Equal(TestDataFactory.DEFAULT_MONTHLY_MONTH, result.Month);
-        }
-
-        [Fact]
-        public async Task GetByCategoryAndPeriodAsync_WithNonExistingBudget_ThrowsKeyNotFoundException()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
-                .ReturnsAsync((Budget?)null);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.GetByCategoryAndPeriodAsync(categoryId, TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR));
-        }
-
-        // ==================== TEST: GET SUMMARY ====================
-
-        [Fact]
-        public async Task GetSummaryByCategoryAndPeriodAsync_WithExistingBudget_ReturnsSummary()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-            int budgetId = 1;
-            Category category = TestDataFactory.CreateCategory();
-            Budget budget = TestDataFactory.CreateBudget(budgetId);
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
-                .ReturnsAsync(budget);
-
-            // Act
-            BudgetSummaryDTO result = await _budgetService.GetSummaryByCategoryAndPeriodAsync(categoryId, TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(budgetId, result.BudgetId);
-            Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, result.BudgetAmount);
-            Assert.Equal(0, result.TotalSpent);
-            Assert.Equal(TestDataFactory.DEFAULT_BUDGET_AMOUNT, result.Remaining);
-            Assert.Equal(0, result.PercentageUsed);
-            Assert.Equal(BudgetStatusEnum.Green, result.Status);
-            Assert.False(result.IsOverBudget);
-        }
-
-        [Fact]
-        public async Task GetSummaryByCategoryAndPeriodAsync_WithNonExistingBudget_ThrowsKeyNotFoundException()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _budgetRepositoryMock
-                .Setup(repo => repo.GetByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
-                .ReturnsAsync((Budget?)null);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _budgetService.GetSummaryByCategoryAndPeriodAsync(categoryId, TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR));
         }
 
         // ==================== TEST: CREATE BULK ====================

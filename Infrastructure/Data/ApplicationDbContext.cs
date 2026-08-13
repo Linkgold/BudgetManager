@@ -78,7 +78,7 @@ namespace Infrastructure.Data
         {
             dbContext.Database.ExecuteSqlRaw
             (
-                "CREATE UNIQUE INDEX IF NOT EXISTS IX_FixedExpenses_User_Category_Period ON FixedExpenses(UserId, CategoryId, Month, Year);"
+                "CREATE UNIQUE INDEX IF NOT EXISTS IX_FixedExpenses_User_Category_Name_Period ON FixedExpenses(UserId, CategoryId, Name, Month, Year);"
             );
 
             dbContext.Database.ExecuteSqlRaw

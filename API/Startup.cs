@@ -3,6 +3,7 @@ using API.Middleware;
 using Application.Interfaces;
 using Application.Mappings;
 using Application.Services;
+using Application.Services.Data;
 using Application.Validators;
 using AutoMapper;
 using FluentValidation;
@@ -141,6 +142,7 @@ namespace API
             services.AddScoped<IBudgetService, BudgetService>();
             services.AddScoped<ITransactionService, TransactionService>();
             services.AddScoped<IUserService, UserService>();
+            services.AddScoped<IDataService, DataService>();
 
             // 🔥 Registrar ICurrentUserService (siempre, independientemente del entorno)
             services.AddHttpContextAccessor();

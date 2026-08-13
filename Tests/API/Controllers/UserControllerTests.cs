@@ -278,7 +278,7 @@ namespace Tests.API.Controllers
         }
 
         [Fact]
-        public async Task ChangePassword_WithInvalidCurrentPassword_ReturnsBadRequest()
+        public async Task ChangePassword_WithInvalidCurrentPassword_Returns403Forbidden()
         {
             // Arrange - Registrar y loguear un usuario
             string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
@@ -299,7 +299,32 @@ namespace Tests.API.Controllers
             HttpResponseMessage response = await _client.PostAsync("/api/user/change-password", content);
 
             // Assert
-            Assert.Equal(HttpStatusCode.Unauthorized, response.StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, response.StatusCode);
+        }
+
+        [Fact]
+        public async Task ChangePassword_WithValidData_Returns204NoContent()
+        {
+            // Arrange - Registrar y loguear un usuario
+            string uniqueId = await TestDataFactory.RegisterTestUserAsync(_fixture);
+            string token = await TestDataFactory.GetTokenAsync(_fixture, _client, uniqueId);
+
+            _client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token);
+
+            ChangePasswordRequestDTO request = new ChangePasswordRequestDTO
+            {
+                CurrentPassword = "Password123!",
+                NewPassword = "NewPassword456!",
+                ConfirmNewPassword = "NewPassword456!"
+            };
+
+            StringContent content = _fixture.SerializeRequest(request);
+
+            // Act
+            HttpResponseMessage response = await _client.PostAsync("/api/user/change-password", content);
+
+            // Assert
+            Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
         }
 
         // ==================== TEST: DELETE CURRENT USER ====================

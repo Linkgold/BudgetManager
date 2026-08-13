@@ -35,7 +35,7 @@ namespace Tests.Domain.Entities
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudgetWithoutAutoCreation(null, category, amount, period));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudgetWithoutAutoCreation(null!, category, amount, period));
 
             Assert.Equal("user", exception.ParamName);
         }
@@ -49,7 +49,7 @@ namespace Tests.Domain.Entities
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudgetWithoutAutoCreation(user, null, amount, period));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudgetWithoutAutoCreation(user, null!, amount, period));
 
             Assert.Equal("category", exception.ParamName);
         }
@@ -63,7 +63,7 @@ namespace Tests.Domain.Entities
             MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudgetWithoutAutoCreation(user, category, null, period));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudgetWithoutAutoCreation(user, category, null!, period));
 
             Assert.Equal("monthlyAmount", exception.ParamName);
         }
@@ -77,7 +77,7 @@ namespace Tests.Domain.Entities
             Money amount = TestDataFactory.CreateMoney(500.00m);
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudgetWithoutAutoCreation(user, category, amount, null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => TestDataFactory.CreateBudgetWithoutAutoCreation(user, category, amount, null!));
 
             Assert.Equal("period", exception.ParamName);
         }

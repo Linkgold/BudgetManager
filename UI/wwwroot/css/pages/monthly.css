@@ -23,12 +23,6 @@
     box-shadow: 0 2px 10px var(--shadow-color) !important;
 }
 
-.monthly-card-header {
-    background-color: #2C3E50 !important;
-    color: #FFFFFF !important;
-    border-bottom: 1px solid var(--color-border) !important;
-}
-
 .monthly-card .card-body {
     background-color: var(--color-card) !important;
 }
@@ -151,3 +145,26 @@ tr:hover .expand-icon {
     font-size: 0.7rem;
     color: var(--color-text-muted);
 }
+
+.card-success {
+    background: linear-gradient(180deg, #1a4a2a, #27ae60) !important;
+    border-color: #1a4a2a !important;
+    color: var(--color-text-inverse) !important;
+    box-shadow: 0 4px 16px var(--shadow-color) !important;
+}
+
+.card-danger {
+    background: linear-gradient(180deg, #4a1a1a, #c0392b) !important;
+    border-color: #4a1a1a !important;
+    color: var(--color-text-inverse) !important;
+    box-shadow: 0 4px 16px var(--shadow-color) !important;
+}
+
+    .card-success .summary-label,
+    .card-danger .summary-label,
+    .card-success .summary-number,
+    .card-danger .summary-number,
+    .card-success .summary-percent,
+    .card-danger .summary-percent {
+        color: var(--color-text-inverse) !important;
+    }

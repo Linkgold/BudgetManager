@@ -1,0 +1,94 @@
+﻿@using Contracts.Enums
+@* TransactionModal.razor *@
+
+<Modal Title="@_transactionForm.CurrentMode.GetModalTitle("Transacción")"
+       IsVisible="@IsVisible"
+       IsDeleteMode="@_transactionForm.IsDeleting"
+       OnSave="HandleSave"
+       OnClose="HandleClose"
+       SaveButtonText="@_transactionForm.SaveButtonText"
+       SaveButtonClass="@_transactionForm.SaveButtonClass">
+
+    <!-- Línea 1: Categoría + Tipo + Fecha -->
+    <div class="row">
+        <div class="col-md-5">
+            <div class="form-group">
+                <label class="form-label" for="transactionCategory">Categoría</label>
+                <select id="transactionCategory" class="form-control" @bind="_transactionForm.CategoryId" @bind:event="onchange" @bind:after="OnCategoryChanged" disabled="@_transactionForm.IsDeleting">
+                    @foreach (CategoryModel category in Categories)
+                    {
+                        <option value="@category.Id">@category.Name</option>
+                    }
+                </select>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="form-group">
+                <label class="form-label" for="transactionType">Tipo</label>
+                @if (ShowTypeSelector)
+                {
+                    <select id="transactionType" class="form-control" @bind="_transactionForm.TransactionType" disabled="@_transactionForm.IsDeleting">
+                        <option value="@TransactionTypeEnum.Expense">💳 Gasto</option>
+                        <option value="@TransactionTypeEnum.Income">💰 Ingreso</option>
+                    </select>
+                }
+                else
+                {
+                    <input type="text" id="transactionType" class="form-control input-disabled" value="@_transactionForm.CategoryNature.GetFixedTypeLabel()" disabled />
+                }
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="form-group">
+                <label class="form-label" for="transactionDate">Fecha</label>
+                <MudDatePicker @bind-Date="_transactionForm.MudDate"
+                               Editable="true"
+                               ImmediateText="true"
+                               DateFormat="dd/MM/yyyy"
+                               Placeholder="DD/MM/YYYY"
+                               Variant="Variant.Outlined"
+                               Margin="Margin.Dense"
+                               Disabled="@_transactionForm.IsDeleting"
+                               Id="transactionDate"
+                               Class="mud-date-picker-custom" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Línea 2: Concepto + Importe -->
+    <div class="row mt-2">
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="form-label" for="transactionName">Concepto</label>
+                <input type="text" id="transactionName" class="form-control"
+                       @bind="_transactionForm.Name"
+                       placeholder="Ej. Compra supermercado"
+                       disabled="@_transactionForm.IsDeleting" />
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="form-group">
+                <label class="form-label" for="transactionAmount">Importe (€)</label>
+                <input type="number" id="transactionAmount"
+                       class="form-control"
+                       @bind="_transactionForm.Amount"
+                       @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, PageTextHelper.TRANSACTION_AMOUNT_ID))"
+                       step="1.00" min="0" placeholder="0.00"
+                       disabled="@_transactionForm.IsDeleting" />
+            </div>
+        </div>
+    </div>
+
+    <!-- Línea 3: Descripción -->
+    <div class="row mt-2">
+        <div class="col-12">
+            <div class="form-group">
+                <label class="form-label" for="transactionDescription">Descripción</label>
+                <input type="text" id="transactionDescription" class="form-control"
+                       @bind="_transactionForm.Description"
+                       placeholder="Ej. Carrefour 15/06/2024"
+                       disabled="@_transactionForm.IsDeleting" />
+            </div>
+        </div>
+    </div>
+</Modal>

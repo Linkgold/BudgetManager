@@ -3,7 +3,6 @@ using Domain.Interfaces;
 using Domain.ValueObjects;
 using Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Repositories
 {
@@ -38,20 +37,36 @@ namespace Infrastructure.Repositories
             return budget;
         }
 
-        public async Task<IEnumerable<Budget>> GetAllAsync(int userId)
+        public async Task<IEnumerable<Budget>> GetAllByYearAsync(int userId, int year)
         {
             if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+            if (year < 1900 || year > 2100) throw new ArgumentException("Year must be between 1900 and 2100", nameof(year));
 
             IEnumerable<Budget> budgets = await _dbSet
                 .AsNoTracking()
                 .Include(budget => budget.Category)
-                .Where(budget => budget.UserId == userId)
+                .Where(budget => budget.UserId == userId && budget.Period.Year == year)
                 .ToListAsync();
 
             return budgets
                 .OrderBy(budget => budget.Period.Year)
                 .ThenBy(budget => budget.Period.Month)
                 .ThenBy(budget => budget.Category.Info.Name);
+        }
+
+        public async Task<IEnumerable<int>> GetDistinctYearsAsync(int userId)
+        {
+            if (userId <= 0) throw new ArgumentException("Invalid user ID", nameof(userId));
+
+            List<int> years = await _dbSet
+                .AsNoTracking()
+                .Where(b => b.UserId == userId)
+                .Select(b => b.Period.Year)
+                .Distinct()
+                .Order()
+                .ToListAsync();
+
+            return years;
         }
 
         public async Task<IEnumerable<Budget>> GetByCategoryIdAsync(int userId, int categoryId)

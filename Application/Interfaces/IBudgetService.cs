@@ -8,17 +8,11 @@ namespace Application.Interfaces
     /// </summary>
     public interface IBudgetService
     {
-        // ==================== CONSULTAS ====================
+        // Consultas
         Task<BudgetResponseDTO> GetByIdAsync(int id);
-        Task<List<BudgetResponseDTO>> GetAllAsync();
-        Task<List<BudgetResponseDTO>> GetByCategoryIdAsync(int categoryId);
-        Task<List<BudgetResponseDTO>> GetByPeriodAsync(int month, int year);
-        Task<BudgetResponseDTO> GetByCategoryAndPeriodAsync(int categoryId, int month, int year);
+        Task<List<BudgetResponseDTO>> GetAllByYearAsync(int year);
 
-        // ==================== RESUMEN (con cálculos) ====================
-        Task<BudgetSummaryDTO> GetSummaryByCategoryAndPeriodAsync(int categoryId, int month, int year);
-
-        // ==================== COMANDOS ====================
+        // Comandos
         Task<BulkBudgetResponseDTO> CreateBulkAsync(CreateBulkBudgetRequestDTO request);
         Task<BudgetResponseDTO> CreateAsync(CreateBudgetRequestDTO request);
         Task<BulkBudgetResponseDTO> UpdateBulkAsync(UpdateBulkBudgetRequestDTO request);
@@ -26,7 +20,7 @@ namespace Application.Interfaces
         Task<BulkBudgetResponseDTO> DeleteBulkAsync(DeleteBulkBudgetRequestDTO request);
         Task DeleteAsync(int id);
 
-        // ==================== VERIFICACIONES ====================
+        // Verificaciones
         Task<bool> ExistsAsync(int id);
         Task<bool> ExistsForCategoryAndPeriodAsync(int categoryId, int month, int year);
     }

@@ -30,7 +30,7 @@ namespace Tests.Domain.Entities
             EntityInfo info = TestDataFactory.CreateEntityInfo();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(null, info, Contracts.Enums.CategoryNatureEnum.Expense));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(null!, info, CategoryNatureEnum.Expense));
 
             Assert.Equal("user", exception.ParamName);
         }
@@ -42,7 +42,7 @@ namespace Tests.Domain.Entities
             User user = TestDataFactory.CreateUser();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(user, null, Contracts.Enums.CategoryNatureEnum.Expense));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => new Category(user, null!,CategoryNatureEnum.Expense));
 
             Assert.Equal("info", exception.ParamName);
         }
@@ -108,7 +108,7 @@ namespace Tests.Domain.Entities
             Category category = TestDataFactory.CreateCategory();
 
             // Act & Assert
-            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => category.Update(null));
+            ArgumentNullException exception = Assert.Throws<ArgumentNullException>(() => category.Update(null!));
 
             Assert.Equal("info", exception.ParamName);
         }

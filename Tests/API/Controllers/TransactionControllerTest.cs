@@ -131,7 +131,7 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, "EUR", 15, 6, 2024);
+            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, TransactionTypeEnum.Expense, "EUR", 15, 6, 2024);
 
             // Act
             HttpResponseMessage response = await _client.GetAsync($"/api/transaction/{transactionId}");
@@ -169,11 +169,11 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 1", 45.75m, "EUR", 15, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 2", 30.00m, "EUR", 20, 6, 2024);
+            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 1", 45.75m, TransactionTypeEnum.Expense, "EUR", 15, 6, 2024);
+            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 2", 30.00m, TransactionTypeEnum.Expense, "EUR", 20, 6, 2025);
 
             // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/transaction");
+            HttpResponseMessage response = await _client.GetAsync("/api/transaction/year/2024");
 
             // Assert
             Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -184,182 +184,7 @@ namespace Tests.API.Controllers
             Assert.NotNull(transactions);
             Assert.NotEmpty(transactions);
             Assert.All(transactions, t => Assert.Equal(CategoryNatureEnum.Expense, t.CategoryNature));
-            Assert.Equal(2, transactions.Count);
-        }
-
-        // ==================== TEST: GET BY CATEGORY ====================
-
-        [Fact]
-        public async Task GetByCategory_WithExistingCategory_ReturnsTransactions()
-        {
-            // Arrange
-            int categoryId1 = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            int categoryId2 = await TestDataFactory.CreateCategoryAsync(_fixture, "Transporte");
-
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId1, "Compra 1", 45.75m, "EUR", 15, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId1, "Compra 2", 30.00m, "EUR", 20, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId2, "Gasolina", 50.00m, "EUR", 10, 6, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync($"/api/transaction/by-category/{categoryId1}");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            List<TransactionResponseDTO>? transactions = _fixture.DeserializeResponse<List<TransactionResponseDTO>?>(responseContent);
-
-            Assert.NotNull(transactions);
-            Assert.Equal(2, transactions.Count);
-            Assert.All(transactions, t => Assert.Equal(categoryId1, t.CategoryId));
-        }
-
-        [Fact]
-        public async Task GetByCategory_WithNonExistingCategory_ReturnsNotFound()
-        {
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/transaction/by-category/999");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        // ==================== TEST: GET BY MONTHLY PERIOD ====================
-
-        [Fact]
-        public async Task GetByMonthlyPeriod_ReturnsTransactionsForPeriod()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 1", 45.75m, "EUR", 15, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 2", 30.00m, "EUR", 20, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 3", 20.00m, "EUR", 10, 7, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/transaction/by-monthly-period?month=6&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            List<TransactionResponseDTO>? transactions = _fixture.DeserializeResponse<List<TransactionResponseDTO>?>(responseContent);
-
-            Assert.NotNull(transactions);
-            Assert.Equal(2, transactions.Count);
-            Assert.All(transactions, t => Assert.Equal(6, t.Date.Month));
-            Assert.All(transactions, t => Assert.Equal(2024, t.Date.Year));
-        }
-
-        // ==================== TEST: GET BY CATEGORY AND MONTHLY PERIOD ====================
-
-        [Fact]
-        public async Task GetByCategoryAndMonthlyPeriod_WithExistingCategoryAndPeriod_ReturnsTransactions()
-        {
-            // Arrange
-            int categoryId1 = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            int categoryId2 = await TestDataFactory.CreateCategoryAsync(_fixture, "Transporte");
-
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId1, "Compra 1", 45.75m, "EUR", 15, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId1, "Compra 2", 30.00m, "EUR", 20, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId2, "Gasolina", 50.00m, "EUR", 10, 6, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync(
-                $"/api/transaction/by-category-monthly-period?categoryId={categoryId1}&month=6&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            List<TransactionResponseDTO>? transactions = _fixture.DeserializeResponse<List<TransactionResponseDTO>?>(responseContent);
-
-            Assert.NotNull(transactions);
-            Assert.Equal(2, transactions.Count);
-            Assert.All(transactions, t => Assert.Equal(categoryId1, t.CategoryId));
-            Assert.All(transactions, t => Assert.Equal(6, t.Date.Month));
-            Assert.All(transactions, t => Assert.Equal(2024, t.Date.Year));
-        }
-
-        [Fact]
-        public async Task GetByCategoryAndMonthlyPeriod_WithNonExistingCategory_ReturnsNotFound()
-        {
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/transaction/by-category-monthly-period?categoryId=999&month=6&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
-        }
-
-        // ==================== TEST: GET BY DATE RANGE ====================
-
-        [Fact]
-        public async Task GetByDateRange_WithExistingRange_ReturnsTransactions()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 1", 45.75m, "EUR", 15, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 2", 30.00m, "EUR", 20, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 3", 20.00m, "EUR", 10, 7, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/transaction/by-date-range?from=2024-06-01&to=2024-06-30");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            List<TransactionResponseDTO>? transactions = _fixture.DeserializeResponse<List<TransactionResponseDTO>?>(responseContent);
-
-            Assert.NotNull(transactions);
-            Assert.Equal(2, transactions.Count);
-            Assert.All(transactions, t => Assert.Equal(6, t.Date.Month));
-            Assert.All(transactions, t => Assert.Equal(2024, t.Date.Year));
-        }
-
-        [Fact]
-        public async Task GetByDateRange_WithInvalidRange_ReturnsBadRequest()
-        {
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/transaction/by-date-range?from=2024-06-30&to=2024-06-01");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
-        }
-
-        // ==================== TEST: GET TOTAL ====================
-
-        [Fact]
-        public async Task GetTotalByCategoryAndMonthlyPeriod_ReturnsTotal()
-        {
-            // Arrange
-            int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 1", 45.75m, "EUR", 15, 6, 2024);
-            await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra 2", 30.00m, "EUR", 20, 6, 2024);
-
-            // Act
-            HttpResponseMessage response = await _client.GetAsync($"/api/transaction/total-by-category-monthly-period?categoryId={categoryId}&month=6&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-            string responseContent = await response.Content.ReadAsStringAsync();
-            Dictionary<string, object>? result = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(responseContent);
-
-            Assert.NotNull(result);
-            Assert.True(result.ContainsKey("total"));
-            decimal total = Convert.ToDecimal(result["total"].ToString(), CultureInfo.InvariantCulture);
-
-            Assert.Equal(75.75m, total);
-        }
-
-        [Fact]
-        public async Task GetTotalByCategoryAndMonthlyPeriod_WithNonExistingCategory_ReturnsNotFound()
-        {
-            // Act
-            HttpResponseMessage response = await _client.GetAsync("/api/transaction/total-by-category-monthly-period?categoryId=999&month=6&year=2024");
-
-            // Assert
-            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+            Assert.Single(transactions);
         }
 
         // ==================== TEST: UPDATE ====================
@@ -370,7 +195,7 @@ namespace Tests.API.Controllers
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
             int updatedCategoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Suscripción");
-            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, "EUR", 15, 6, 2024);
+            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, TransactionTypeEnum.Expense, "EUR", 15, 6, 2024);
 
             UpdateTransactionRequestDTO request = new UpdateTransactionRequestDTO
             {
@@ -378,6 +203,7 @@ namespace Tests.API.Controllers
                 Name = "Compra actualizada",
                 Description = "Carrefour 20/06/2024",
                 Amount = 50.00m,
+                TransactionType = TransactionTypeEnum.Expense,
                 Currency = "CNY",
                 Date = new DateTime(2024, 6, 20)
             };
@@ -411,6 +237,7 @@ namespace Tests.API.Controllers
             {
                 Name = "Compra actualizada",
                 Amount = 50.00m,
+                TransactionType = TransactionTypeEnum.Expense,
                 Date = new DateTime(2024, 6, 20)
             };
 
@@ -430,7 +257,7 @@ namespace Tests.API.Controllers
         {
             // Arrange
             int categoryId = await TestDataFactory.CreateCategoryAsync(_fixture, "Alimentación");
-            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, "EUR", 15, 6, 2024);
+            int transactionId = await TestDataFactory.CreateTransactionAsync(_fixture, categoryId, "Compra supermercado", 45.75m, TransactionTypeEnum.Expense, "EUR", 15, 6, 2024);
 
             // Act
             HttpResponseMessage response = await _client.DeleteAsync($"/api/transaction/{transactionId}");

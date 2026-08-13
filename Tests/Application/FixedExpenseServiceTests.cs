@@ -125,7 +125,7 @@ namespace Tests.Application
             TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
 
             _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetAllAsync(userId))
+                .Setup(repo => repo.GetAllByYearAsync(userId, It.IsAny<int>()))
                 .ReturnsAsync
                 (
                     new List<FixedExpense>
@@ -136,7 +136,7 @@ namespace Tests.Application
                 );
 
             // Act
-            List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetAllAsync();
+            List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetAllByYearAsync(2003);
 
             // Assert
             Assert.NotNull(result);
@@ -144,65 +144,7 @@ namespace Tests.Application
             Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME, result[0].Name);
             Assert.Equal(customFixedExpenseName, result[1].Name);
         }
-
-        // ==================== TEST: GET BY CATEGORY ====================
-
-        [Fact]
-        public async Task GetByCategoryIdAsync_WithExistingCategory_ReturnsFixedExpenses()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-            string customFixedExpenseName = "Spotify";
-
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory(categoryId, user, "Suscripciones");
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(userId, categoryId))
-                .ReturnsAsync(true);
-
-            _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetByCategoryAsync(userId, categoryId))
-                .ReturnsAsync
-                (
-                    new List<FixedExpense>
-                    {
-                        TestDataFactory.CreateFixedExpense(1, user, category),
-                        TestDataFactory.CreateFixedExpense(2, user, category, customFixedExpenseName)
-                    }
-                );
-
-            // Act
-            List<FixedExpenseResponseDTO> result = await _fixedExpenseService.GetByCategoryIdAsync(categoryId);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Equal(2, result.Count);
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetByCategoryAsync(userId, categoryId), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetByCategoryIdAsync_WithNonExistingCategory_ThrowsKeyNotFoundException()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 999;
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(userId, categoryId))
-                .ReturnsAsync(false);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.GetByCategoryIdAsync(categoryId));
-
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetByCategoryAsync(userId, It.IsAny<int>()), Times.Never);
-        }
-
+       
         // ==================== TEST: CREATE ====================
 
         [Fact]
@@ -269,32 +211,6 @@ namespace Tests.Application
 
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.CreateAsync(new CreateFixedExpenseRequestDTO { CategoryId = categoryId }));
-
-            _fixedExpenseRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<FixedExpense>()), Times.Never);
-        }
-
-        [Fact]
-        public async Task CreateAsync_WithNegativeAmount_ThrowsArgumentException()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-
-            User user = TestDataFactory.CreateUser(userId);
-            Category category = TestDataFactory.CreateCategory(categoryId, user, "Suscripciones");
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId, categoryId, true))
-                .ReturnsAsync(category);
-
-            _userRepositoryMock
-                .Setup(repo => repo.GetByIdAsync(userId, It.IsAny<bool>()))
-                .ReturnsAsync(user);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => _fixedExpenseService.CreateAsync(new CreateFixedExpenseRequestDTO { CategoryId = categoryId, Amount = -15.99m, Name = "Test" }));
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.AddAsync(It.IsAny<FixedExpense>()), Times.Never);
         }
@@ -413,53 +329,6 @@ namespace Tests.Application
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.DeleteAsync(fixedExpenseId));
 
             _fixedExpenseRepositoryMock.Verify(repo => repo.DeleteAsync(userId, It.IsAny<int>()), Times.Never);
-        }
-
-        // ==================== TEST: GET TOTAL FOR PERIOD ====================
-
-        [Fact]
-        public async Task GetTotalForPeriodByCategoryAsync_WithValidData_ReturnsTotal()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 1;
-            decimal expectedTotal = 25.98m;
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(userId, categoryId))
-                .ReturnsAsync(true);
-
-            _fixedExpenseRepositoryMock
-                .Setup(repo => repo.GetTotalByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()))
-                .ReturnsAsync(expectedTotal);
-
-            // Act
-            decimal result = await _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR);
-
-            // Assert
-            Assert.Equal(expectedTotal, result);
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(userId, categoryId, It.IsAny<MonthlyPeriod>()), Times.Once);
-        }
-
-        [Fact]
-        public async Task GetTotalForPeriodByCategoryAsync_WithNonExistingCategory_ThrowsKeyNotFoundException()
-        {
-            // Arrange
-            int userId = 1;
-            int categoryId = 999;
-
-            TestDataFactory.SetupAuthenticatedUser(_currentUserServiceMock, userId);
-
-            _categoryRepositoryMock
-                .Setup(repo => repo.ExistsAsync(userId, categoryId))
-                .ReturnsAsync(false);
-
-            // Act & Assert
-            await Assert.ThrowsAsync<KeyNotFoundException>(() => _fixedExpenseService.GetTotalForPeriodByCategoryAsync(categoryId, TestDataFactory.DEFAULT_MONTHLY_MONTH, TestDataFactory.DEFAULT_YEAR));
-
-            _fixedExpenseRepositoryMock.Verify(repo => repo.GetTotalByCategoryAndPeriodAsync(userId, It.IsAny<int>(), It.IsAny<MonthlyPeriod>()), Times.Never);
         }
 
         // ==================== TEST: EXISTS ====================

@@ -58,44 +58,12 @@ namespace Application.Services
             return _mapper.Map<FixedExpenseResponseDTO>(fixedExpense);
         }
 
-        public async Task<List<FixedExpenseResponseDTO>> GetAllAsync()
+        public async Task<List<FixedExpenseResponseDTO>> GetAllByYearAsync(int year)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetAllAsync(UserId);
+            if (year < 1900 || year > 2100) throw new ArgumentException("Year must be between 1900 and 2100", nameof(year));
 
-            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
-        }
-
-        public async Task<List<FixedExpenseResponseDTO>> GetByCategoryIdAsync(int categoryId)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-
-            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetByCategoryAsync(UserId, categoryId);
-
-            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
-        }
-
-        public async Task<List<FixedExpenseResponseDTO>> GetByPeriodAsync(int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetByPeriodAsync(UserId, period);
-
-            return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
-        }
-
-        public async Task<List<FixedExpenseResponseDTO>> GetByPeriodByCategoryAsync(int categoryId, int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetByPeriodByCategoryAsync(UserId, categoryId, period);
+            IEnumerable<FixedExpense> fixedExpenses = await _fixedExpenseRepository.GetAllByYearAsync(UserId, year);
 
             return _mapper.Map<List<FixedExpenseResponseDTO>>(fixedExpenses);
         }
@@ -190,17 +158,6 @@ namespace Application.Services
             if (id <= 0) return false;
 
             return await _fixedExpenseRepository.ExistsAsync(UserId, id);
-        }
-
-        public async Task<decimal> GetTotalForPeriodByCategoryAsync(int categoryId, int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            return await _fixedExpenseRepository.GetTotalByCategoryAndPeriodAsync(UserId, categoryId, period);
         }
     }
 }

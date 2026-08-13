@@ -6,237 +6,180 @@
 	<!-- Título y botón -->
 	<div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
 		<h4 class="mb-0 page-title">@PageTextHelper.GetPageTitle("Transactions")</h4>
-		<button class="btn btn-primary btn-sm" @onclick="OpenCreateModal">
+		<button class="btn btn-primary btn-sm" @onclick="OpenCreateModal" disabled="@(!HasCategories)">
 			@PageTextHelper.GetCreateButtonText("Transactions")
 		</button>
 	</div>
 
-	<!-- 🔹 Contenedort de Modal -->
-	<div class="table-card-wrapper">
-		<!-- Filtros -->
-		<div class="card filter-card mb-3">
-			<div class="card-body d-flex flex-wrap align-items-center gap-2">
-				<!-- Búsqueda -->
-				<div style="flex: 1; min-width: 150px; position: relative;">
-					<input type="text" class="form-control form-control-sm search-input-with-clear"
-						   placeholder="🔍 Buscar concepto..."
-						   @bind="searchTerm"
-						   @bind:event="oninput" />
-					@if (!string.IsNullOrEmpty(searchTerm))
-					{
-						<span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
-					}
-				</div>
-
-				<!-- Filtro por categoría -->
-				<div style="min-width: 150px;">
-					<select class="form-control form-control-sm" @bind="selectedCategoryId">
-						<option value="0">Todas las categorías</option>
-						@foreach (CategoryModel category in _categories)
-						{
-							<option value="@category.Id">@category.Name</option>
-						}
-					</select>
-				</div>
-
-				<!-- Filtro por tipo -->
-				<div style="min-width: 120px;">
-					<select class="form-control form-control-sm" @bind="selectedType">
-						<option value="">Todos</option>
-						<option value="Income">💰 Ingreso</option>
-						<option value="Expense">💳 Gasto</option>
-					</select>
-				</div>
-
-				<!-- Filtro por mes -->
-				<div style="min-width: 110px;">
-					<select class="form-control form-control-sm" @bind="selectedMonth">
-						@foreach (MonthModel month in MonthHelper.Months)
-						{
-							bool hasData = _transactions.Any(t => t.Date.Month == month.Value && t.Date.Year == _selectedYear);
-
-							<option value="@month.Value">
-								@if (hasData)
-								{
-									<span style="color: var(--color-accent); margin-left: 4px;">● </span>
-								}
-								@month.Name
-							</option>
-						}
-					</select>
-				</div>
-
-				<!-- Filtro por año -->
-				<div style="min-width: 100px;">
-					<select class="form-control form-control-sm" @bind="selectedYear">
-						@foreach (int year in _years)
-						{
-							bool hasData = _transactions.Any(t => t.Date.Year == year);
-							<option value="@year">
-								@if (hasData)
-								{
-									<span style="color: var(--color-accent); margin-left: 4px;">● </span>
-								}
-								@year
-							</option>
-						}
-					</select>
-				</div>
-			</div>
+	@if (_isLoading)
+	{
+		<div class="text-center py-5">
+			<span class="spinner-border text-primary" role="status"></span>
+			<p class="mt-2 text-muted">Cargando...</p>
 		</div>
+	}
+	else if (HasCategories)
+	{
+		<!-- 🔹 Contenedort de Modal -->
+		<div class="table-card-wrapper">
+			<!-- Filtros -->
+			<div class="card filter-card mb-3">
+				<div class="card-body d-flex flex-wrap align-items-center gap-2">
+					<!-- Búsqueda -->
+					<div style="flex: 1; min-width: 150px; position: relative;">
+						<input type="text" class="form-control form-control-sm search-input-with-clear"
+						placeholder="🔍 Buscar concepto..."
+						@bind="searchTerm"
+						@bind:event="oninput" />
+						@if (!string.IsNullOrEmpty(searchTerm))
+						{
+							<span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
+						}
+					</div>
 
-		<!-- Modal -->
-		<Modal Title="@_transactionForm.CurrentMode.GetModalTitle("Transacción")"
-			   IsVisible="@_transactionForm.IsModalOpen"
-			   IsDeleteMode="@_transactionForm.IsDeleting"
-			   OnSave="@SaveTransaction"
-			   OnClose="@CloseModal"
-			   SaveButtonText="@_transactionForm.SaveButtonText"
-			   SaveButtonClass="@_transactionForm.SaveButtonClass">
-
-			<!-- Línea 1: Categoría + Tipo + Fecha -->
-			<div class="row">
-				<div class="col-md-5">
-					<div class="form-group">
-						<label class="form-label" for="transactionCategory">Categoría</label>
-						<select id="transactionCategory" class="form-control" @bind="CategoryId" disabled="@_transactionForm.IsDeleting">
+					<!-- Filtro por categoría -->
+					<div style="min-width: 150px;">
+						<select class="form-control form-control-sm" @bind="selectedCategoryId">
+							<option value="0">Todas las categorías</option>
 							@foreach (CategoryModel category in _categories)
 							{
 								<option value="@category.Id">@category.Name</option>
 							}
 						</select>
 					</div>
-				</div>
-				<div class="col-md-3">
-					<div class="form-group">
-						<label class="form-label" for="transactionType">Tipo</label>
-						@if (ShowTypeSelector)
-						{
-							<select id="transactionType" class="form-control" @bind="_transactionForm.TransactionType" disabled="@_transactionForm.IsDeleting">
-								<option value="Expense">💳 Gasto</option>
-								<option value="Income">💰 Ingreso</option>
-							</select>
-						}
-						else
-						{
-							<input type="text" id="transactionType" class="form-control input-disabled" value="@GetFixedTypeLabel()" disabled />
-						}
-					</div>
-				</div>
-				<div class="col-md-4">
-					<div class="form-group">
-						<label class="form-label" for="transactionDate">Fecha</label>
-						<MudDatePicker @bind-Date="_transactionForm.MudDate"
-									   Editable="true"
-									   ImmediateText="true"
-									   DateFormat="dd/MM/yyyy"
-									   Placeholder="DD/MM/YYYY"
-									   Variant="Variant.Outlined"
-									   Margin="Margin.Dense"
-									   Disabled="@_transactionForm.IsDeleting"
-									   Id="transactionDate"
-									   Class="mud-date-picker-custom" />
-					</div>
-				</div>
-			</div>
 
-			<!-- Línea 2: Concepto + Importe -->
-			<div class="row mt-2">
-				<div class="col-md-6">
-					<div class="form-group">
-						<label class="form-label" for="transactionName">Concepto</label>
-						<input type="text" id="transactionName" class="form-control" 
-						@bind="_transactionForm.Name" 
-						placeholder="Ej. Compra supermercado"
-						disabled="@_transactionForm.IsDeleting" />
+					<!-- Filtro por tipo -->
+					<div style="min-width: 120px;">
+						<select class="form-control form-control-sm" @bind="selectedType">
+							<option value="">Todos</option>
+							<option value="Income">💰 Ingreso</option>
+							<option value="Expense">💳 Gasto</option>
+						</select>
 					</div>
-				</div>
-				<div class="col-md-6">
-					<div class="form-group">
-						<label class="form-label" for="@PageTextHelper.TRANSACTION_AMOUNT_ID">Importe (€)</label>
-						<input type="number" id="@PageTextHelper.TRANSACTION_AMOUNT_ID" 
-							class="form-control" 
-							@bind="_transactionForm.Amount"
-							@onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, PageTextHelper.TRANSACTION_AMOUNT_ID))"
-							step="1.00" min="0" placeholder="0.00" 
-							disabled="@_transactionForm.IsDeleting" />
-					</div>
-				</div>
-			</div>
 
-			<!-- Línea 3: Descripción -->
-			<div class="row mt-2">
-				<div class="col-12">
-					<div class="form-group">
-						<label class="form-label" for="transactionDescription">Descripción</label>
-						<input type="text" id="transactionDescription" class="form-control" 
-							@bind="_transactionForm.Description" 
-							placeholder="Ej. Carrefour 15/06/2024" 
-							disabled="@_transactionForm.IsDeleting" />
-					</div>
-				</div>
-			</div>
-		</Modal>
-
-		<!-- Tabla -->
-		<div class="card table-card">
-			<div class="card-body p-0">
-				<div class="table-responsive">
-					<table class="data-table table table-hover mb-0">
-						<thead>
-							<tr>
-								<th class="text-start">Fecha</th>
-								<th class="text-start">Categoría</th>
-								<th class="text-start">Concepto</th>
-								<th class="text-end">Importe</th>
-								<th class="text-end" style="width: 100px;">Acciones</th>
-							</tr>
-						</thead>
-						<tbody>
-							@if (_filteredTransactions.Any())
+					<!-- Filtro por mes -->
+					<div style="min-width: 110px;">
+						<select class="form-control form-control-sm" @bind="selectedMonth">
+							@foreach (MonthModel month in MonthHelper.Months)
 							{
-								@foreach (TransactionModel item in _filteredTransactions)
+								bool hasData = _hasData?.HasTransactionMonthData(selectedYear, month.Value) ?? false;
+
+								<option value="@month.Value">
+									@if (hasData)
+									{
+										<span style="color: var(--color-accent); margin-left: 4px;">● </span>
+									}
+									@month.Name
+								</option>
+							}
+						</select>
+					</div>
+
+					<!-- Filtro por año -->
+					<div style="min-width: 100px;">
+						<select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged">
+							@foreach (int year in _years)
+							{
+								bool hasData = _hasData?.HasTransactionData(year) ?? false;
+								<option value="@year">
+									@if (hasData)
+									{
+										<span style="color: var(--color-accent); margin-left: 4px;">● </span>
+									}
+									@year
+								</option>
+							}
+						</select>
+					</div>
+					<button class="btn btn-outline-accent btn-sm"
+							@onclick="() => SetCurrentDate()"
+							title="Ir a la fecha actual"
+							disabled="@(IsCurrentDateSelected)"
+							style="white-space: nowrap; padding: 4px 8px;">
+						📌 Ir a la fecha actual
+					</button>
+				</div>
+			</div>
+
+			<!-- 🔥 Modal de transacciones -->
+			<TransactionModal IsVisible="@_isTransactionModalOpen"
+							  Categories="@_categories"
+							  TransactionReceived="@_transactionToModal"
+							  Mode="_modalMode"
+							  DefaultYear="@_selectedYear"
+							  DefaultMonth="@_selectedMonth"
+							  OnTransactionSaved="OnTransactionModalSaved" 
+							  OnTransactionCancelled="OnTransactionModalCancelled" />
+
+			<!-- Tabla -->
+			<div class="card table-card">
+				<div class="card-body p-0">
+					<div class="table-responsive">
+						<table class="data-table table table-hover mb-0">
+							<thead>
+								<tr>
+									<th class="text-start">Fecha</th>
+									<th class="text-start">Categoría</th>
+									<th class="text-start">Concepto</th>
+									<th class="text-start">Descripción</th>
+									<th class="text-end">Importe</th>
+									<th class="text-end" style="width: 100px;">Acciones</th>
+								</tr>
+							</thead>
+							<tbody>
+								@if (_filteredTransactions.Any())
+								{
+									@foreach (TransactionModel item in _filteredTransactions)
+									{
+										<tr>
+											<td class="text-start">@item.Date.ToString("dd/MM/yyyy")</td>
+											<td class="text-start">@item.CategoryName</td>
+											<td class="text-start">@item.Name</td>
+											<td class="text-start">@item.Description</td>
+											<td class="text-end @item.GetDisplayAmount().GetDisplayClass()">@item.DisplayAmount.FormatCurrencyWithSign()</td>
+											<td class="text-end">
+												<button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(item)">
+													✏️
+												</button>
+												<button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteModal(item)">
+													🗑️
+												</button>
+											</td>
+										</tr>
+									}
+								}
+								else
 								{
 									<tr>
-										<td class="text-start">@item.Date.ToString("dd/MM/yyyy")</td>
-										<td class="text-start">@item.CategoryName</td>
-										<td class="text-start">@item.Name</td>
-										<td class="text-end @item.GetDisplayClass()">@item.GetFormattedDisplay()</td>
-										<td class="text-end">
-											<button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(item)">
-												✏️
-											</button>
-											<button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteModal(item)">
-												🗑️
-											</button>
+										<td colspan="6" class="text-center text-muted py-3">
+											@PageTextHelper.GetEmptyStateHtml("Transactions")
 										</td>
 									</tr>
 								}
-							}
-							else
-							{
-								<tr>
-									<td colspan="5" class="text-center text-muted py-3">
-										@PageTextHelper.GetEmptyMessage("Transactions")
+							</tbody>
+							<tfoot>
+								<tr class="table-secondary fw-bold">
+									<td colspan="4" class="text-end">Total:</td>
+									<td class="text-end @_totalAmount.GetDisplayClass()">
+										@_totalAmount.FormatCurrencyWithSign()
 									</td>
+									<td></td>
 								</tr>
-							}
-						</tbody>
-						<tfoot>
-							<tr class="table-secondary fw-bold">
-								<td colspan="3" class="text-end">Total:</td>
-								<td class="text-end @GetTotalDisplayClass(_totalAmount)">
-									@GetTotalFormattedDisplay(_totalAmount)
-								</td>
-								<td></td>
-							</tr>
-						</tfoot>
-					</table>
+							</tfoot>
+						</table>
+					</div>
+				</div>
+				<div class="card-footer text-muted small">
+					@PageTextHelper.GetFooterMessage(_filteredTransactions.Count(), _transactions.Count(), "Transactions")
 				</div>
 			</div>
-			<div class="card-footer text-muted small">
-				@PageTextHelper.GetFooterMessage(_filteredTransactions.Count(), _transactions.Count(), "Transactions")
-			</div>
 		</div>
-	</div>
+	}
+	else
+	{
+		<InfoBanner Title="No hay categorías disponibles"
+					Message="Para crear transacciones, primero necesitas crear al menos una categoría."
+					ButtonText="@($"Ir a {PageTextHelper.GetPageTitle("Categories")}")"
+					ButtonUrl="/categories" />
+	}
 </div>

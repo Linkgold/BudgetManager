@@ -134,7 +134,7 @@ namespace Tests.Domain.ValueObjects
             DailyPeriod date = new DailyPeriod(15, 6, 2024);
 
             // Act
-            bool result = date.IsSameDay(null);
+            bool result = date.IsSameDay(null!);
 
             // Assert
             Assert.False(result);

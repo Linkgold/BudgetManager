@@ -1,0 +1,13 @@
+﻿<div class="info-banner d-flex align-items-center gap-3 p-3 mb-3" role="alert">
+    <span class="info-banner-icon">⚠️</span>
+    <div class="info-banner-content">
+        <strong>@Title</strong>
+        <p class="mb-0">@Message</p>
+    </div>
+    @if (!string.IsNullOrEmpty(ButtonText) && !string.IsNullOrEmpty(ButtonUrl))
+    {
+        <a href="@ButtonUrl" class="btn btn-primary btn-sm ms-auto info-banner-btn">
+            @ButtonText
+        </a>
+    }
+</div>

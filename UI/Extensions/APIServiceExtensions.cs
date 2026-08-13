@@ -1,8 +1,12 @@
 ﻿using Shared.DTOs.Request;
 using Shared.DTOs.Response;
-using System.Xml.Linq;
+using Shared.DTOs.Response.Data;
+using Shared.DTOs.Response.HasData;
+using Shared.DTOs.Response.MonthDetail;
 using UI.Extensions.Mappings;
 using UI.Models;
+using UI.Models.Dashboard;
+using UI.Models.MonthDetail;
 using UI.Services.API;
 
 namespace UI.Extensions
@@ -84,9 +88,9 @@ namespace UI.Extensions
         // TRANSACTIONS
         // ================================================================
 
-        public static async Task<List<TransactionModel>?> GetTransactionsAsync(this APIService api)
+        public static async Task<List<TransactionModel>?> GetTransactionsAsync(this APIService api, int year)
         {
-            APIResult<List<TransactionResponseDTO>> result = await api.GetListAsync<TransactionResponseDTO>("/api/transaction");
+            APIResult<List<TransactionResponseDTO>> result = await api.GetListAsync<TransactionResponseDTO>($"/api/transaction/year/{year}");
 
             if (result.IsSuccess && result.Data != null)
             {
@@ -151,9 +155,9 @@ namespace UI.Extensions
         // BUDGETS
         // ================================================================
 
-        public static async Task<List<BudgetModel>?> GetBudgetsAsync(this APIService api)
+        public static async Task<List<BudgetModel>?> GetBudgetsAsync(this APIService api, int year)
         {
-            APIResult<List<BudgetResponseDTO>> result = await api.GetListAsync<BudgetResponseDTO>("/api/budget");
+            APIResult<List<BudgetResponseDTO>> result = await api.GetListAsync<BudgetResponseDTO>($"/api/budget/year/{year}");
 
             if (result.IsSuccess && result.Data != null)
             {
@@ -248,9 +252,9 @@ namespace UI.Extensions
         // FIXED EXPENSES
         // ================================================================
 
-        public static async Task<List<FixedExpenseModel>?> GetFixedExpensesAsync(this APIService api)
+        public static async Task<List<FixedExpenseModel>?> GetFixedExpensesAsync(this APIService api, int year)
         {
-            APIResult<List<FixedExpenseResponseDTO>> result = await api.GetListAsync<FixedExpenseResponseDTO>("/api/fixedexpense");
+            APIResult<List<FixedExpenseResponseDTO>> result = await api.GetListAsync<FixedExpenseResponseDTO>($"/api/fixedexpense/year/{year}");
 
             if (result.IsSuccess && result.Data != null)
             {
@@ -307,6 +311,125 @@ namespace UI.Extensions
             }
 
             string message = result.ErrorMessage ?? "Error al eliminar el gasto fijo.";
+            api.NotifyError(message);
+
+            return false;
+        }
+
+        // ================================================================
+        // DATA
+        // ================================================================
+
+        public static async Task<DashboardModel?> GetDashboardDataAsync(this APIService api, int year)
+        {
+            APIResult<DashboardResponseDTO> result = await api.GetAsync<DashboardResponseDTO>($"/api/data/dashboard/{year}");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToDashboardModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar los datos del dashboard.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<AnnualDetailModel?> GetAnnualDetailAsync(this APIService api, int year)
+        {
+            APIResult<AnnualDetailResponseDTO> result = await api.GetAsync<AnnualDetailResponseDTO>($"/api/data/annualdetail/{year}");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToAnnualDetailModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar los datos anuales.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<HasDataModel?> GetHasDataAsync(this APIService api)
+        {
+            APIResult<HasDataResponseDTO> result = await api.GetAsync<HasDataResponseDTO>("/api/data/has-data");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data.ToHasDataModel();
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar la información de datos existentes.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        // ================================================================
+        // USER
+        // ================================================================
+
+        public static async Task<UserResponseDTO?> GetCurrentUserAsync(this APIService api)
+        {
+            APIResult<UserResponseDTO> result = await api.GetAsync<UserResponseDTO>("/api/user/me");
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data;
+            }
+
+            string message = result.ErrorMessage ?? "Error al cargar los datos del usuario.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<UserResponseDTO?> UpdateUserAsync(this APIService api, UpdateUserRequestDTO request)
+        {
+            APIResult<UserResponseDTO> result = await api.PutAsync<UpdateUserRequestDTO, UserResponseDTO>("/api/user/me", request);
+
+            if (result.IsSuccess && result.Data != null)
+            {
+                return result.Data;
+            }
+
+            string message = result.ErrorMessage ?? "Error al actualizar el perfil.";
+            api.NotifyError(message);
+
+            return null;
+        }
+
+        public static async Task<bool> ChangePasswordAsync(this APIService api, ChangePasswordRequestDTO request)
+        {
+            APIResult<bool> result = await api.PostNoContentAsync("/api/user/change-password", request);
+
+            if (result.IsSuccess)
+            {
+                return true;
+            }
+
+            if (result.StatusCode == 403)
+            {
+                api.NotifyError("La contraseña actual es incorrecta.");
+                return false;
+            }
+
+            string message = result.ErrorMessage ?? "Error al cambiar la contraseña.";
+            api.NotifyError(message);
+
+            return false;
+        }
+
+        public static async Task<bool> DeleteUserAsync(this APIService api)
+        {
+            APIResult<bool> result = await api.DeleteAsync("/api/user/me");
+
+            if (result.IsSuccess)
+            {
+                return true;
+            }
+
+            string message = result.ErrorMessage ?? "Error al eliminar la cuenta.";
             api.NotifyError(message);
 
             return false;

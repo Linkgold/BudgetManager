@@ -51,6 +51,14 @@
     }
 
 /* ==================== SELECTS (Desplegables) ==================== */
+select.form-control {
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px !important; /* ✅ Espacio para la flecha */
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+}
 /* 🔥 Tema oscuro */
 .dark-theme select.form-control,
 :root select.form-control {

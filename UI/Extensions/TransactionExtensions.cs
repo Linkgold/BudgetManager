@@ -1,5 +1,5 @@
 ﻿using Contracts.Enums;
-using UI.Helpers;
+using UI.Extensions;
 using UI.Models;
 
 namespace UI.Extensions
@@ -8,28 +8,37 @@ namespace UI.Extensions
     {
         public static decimal GetDisplayAmount(this TransactionModel transaction)
         {
-            return transaction.CategoryNature switch
+            return transaction.TransactionType switch
             {
-                CategoryNatureEnum.Income => Math.Abs(transaction.Amount),
-                CategoryNatureEnum.Expense => -Math.Abs(transaction.Amount),
-                CategoryNatureEnum.Mixed => transaction.Amount > 0 ? Math.Abs(transaction.Amount) : -Math.Abs(transaction.Amount),
+                TransactionTypeEnum.Income => Math.Abs(transaction.Amount),
+                TransactionTypeEnum.Expense => -Math.Abs(transaction.Amount),
                 _ => Math.Abs(transaction.Amount)
             };
         }
 
-        public static string GetDisplayClass(this TransactionModel transaction)
+        public static string GetFixedTypeLabel(this CategoryNatureEnum categoryNature)
         {
-            decimal displayAmount = transaction.GetDisplayAmount();
-            return displayAmount >= 0 ? "text-success" : "text-danger";
+            if (categoryNature == CategoryNatureEnum.Mixed) return string.Empty;
+
+            return categoryNature switch
+            {
+                CategoryNatureEnum.Income => "💰 Ingreso",
+                CategoryNatureEnum.Expense => "💳 Gasto",
+                _ => string.Empty
+            };
         }
 
-        public static string GetFormattedDisplay(this TransactionModel transaction)
+        public static TransactionTypeEnum GetDefaultTransactionTypeForCategory(this CategoryNatureEnum categoryNature)
         {
-            decimal displayAmount = transaction.GetDisplayAmount();
-            string sign = displayAmount >= 0 ? "+" : "-";
-            return $"{sign}{CurrencyHelper.FormatCurrency(Math.Abs(displayAmount))}";
+            return categoryNature switch
+            {
+                CategoryNatureEnum.Income => TransactionTypeEnum.Income,
+                CategoryNatureEnum.Expense => TransactionTypeEnum.Expense,
+                CategoryNatureEnum.Mixed => TransactionTypeEnum.Expense,
+                _ => TransactionTypeEnum.Expense
+            };
         }
-
+       
         public static decimal GetTotalDisplayAmount(this IEnumerable<TransactionModel> transactions)
         {
             decimal total = 0m;
@@ -54,9 +63,6 @@ namespace UI.Extensions
             return monthsWithData.FirstOrDefault();
         }
 
-        public static bool HasMonthData(this IEnumerable<TransactionModel> transactions, int year, int month)
-        {
-            return transactions.Any(t => t.Date.Year == year && t.Date.Month == month);
-        }
+        public static bool HasMonthData(this IEnumerable<TransactionModel> transactions, int year, int month) => transactions.Any(t => t.Date.Year == year && t.Date.Month == month);
     }
 }

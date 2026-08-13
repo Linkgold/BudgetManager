@@ -1,0 +1,50 @@
+﻿/* ==================== MUDBLAZOR DATEPICKER ==================== */
+/* 🔥 Eliminar borde blanco y alinear con el tema */
+
+.mud-date-picker-custom {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
+}
+
+    .mud-date-picker-custom .mud-input-control {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+
+    .mud-date-picker-custom .mud-input {
+        background-color: var(--color-surface) !important;
+        color: var(--color-text) !important;
+        border: 1px solid var(--color-border) !important;
+        border-radius: 8px !important;
+        padding: 10px 14px !important;
+        font-size: 15px !important;
+        height: 44px !important;
+        line-height: 1.5 !important;
+    }
+
+        .mud-date-picker-custom .mud-input:focus {
+            border-color: var(--color-accent) !important;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.15) !important;
+        }
+
+        .mud-date-picker-custom .mud-input:focus-visible {
+            outline: none !important;
+        }
+
+    .mud-date-picker-custom .mud-input-outlined {
+        border-color: var(--color-border) !important;
+    }
+
+        .mud-date-picker-custom .mud-input-outlined:focus {
+            border-color: var(--color-accent) !important;
+        }
+
+    .mud-date-picker-custom .mud-input-underline:before {
+        content: none !important;
+    }
+
+.mud-picker-container .mud-picker {
+    background-color: var(--color-card) !important;
+    color: var(--color-text) !important;
+    border: 1px solid var(--color-border) !important;
+}

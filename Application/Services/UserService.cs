@@ -207,7 +207,7 @@ namespace Application.Services
             if (user == null) throw new KeyNotFoundException($"User with ID {userId} not found");
 
             // Verificar contraseña actual
-            if (!Crypt.Verify(currentPassword, user.PasswordHash)) throw new UnauthorizedAccessException("Current password is incorrect");
+            if (!Crypt.Verify(currentPassword, user.PasswordHash)) throw new InvalidPasswordException("Current password is incorrect");
 
             // Actualizar contraseña
             string newPasswordHash = Crypt.HashPassword(newPassword);

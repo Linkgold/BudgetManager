@@ -144,3 +144,20 @@
         .nav-top-bar .navbar-toggler-icon-custom:hover {
             color: #3498DB; /* Color de acento fijo */
         }
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #FFFFFF;
+    opacity: 0.85;
+    transition: opacity 0.2s ease;
+}
+
+    .user-info:hover {
+        opacity: 1;
+    }
+
+.user-name-text {
+    font-weight: 500;
+}

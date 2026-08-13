@@ -10,9 +10,9 @@
         private Money() { }
 #pragma warning restore CS8618 // Un campo que no acepta valores NULL debe contener un valor distinto de NULL al salir del constructor. Considere la posibilidad de agregar el modificador "required" o declararlo como un valor que acepta valores NULL.
         
-        public Money(decimal value, string currency = "EUR", bool allowNegative = false)
+        public Money(decimal value, string currency = "EUR")
         {
-            if (!allowNegative && value < 0) throw new ArgumentException("Amount cannot be negative", nameof(value));
+            if (value < 0) throw new ArgumentException("Amount cannot be negative", nameof(value));
 
             if (string.IsNullOrWhiteSpace(currency)) throw new ArgumentException("Currency cannot be empty", nameof(currency));
 

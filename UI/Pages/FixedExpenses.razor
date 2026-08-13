@@ -6,181 +6,204 @@
     <!-- Título y botón -->
     <div class="d-flex flex-wrap justify-content-between align-items-center mb-3">
         <h4 class="mb-0 page-title">@PageTextHelper.GetPageTitle("FixedExpenses")</h4>
-        <button class="btn btn-primary btn-sm" @onclick="OpenCreateModal">
+        <button class="btn btn-primary btn-sm" @onclick="OpenCreateModal" disabled="@(!HasExpenseOrMixedCategories)">
             @PageTextHelper.GetCreateButtonText("FixedExpenses")
         </button>
     </div>
 
-    <!-- 🔹 Contenedort de Modal -->
-    <div class="table-card-wrapper">
-        <!-- Filtros -->
-        <div class="card filter-card mb-3">
-            <div class="card-body d-flex flex-wrap align-items-center gap-2">
-                <!-- Búsqueda -->
-                <div style="flex: 1; min-width: 150px; position: relative;">
-                    <input type="text" class="form-control form-control-sm search-input-with-clear"
-                           placeholder="🔍 Buscar..."
-                           @bind="searchTerm"
-                           @bind:event="oninput" />
-                    @if (!string.IsNullOrEmpty(searchTerm))
-                    {
-                        <span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
-                    }
-                </div>
-
-                <!-- Filtro por categoría -->
-                <div style="min-width: 150px;">
-                    <select class="form-control form-control-sm" @bind="selectedCategoryId">
-                        <option value="0">Todas las categorías</option>
-                        @foreach (CategoryModel category in _categories)
-                        {
-                            <option value="@category.Id">@category.Name</option>
-                        }
-                    </select>
-                </div>
-
-                <!-- Filtro por año -->
-                <div style="min-width: 120px;">
-                    <select class="form-control form-control-sm" @bind="selectedYear">
-                        <option value="0">Todos los años</option>
-                        @foreach (int year in _years)
-                        {
-                            <option value="@year">@year</option>
-                        }
-                    </select>
-                </div>
-            </div>
+    @if (_isLoading)
+    {
+        <div class="text-center py-5">
+            <span class="spinner-border text-primary" role="status"></span>
+            <p class="mt-2 text-muted">Cargando...</p>
         </div>
-
-        <!-- Modal -->
-        <Modal Title="@_fixedExpenseForm.CurrentMode.GetModalTitle("Gasto Fijo")"
-               IsVisible="@_fixedExpenseForm.IsModalOpen"
-               IsDeleteMode="@_fixedExpenseForm.IsDeleting"
-               OnSave="@SaveFixedExpense"
-               OnClose="@CloseModal"
-               SaveButtonText="@_fixedExpenseForm.SaveButtonText"
-               SaveButtonClass="@_fixedExpenseForm.SaveButtonClass">
-
-            <div class="row">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label" for="fixedExpenseName">Nombre</label>
-                        <input type="text" id="fixedExpenseName" class="form-control" @bind="_fixedExpenseForm.Name" disabled="@_fixedExpenseForm.IsDeleting" placeholder="Ej. IBI" />
+    }
+    else if (HasExpenseOrMixedCategories)
+    {
+        <!-- 🔹 Contenedort de Modal -->
+        <div class="table-card-wrapper">
+            <!-- Filtros -->
+            <div class="card filter-card mb-3">
+                <div class="card-body d-flex flex-wrap align-items-center gap-2">
+                    <!-- Búsqueda -->
+                    <div style="flex: 1; min-width: 150px; position: relative;">
+                        <input type="text" class="form-control form-control-sm search-input-with-clear"
+                        placeholder="🔍 Buscar..."
+                        @bind="searchTerm"
+                        @bind:event="oninput" />
+                        @if (!string.IsNullOrEmpty(searchTerm))
+                        {
+                            <span class="search-clear-btn" @onclick="ClearSearch" title="Limpiar búsqueda">✕</span>
+                        }
                     </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label" for="@PageTextHelper.FIXED_EXPENSE_AMOUNT_ID">Importe (€)</label>
-                        <input type="number" id="@PageTextHelper.FIXED_EXPENSE_AMOUNT_ID"
-                            class="form-control" 
-                            @bind="_fixedExpenseForm.Amount"
-                               @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, @PageTextHelper.FIXED_EXPENSE_AMOUNT_ID))"
-                            step="1.00" min="0" placeholder="0.00"
-                            disabled="@_fixedExpenseForm.IsDeleting" />
-                    </div>
-                </div>
-            </div>
 
-            <div class="row mt-2">
-                <div class="col-md-6">
-                    <div class="form-group">
-                        <label class="form-label" for="fixedExpenseCategory">Categoría</label>
-                        <select id="fixedExpenseCategory" class="form-control" @bind="_fixedExpenseForm.CategoryId" disabled="@_fixedExpenseForm.IsDeleting">
+                    <!-- Filtro por categoría -->
+                    <div style="min-width: 150px;">
+                        <select class="form-control form-control-sm" @bind="selectedCategoryId">
+                            <option value="0">Todas las categorías</option>
                             @foreach (CategoryModel category in _categories)
                             {
                                 <option value="@category.Id">@category.Name</option>
                             }
                         </select>
                     </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="form-label" for="fixedExpenseMonth">Mes</label>
-                        <select id="fixedExpenseMonth" class="form-control" @bind="_fixedExpenseForm.Month" disabled="@_fixedExpenseForm.IsDeleting">
-                            @foreach (MonthModel month in MonthHelper.Months)
-                            {
-                                <option value="@month.Value">@month.Name</option>
-                            }
-                        </select>
-                    </div>
-                </div>
-                <div class="col-md-3">
-                    <div class="form-group">
-                        <label class="form-label" for="fixedExpenseYear">Año</label>
-                        <select id="fixedExpenseYear" class="form-control" @bind="_fixedExpenseForm.Year" disabled="@_fixedExpenseForm.IsDeleting">
+
+                    <!-- Filtro por año -->
+                    <div style="min-width: 120px;">
+                        <select class="form-control form-control-sm" @bind="selectedYear" @bind:after="OnYearChanged">
                             @foreach (int year in _years)
                             {
-                                <option value="@year">@year</option>
+                                bool hasData = _hasData?.HasFixedExpenseData(year) ?? false;
+                                <option value="@year">
+                                    @if (hasData)
+                                    {
+                                        <span style="color: var(--color-accent); margin-left: 4px;">● </span>
+                                    }
+                                    @year
+                                </option>
                             }
                         </select>
                     </div>
                 </div>
             </div>
 
-            <div class="row mt-2">
-                <div class="col-12">
-                    <div class="form-group">
-                        <label class="form-label" for="fixedExpenseDescription">Descripción</label>
-                        <input type="text" id="fixedExpenseDescription" class="form-control" @bind="_fixedExpenseForm.Description" disabled="@_fixedExpenseForm.IsDeleting" placeholder="Ej. Impuesto sobre bienes inmuebles" />
+            <!-- Modal -->
+            <Modal Title="@_fixedExpenseForm.CurrentMode.GetModalTitle("Gasto Fijo")"
+            IsVisible="@_fixedExpenseForm.IsModalOpen"
+            IsDeleteMode="@_fixedExpenseForm.IsDeleting"
+            OnSave="@SaveFixedExpense"
+            OnClose="@CloseModal"
+            SaveButtonText="@_fixedExpenseForm.SaveButtonText"
+            SaveButtonClass="@_fixedExpenseForm.SaveButtonClass">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="fixedExpenseName">Nombre</label>
+                            <input type="text" id="fixedExpenseName" class="form-control" @bind="_fixedExpenseForm.Name" disabled="@_fixedExpenseForm.IsDeleting" placeholder="Ej. IBI" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="@PageTextHelper.FIXED_EXPENSE_AMOUNT_ID">Importe (€)</label>
+                            <input type="number" id="@PageTextHelper.FIXED_EXPENSE_AMOUNT_ID"
+                            class="form-control" 
+                            @bind="_fixedExpenseForm.Amount"
+                            @onfocus="@(async () => await PageTextHelper.SelectAllText(JSRuntime, @PageTextHelper.FIXED_EXPENSE_AMOUNT_ID))"
+                            step="1.00" min="0" placeholder="0.00"
+                            disabled="@_fixedExpenseForm.IsDeleting" />
+                        </div>
                     </div>
                 </div>
-            </div>
-        </Modal>
 
-        <!-- Tabla -->
-        <div class="card table-card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="data-table table table-hover mb-0">
-                        <thead>
-                            <tr>
-                                <th class="text-start">Categoría</th>
-                                <th class="text-start">Nombre</th>
-                                <th class="text-start">Descripción</th>
-                                <th class="text-end">Importe</th>
-                                <th class="text-center">Mes</th>
-                                <th class="text-center">Año</th>
-                                <th class="text-end" style="width: 100px;">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (_filteredFixedExpenses.Any())
-                            {
-                                @foreach (FixedExpenseModel item in _filteredFixedExpenses)
+                <div class="row mt-2">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label" for="fixedExpenseCategory">Categoría</label>
+                            <select id="fixedExpenseCategory" class="form-control" @bind="_fixedExpenseForm.CategoryId" disabled="@_fixedExpenseForm.IsDeleting">
+                                @foreach (CategoryModel category in _categories)
+                                {
+                                    <option value="@category.Id">@category.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label" for="fixedExpenseMonth">Mes</label>
+                            <select id="fixedExpenseMonth" class="form-control" @bind="_fixedExpenseForm.Month" disabled="@_fixedExpenseForm.IsDeleting">
+                                @foreach (MonthModel month in MonthHelper.Months)
+                                {
+                                    <option value="@month.Value">@month.Name</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label class="form-label" for="fixedExpenseYear">Año</label>
+                            <select id="fixedExpenseYear" class="form-control" @bind="_fixedExpenseForm.Year" disabled="@_fixedExpenseForm.IsDeleting">
+                                @foreach (int year in _years)
+                                {
+                                    <option value="@year">@year</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row mt-2">
+                    <div class="col-12">
+                        <div class="form-group">
+                            <label class="form-label" for="fixedExpenseDescription">Descripción</label>
+                            <input type="text" id="fixedExpenseDescription" class="form-control" @bind="_fixedExpenseForm.Description" disabled="@_fixedExpenseForm.IsDeleting" placeholder="Ej. Impuesto sobre bienes inmuebles" />
+                        </div>
+                    </div>
+                </div>
+            </Modal>
+
+            <!-- Tabla -->
+            <div class="card table-card">
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="data-table table table-hover mb-0">
+                            <thead>
+                                <tr>
+                                    <th class="text-start">Categoría</th>
+                                    <th class="text-start">Nombre</th>
+                                    <th class="text-start">Descripción</th>
+                                    <th class="text-end">Importe</th>
+                                    <th class="text-center">Mes</th>
+                                    <th class="text-center">Año</th>
+                                    <th class="text-end" style="width: 100px;">Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_filteredFixedExpenses.Any())
+                                {
+                                    @foreach (FixedExpenseModel item in _filteredFixedExpenses)
+                                    {
+                                        <tr>
+                                            <td class="text-start">@item.CategoryName</td>
+                                            <td class="text-start">@item.Name</td>
+                                            <td class="text-start">@item.Description</td>
+                                            <td class="text-end">@item.Amount.FormatCurrency()</td>
+                                            <td class="text-center">@MonthHelper.GetMonthName(item.Month)</td>
+                                            <td class="text-center">@item.Year</td>
+                                            <td class="text-end">
+                                                <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(item)">
+                                                    ✏️
+                                                </button>
+                                                <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteModal(item)">
+                                                    🗑️
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                                else
                                 {
                                     <tr>
-                                        <td class="text-start">@item.CategoryName</td>
-                                        <td class="text-start">@item.Name</td>
-                                        <td class="text-start">@item.Description</td>
-                                        <td class="text-end">@CurrencyHelper.FormatCurrency(item.Amount)</td>
-                                        <td class="text-center">@MonthHelper.GetMonthName(item.Month)</td>
-                                        <td class="text-center">@item.Year</td>
-                                        <td class="text-end">
-                                            <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(item)">
-                                                ✏️
-                                            </button>
-                                            <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteModal(item)">
-                                                🗑️
-                                            </button>
+                                        <td colspan="7" class="text-center text-muted py-3">
+                                            @PageTextHelper.GetEmptyStateHtml("FixedExpenses")
                                         </td>
                                     </tr>
                                 }
-                            }
-                            else
-                            {
-                                <tr>
-                                    <td colspan="7" class="text-center text-muted py-3">
-                                        @PageTextHelper.GetEmptyMessage("FixedExpenses")
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="card-footer text-muted small">
+                    @PageTextHelper.GetFooterMessage(_filteredFixedExpenses.Count(), _fixedExpenses.Count(), "FixedExpenses")
                 </div>
             </div>
-            <div class="card-footer text-muted small">
-                @PageTextHelper.GetFooterMessage(_filteredFixedExpenses.Count(), _fixedExpenses.Count(), "FixedExpenses")
-            </div>
         </div>
-    </div>
+    }
+    else
+    {
+        <InfoBanner Title="No hay categorías de gasto o mixtas disponibles"
+                    Message="Para crear gastos fijos, necesitas al menos una categoría de tipo Gasto o Mixta."
+                    ButtonText="@($"Ir a {PageTextHelper.GetPageTitle("Categories")}")"
+                    ButtonUrl="/categories" />
+    }
 </div>

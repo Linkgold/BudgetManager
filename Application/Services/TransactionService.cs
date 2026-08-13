@@ -57,70 +57,14 @@ namespace Application.Services
             return _mapper.Map<TransactionResponseDTO>(transaction);
         }
 
-        public async Task<List<TransactionResponseDTO>> GetAllAsync()
+        public async Task<List<TransactionResponseDTO>> GetAllByYearAsync(int year)
         {
             if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetAllAsync(UserId);
+            if (year < 1900 || year > 2100) throw new ArgumentException("Year must be between 1900 and 2100", nameof(year));
+
+            IEnumerable<Transaction> transactions = await _transactionRepository.GetAllByYearAsync(UserId, year);
 
             return _mapper.Map<List<TransactionResponseDTO>>(transactions);
-        }
-
-        public async Task<List<TransactionResponseDTO>> GetByCategoryIdAsync(int categoryId)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetByCategoryIdAsync(UserId, categoryId);
-
-            return _mapper.Map<List<TransactionResponseDTO>>(transactions);
-        }
-
-        public async Task<List<TransactionResponseDTO>> GetByMonthlyPeriodAsync(int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetByMonthlyPeriodAsync(UserId, period);
-
-            return _mapper.Map<List<TransactionResponseDTO>>(transactions);
-        }
-
-        public async Task<List<TransactionResponseDTO>> GetByCategoryAndMonthlyPeriodAsync(int categoryId, int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetByCategoryAndMonthlyPeriodAsync(UserId, categoryId, period);
-
-            return _mapper.Map<List<TransactionResponseDTO>>(transactions);
-        }
-
-        public async Task<List<TransactionResponseDTO>> GetByDateRangeAsync(DateTime from, DateTime to)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (from > to) throw new ArgumentException("Start date cannot be after end date", nameof(from));
-
-            DailyPeriod startDate = new DailyPeriod(from.Day, from.Month, from.Year);
-            DailyPeriod endDate = new DailyPeriod(to.Day, to.Month, to.Year);
-
-            IEnumerable<Transaction> transactions = await _transactionRepository.GetByDateRangeAsync(UserId, startDate, endDate);
-
-            return _mapper.Map<List<TransactionResponseDTO>>(transactions);
-        }
-
-        public async Task<decimal> GetTotalByCategoryAndMonthlyPeriodAsync(int categoryId, int month, int year)
-        {
-            if (UserId <= 0) throw new UnauthorizedAccessException("User is not authenticated");
-            if (categoryId <= 0) throw new ArgumentException("Invalid category ID", nameof(categoryId));
-
-            if (!await _categoryRepository.ExistsAsync(UserId, categoryId)) throw new KeyNotFoundException($"Category with ID {categoryId} not found");
-
-            MonthlyPeriod period = new MonthlyPeriod(month, year);
-            return await _transactionRepository.GetTotalByCategoryAndMonthlyPeriodAsync(UserId, categoryId, period);
         }
 
         // ==================== COMANDOS ====================
@@ -140,11 +84,11 @@ namespace Application.Services
 
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
-            Money amount = new Money(request.Amount, request.Currency ?? "EUR", allowNegative: true);
+            Money amount = new Money(request.Amount, request.Currency ?? "EUR");
             DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
 
             // Crear entidad de dominio
-            Transaction transaction = new Transaction(user, category, info, amount, date);
+            Transaction transaction = new Transaction(user, category, info, amount, request.TransactionType, date);
 
             // Guardar
             await _transactionRepository.AddAsync(transaction);
@@ -171,11 +115,11 @@ namespace Application.Services
 
             // Crear Value Objects
             EntityInfo info = new EntityInfo(request.Name, request.Description);
-            Money amount = new Money(request.Amount, request.Currency ?? transaction.Amount.Currency, allowNegative: true);
+            Money amount = new Money(request.Amount, request.Currency ?? transaction.Amount.Currency);
             DailyPeriod date = new DailyPeriod(request.Date.Day, request.Date.Month, request.Date.Year);
 
             // Actualizar entidad de dominio
-            transaction.Update(category, info, amount, date);
+            transaction.Update(category, info, amount, request.TransactionType, date);
 
             // Guardar
             await _transactionRepository.UpdateAsync(transaction);

@@ -28,11 +28,11 @@ namespace API.Controllers
         /// <summary>
         /// Obtiene todas las transacciones
         /// </summary>
-        [HttpGet]
+        [HttpGet("year/{year}")]
         [ProducesResponseType(typeof(List<TransactionResponseDTO>), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAllByYear(int year)
         {
-            List<TransactionResponseDTO> transactions = await _transactionService.GetAllAsync();
+            List<TransactionResponseDTO> transactions = await _transactionService.GetAllByYearAsync(year);
 
             return Ok(transactions);
         }
@@ -52,94 +52,6 @@ namespace API.Controllers
             TransactionResponseDTO transaction = await _transactionService.GetByIdAsync(id);
 
             return Ok(transaction);
-        }
-
-        /// <summary>
-        /// Obtiene todas las transacciones de una categoría
-        /// </summary>
-        [HttpGet("by-category/{categoryId}")]
-        [ProducesResponseType(typeof(List<TransactionResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByCategory(int categoryId)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            List<TransactionResponseDTO> transactions = await _transactionService.GetByCategoryIdAsync(categoryId);
-
-            return Ok(transactions);
-        }
-
-        /// <summary>
-        /// Obtiene todas las transacciones de un período mensual (mes/año)
-        /// </summary>
-        [HttpGet("by-monthly-period")]
-        [ProducesResponseType(typeof(List<TransactionResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByMonthlyPeriod([FromQuery] int month, [FromQuery] int year)
-        {
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            List<TransactionResponseDTO> transactions = await _transactionService.GetByMonthlyPeriodAsync(month, year);
-
-            return Ok(transactions);
-        }
-
-        /// <summary>
-        /// Obtiene todas las transacciones de una categoría y período mensual
-        /// </summary>
-        [HttpGet("by-category-monthly-period")]
-        [ProducesResponseType(typeof(List<TransactionResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByCategoryAndMonthlyPeriod([FromQuery] int categoryId, [FromQuery] int month, [FromQuery] int year)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            List<TransactionResponseDTO> transactions = await _transactionService.GetByCategoryAndMonthlyPeriodAsync(categoryId, month, year);
-
-            return Ok(transactions);
-        }
-
-        /// <summary>
-        /// Obtiene todas las transacciones en un rango de fechas
-        /// </summary>
-        [HttpGet("by-date-range")]
-        [ProducesResponseType(typeof(List<TransactionResponseDTO>), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetByDateRange([FromQuery] DateTime from, [FromQuery] DateTime to)
-        {
-            if (from > to) return BadRequest("Start date cannot be after end date");
-
-            List<TransactionResponseDTO> transactions = await _transactionService.GetByDateRangeAsync(from, to);
-
-            return Ok(transactions);
-        }
-
-        /// <summary>
-        /// Obtiene el total de transacciones para una categoría y período mensual
-        /// </summary>
-        [HttpGet("total-by-category-monthly-period")]
-        [ProducesResponseType(typeof(decimal), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetTotalByCategoryAndMonthlyPeriod([FromQuery] int categoryId, [FromQuery] int month, [FromQuery] int year)
-        {
-            if (categoryId <= 0) return BadRequest("Invalid category ID");
-
-            if (month < 1 || month > 12) return BadRequest("Month must be between 1 and 12");
-
-            if (year < 1900 || year > 2100) return BadRequest("Year must be between 1900 and 2100");
-
-            decimal total = await _transactionService.GetTotalByCategoryAndMonthlyPeriodAsync(categoryId, month, year);
-
-            return Ok(new { CategoryId = categoryId, Month = month, Year = year, Total = total });
         }
 
         // ==================== COMANDOS ====================

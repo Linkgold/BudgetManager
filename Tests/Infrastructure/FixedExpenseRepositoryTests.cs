@@ -138,136 +138,15 @@ namespace Tests.Infrastructure
             string otherFixedExpenseName = "Spotify";
             User user = TestDataFactory.CreateUser();
             Category category = TestDataFactory.CreateCategory(1, user);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, month: 7);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, month: 7, year: 2003);
             await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, otherFixedExpenseName, amount: 9.99m);
 
             // Act
-            IEnumerable<FixedExpense> result = await _repository.GetAllAsync(userId);
-
-            // Assert
-            Assert.Equal(2, result.Count());
-            Assert.Contains(result, f => f.Info.Name == TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME);
-            Assert.Contains(result, f => f.Info.Name == otherFixedExpenseName);
-        }
-
-        // ==================== TEST: GET BY CATEGORY ====================
-
-        [Fact]
-        public async Task GetByCategoryAsync_WithExistingCategory_ReturnsFixedExpenses()
-        {
-            // Arrange
-            int userId = 1;
-            string otherFixedExpenseName = "Spotify";
-            User user = TestDataFactory.CreateUser();
-            Category category1 = TestDataFactory.CreateCategory(1, user);
-            Category category2 = TestDataFactory.CreateCategory(2, user, "Seguros");
-
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category1);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category1, otherFixedExpenseName, month: 7);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category2, "Seguro Coche");
-
-            // Act
-            IEnumerable<FixedExpense> result = await _repository.GetByCategoryAsync(userId, category1.Id);
-
-            // Assert
-            Assert.Equal(2, result.Count());
-            Assert.All(result, f => Assert.Equal(category1.Id, f.CategoryId));
-            Assert.Contains(result, f => f.Info.Name == TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME);
-            Assert.Contains(result, f => f.Info.Name == otherFixedExpenseName);
-        }
-
-        [Fact]
-        public async Task GetByCategoryAsync_WithNonExistingCategory_ReturnsEmptyList()
-        {
-            // Act
-            int userId = 1;
-            IEnumerable<FixedExpense> result = await _repository.GetByCategoryAsync(userId, 999);
-
-            // Assert
-            Assert.NotNull(result);
-            Assert.Empty(result);
-        }
-
-        // ==================== TEST: GET ACTIVE FOR PERIOD ====================
-
-        [Fact]
-        public async Task GetActiveForPeriodAsync_ReturnsActiveFixedExpensesForPeriod()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(1, user);
-
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Spotify", amount: 9.99m, month: 3, year: 2024);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category, "Disney+", amount: 11.99m, month: 1, year: 2025);
-
-            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod();
-
-            // Act
-            IEnumerable<FixedExpense> result = await _repository.GetByPeriodAsync(userId, period);
-
-            // Assert
-            // Solo Netflix debe estar activo en febrero 2024 (Spotify empieza en marzo, Disney+ en 2025)
-            Assert.Single(result);
-            Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME, result.First().Info.Name);
-        }
-
-        [Fact]
-        public async Task GetActiveForPeriodAsync_WithNullPeriod_ThrowsArgumentNullException()
-        {
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => _repository.GetByPeriodAsync(1, null));
-        }
-
-        // ==================== TEST: GET ACTIVE FOR PERIOD BY CATEGORY ====================
-
-        [Fact]
-        public async Task GetActiveForPeriodByCategoryAsync_ReturnsActiveFixedExpensesForCategoryAndPeriod()
-        {
-            // Arrange
-            int userId = 1;
-            User user = TestDataFactory.CreateUser();
-            Category category1 = TestDataFactory.CreateCategory(1, user);
-            Category category2 = TestDataFactory.CreateCategory(2, user, "Seguros");
-
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category1);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category1, "Spotify", month: 3);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category2, "Seguro Coche");
-
-            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(2);
-
-            // Act
-            IEnumerable<FixedExpense> result = await _repository.GetByPeriodByCategoryAsync(userId, category1.Id, period);
+            IEnumerable<FixedExpense> result = await _repository.GetAllByYearAsync(userId, 2003);
 
             // Assert
             Assert.Single(result);
-            Assert.Equal(TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME, result.First().Info.Name);
-            Assert.Equal(category1.Id, result.First().CategoryId);
-        }
-
-        // ==================== TEST: GET TOTAL BY CATEGORY AND PERIOD ====================
-
-        [Fact]
-        public async Task GetTotalByCategoryAndPeriodAsync_ReturnsTotalForCategoryAndPeriod()
-        {
-            // Arrange
-            int userId = 1;
-            decimal otherAmount = 9.99m;
-            User user = TestDataFactory.CreateUser();
-            Category category = TestDataFactory.CreateCategory(1, user);
-
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, year: 2026);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Spotify", amount: otherAmount);
-            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category, "Disney+", year: 2025);
-
-            MonthlyPeriod period = TestDataFactory.CreateMonthlyPeriod(2, 2024);
-
-            // Act
-            decimal total = await _repository.GetTotalByCategoryAndPeriodAsync(userId, category.Id, period);
-
-            // Assert
-            Assert.Equal(otherAmount, total); // Netflix + Spotify = 15.99 + 9.99
+            Assert.Contains(result, f => f.Info.Name == TestDataFactory.DEFAULT_FIXED_EXPENSE_NAME);
         }
 
         // ==================== TEST: EXISTS ====================
@@ -457,6 +336,112 @@ namespace Tests.Infrastructure
         {
             // Act & Assert
             await Assert.ThrowsAsync<KeyNotFoundException>(() => _repository.DeleteAsync(999, 1));
+        }
+
+        // ==================== NUEVOS TESTS: GET DISTINCT YEARS ====================
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithData_ReturnsYearsList()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user, "Suscripciones", nature: CategoryNatureEnum.Expense);
+
+            // Crear gastos fijos en diferentes años
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, "Netflix", "", 15.99m, "EUR", 1, 2023);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Spotify", "", 9.99m, "EUR", 2, 2023);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category, "Disney+", "", 12.99m, "EUR", 1, 2024);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 4, user, category, "Amazon", "", 4.99m, "EUR", 1, 2025);
+
+            // Expected: años 2023, 2024, 2025
+            List<int> expected = new List<int> { 2023, 2024, 2025 };
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected.Count, result.Count());
+            Assert.Equal(expected, result.Order().ToList());
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithNoData_ReturnsEmptyList()
+        {
+            // Arrange
+            int userId = 1;
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Empty(result);
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithInvalidUserId_ThrowsArgumentException()
+        {
+            // Arrange
+            int invalidUserId = 0;
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ArgumentException>(() => _repository.GetDistinctYearsAsync(invalidUserId));
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithMultipleYears_ReturnsSortedYears()
+        {
+            // Arrange
+            int userId = 1;
+            User user = TestDataFactory.CreateUser(userId);
+            Category category = TestDataFactory.CreateCategory(1, user, "Suscripciones");
+
+            // Crear gastos fijos en años desordenados
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user, category, "Netflix", "", 15.99m, "EUR", 1, 2025);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user, category, "Spotify", "", 9.99m, "EUR", 1, 2023);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user, category, "Disney+", "", 12.99m, "EUR", 1, 2024);
+
+            // Expected: años ordenados 2023, 2024, 2025
+            List<int> expected = new List<int> { 2023, 2024, 2025 };
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected, result);
+        }
+
+        [Fact]
+        public async Task GetDistinctYearsAsync_WithDifferentUsers_ReturnsOnlyUserYears()
+        {
+            // Arrange
+            int userId1 = 1;
+            int userId2 = 2;
+            User user1 = TestDataFactory.CreateUser(userId1);
+            User user2 = TestDataFactory.CreateUser(userId2, email: "paquito@example.com");
+            Category category1 = TestDataFactory.CreateCategory(1, user1, "Suscripciones");
+            Category category2 = TestDataFactory.CreateCategory(2, user2, "Suscripciones");
+
+            // Gastos fijos para usuario 1: años 2023 y 2024
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 1, user1, category1, "Netflix", "", 15.99m, "EUR", 1, 2023);
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 2, user1, category1, "Spotify", "", 9.99m, "EUR", 1, 2024);
+
+            // Gastos fijos para usuario 2: año 2025
+            await TestDataFactory.SeedFixedExpenseAsync(_repository, 3, user2, category2, "Disney+", "", 12.99m, "EUR", 1, 2025);
+
+            // Expected para usuario 1: años 2023, 2024
+            List<int> expected = new List<int> { 2023, 2024 };
+
+            // Act
+            IEnumerable<int> result = await _repository.GetDistinctYearsAsync(userId1);
+
+            // Assert
+            Assert.NotNull(result);
+            Assert.Equal(expected, result);
+            Assert.DoesNotContain(2025, result);
         }
 
         // ==================== DISPOSE ====================

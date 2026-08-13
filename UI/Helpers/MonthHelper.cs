@@ -40,5 +40,17 @@ namespace UI.Helpers
         public static int GetMonthValue(string monthName) => Months.FirstOrDefault(m => m.Name == monthName)?.Value ?? 0;
 
         public static List<MonthModel> GetMonthsWithShortName() => Months.ToList();
+
+        public static DateTime GetDefaultDate(int month, int year)
+        {
+            if (month == DateTime.Now.Month && year == DateTime.Now.Year)
+            {
+                return DateTime.Now;
+            }
+
+            // ✅ Usar el último día del mes seleccionado
+            int lastDay = DateTime.DaysInMonth(year, month);
+            return new DateTime(year, month, lastDay);
+        }
     }
 }
