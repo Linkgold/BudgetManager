@@ -169,15 +169,6 @@
             white-space: nowrap !important;
         }
 
-    /* 🔥 COLORES DE TEXTO */
-    .dashboard-table .text-success {
-        color: var(--color-success) !important;
-    }
-
-    .dashboard-table .text-danger {
-        color: var(--color-error) !important;
-    }
-
     .dashboard-table .fw-bold {
         font-weight: 600 !important;
     }

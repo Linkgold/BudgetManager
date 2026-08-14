@@ -83,7 +83,7 @@
                                                 @if (data != null)
                                                 {
                                                     <div>
-                                                        <span class="@category.Nature.GetStatusClass(data.Spent, data.Budget)">
+                                                        <span class="@category.Nature.GetPercentageStatusClass(data.Spent, data.Budget)">
                                                             @data.DisplaySpent.FormatCurrency()
                                                         </span>
                                                     </div>
@@ -99,7 +99,7 @@
                                         }
                                         <td class="text-end">
                                             <div>
-                                                <span class="@category.Nature.GetStatusClass(category.TotalSpent, category.TotalBudget)">
+                                                <span class="@category.Nature.GetPercentageStatusClass(category.TotalSpent, category.TotalBudget)">
                                                     @category.TotalSpent.FormatCurrency()
                                                 </span>
                                             </div>

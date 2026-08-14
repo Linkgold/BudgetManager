@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Components;
+﻿using Contracts.Enums;
+using Microsoft.AspNetCore.Components;
 using Shared.DTOs.Request;
 using UI.Extensions;
 using UI.Helpers;
@@ -698,23 +699,58 @@ namespace UI.Pages
 
         private decimal GetCategoryTotal(int categoryId, int year)
         {
-            return _allBudgets
+            CategoryModel? category = _allCategories.FirstOrDefault(c => c.Id == categoryId);
+            if (category == null) return 0m;
+
+            decimal total = _allBudgets
                 .Where(b => b.CategoryId == categoryId && b.Year == year)
                 .Sum(b => b.Amount);
+
+            return Math.Abs(total);
         }
 
         private decimal GetMonthTotal(int month, int year)
         {
-            return _allBudgets
-                .Where(b => b.Month == month && b.Year == year)
-                .Sum(b => b.Amount);
+            decimal total = 0m;
+
+            foreach (BudgetModel budget in _allBudgets.Where(b => b.Month == month && b.Year == year))
+            {
+                CategoryModel? category = _allCategories.FirstOrDefault(c => c.Id == budget.CategoryId);
+                if (category == null) continue;
+
+                if (category.Nature == CategoryNatureEnum.Income)
+                {
+                    total += budget.Amount;
+                }
+                else
+                {
+                    total -= budget.Amount;
+                }
+            }
+
+            return total;
         }
 
         private decimal GetTotal(int year)
         {
-            return _allBudgets
-                .Where(b => b.Year == year)
-                .Sum(b => b.Amount);
+            decimal total = 0m;
+
+            foreach (BudgetModel budget in _allBudgets.Where(b => b.Year == year))
+            {
+                CategoryModel? category = _allCategories.FirstOrDefault(c => c.Id == budget.CategoryId);
+                if (category == null) continue;
+
+                if (category.Nature == CategoryNatureEnum.Income)
+                {
+                    total += budget.Amount;
+                }
+                else
+                {
+                    total -= budget.Amount;
+                }
+            }
+
+            return total;
         }
 
         private void OnModalYearChanged(ChangeEventArgs e)

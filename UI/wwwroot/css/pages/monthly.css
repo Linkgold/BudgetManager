@@ -123,10 +123,6 @@ tr:hover .expand-icon {
         border-left-color: var(--color-error);
     }
 
-    .summary-card .text-success {
-        color: var(--color-success) !important;
-    }
-
 .summary-label {
     color: var(--color-text-light);
     font-size: 0.8rem;

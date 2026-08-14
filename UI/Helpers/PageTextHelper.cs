@@ -96,7 +96,7 @@ namespace UI.Helpers
             return $"➕ Añadir {config.EntityName}";
         }
 
-        public static string GetFooterMessage(int filteredCount, int totalCount, string page) => filteredCount > 0 ? $"Mostrando {filteredCount} de {totalCount} {ResolveEntityName("Budgets", filteredCount)}" : GetEmptyMessage(page);
+        public static string GetFooterMessage(int filteredCount, int totalCount, string page) => filteredCount > 0 ? $"Mostrando {filteredCount} de {totalCount} {ResolveEntityName(page, filteredCount)}" : GetEmptyMessage(page);
 
         public static string GetBudgetFooterMessage(int filteredCount, int year) => filteredCount > 0 ? $"Mostrando {filteredCount} {ResolveEntityName("Budgets", filteredCount)} para el año {year}" : GetEmptyMessage("Budgets");
 

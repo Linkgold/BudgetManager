@@ -57,7 +57,7 @@
                                             <td class="text-end">@item.DisplayBudget.FormatCurrency()</td>
                                             <td class="text-end">@item.DisplaySpent.FormatCurrency()</td>
                                             <td class="text-end">
-                                                <span class="@item.Nature.GetStatusClass(item.Spent, item.Budget)">
+                                                <span class="@item.Nature.GetPercentageStatusClass(item.Spent, item.Budget)">
                                                     @item.Difference.FormatCurrencyWithSign()
                                                 </span>
                                             </td>
@@ -180,7 +180,7 @@
                             <div class="summary-number">
                                 @_currentMonthData?.TotalDifference.FormatCurrency()
                             </div>
-                            <small class="summary-percent">@Math.Abs(_currentMonthData?.PercentageUsed ?? 0).FormatPercentage() utilizado</small>
+                            <small class="summary-percent">@_currentMonthData?.PercentageUsed.FormatPercentage() ejecutado</small>
                         </div>
                     </div>
                 </div>
