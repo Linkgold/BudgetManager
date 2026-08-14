@@ -2,6 +2,8 @@
   <Folder Name="/Documentos/">
     <File Path="CI-CD.md" />
     <File Path="DEPLOY.md" />
+    <File Path="Presentacion.pdf" />
+    <File Path="Readme.MD" />
     <File Path="SEGURIDAD.md" />
   </Folder>
   <Project Path="API/API.csproj" Id="e1500dc7-c0e5-4d03-919a-f205655d02bc" />
