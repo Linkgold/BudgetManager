@@ -1,4 +1,5 @@
-﻿using Shared.DTOs.Response.Dashboard;
+﻿using Contracts.Enums;
+using Shared.DTOs.Response.Dashboard;
 using Shared.DTOs.Response.Data;
 using UI.Helpers;
 using UI.Pages;
@@ -7,6 +8,16 @@ namespace UI.Models.Dashboard
 {
     public class DashboardModel
     {
+        private static readonly Dictionary<(CategoryNatureEnum Nature, bool HasBudget), int> _order = new()
+        {
+            { (CategoryNatureEnum.Income, true), 0 },
+            { (CategoryNatureEnum.Income, false), 1 },
+            { (CategoryNatureEnum.Mixed, true), 2 },
+            { (CategoryNatureEnum.Mixed, false), 2 },  // Mismo orden que con presupuesto
+            { (CategoryNatureEnum.Expense, true), 3 },
+            { (CategoryNatureEnum.Expense, false), 3 } // Mismo orden que con presupuesto
+        };
+
         public List<DashboardCategoryModel> Categories { get; set; } = new();
         public List<DashboardMonthTotalsModel> Months { get; set; } = new();
 
@@ -48,6 +59,12 @@ namespace UI.Models.Dashboard
                     )
                 );
             }
+
+            // ✅ Ordenar: Income → Mixed → Expense 
+            categories = categories
+                .OrderBy(c => _order[(c.Nature, c.TotalBudget > 0)])
+                .ThenBy(c => c.CategoryName)
+                .ToList();
 
             // 2. Mapear meses (totales + acumulados)
             List<DashboardMonthTotalsModel> months = new List<DashboardMonthTotalsModel>();

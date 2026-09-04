@@ -51,6 +51,8 @@ namespace UI.Shared
 
         private TransactionFormModel _transactionForm = new();
 
+        private string _suggestedName = "Ej. Compra supermercado";
+
         private bool ShowTypeSelector =>
             !_transactionForm.IsDeleting &&
             _transactionForm.CategoryId > 0 &&
@@ -74,6 +76,11 @@ namespace UI.Shared
             TransactionTypeEnum transactionType = mode == FormModeEnum.Edit
                 ? model.TransactionType
                 : category?.Nature.GetDefaultTransactionTypeForCategory() ?? TransactionTypeEnum.Expense;
+
+            if(string.IsNullOrEmpty(model.Name))
+            {
+                _suggestedName = category != null ? $"Ej. {category.Name}" : _suggestedName;
+            }
 
             _transactionForm = new TransactionFormModel
             {
@@ -101,6 +108,8 @@ namespace UI.Shared
             {
                 _transactionForm.CategoryNature = category.Nature;
                 _transactionForm.TransactionType = category.Nature.GetDefaultTransactionTypeForCategory();
+
+                _suggestedName = $"Ej. {category.Name}";
             }
 
             StateHasChanged();
@@ -140,6 +149,12 @@ namespace UI.Shared
 
         private async Task<bool> CreateTransactionAsync()
         {
+            if (string.IsNullOrWhiteSpace(_transactionForm.Name))
+            {
+                CategoryModel? category = Categories.FirstOrDefault(c => c.Id == _transactionForm.CategoryId);
+                _transactionForm.Name = category?.Name ?? "Sin nombre";
+            }
+
             CreateTransactionRequestDTO request = new()
             {
                 CategoryId = _transactionForm.CategoryId,
@@ -200,6 +215,7 @@ namespace UI.Shared
         private async Task HandleClose()
         {
             _transactionForm.IsModalOpen = false;
+            _suggestedName = "Ej. Compra supermercado";
             await OnTransactionCancelled.InvokeAsync();
         }
     }

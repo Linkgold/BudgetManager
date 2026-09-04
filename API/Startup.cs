@@ -89,7 +89,15 @@ namespace API
             );
 
             // HTTPS
-            app.UseHttpsRedirection();
+            if (_environment.IsProduction())
+            {
+                app.UseHttpsRedirection();
+                Console.WriteLine("HTTPS redirection Enabled");
+            }
+            else
+            {
+                Console.WriteLine("HTTPS redirection Disabled");
+            }
 
             // Routing
             app.UseRouting();

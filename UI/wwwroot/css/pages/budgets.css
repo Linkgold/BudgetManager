@@ -4,7 +4,17 @@
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
+    background-color: var(--color-surface) !important;
+    color: var(--color-text) !important;
 }
+
+    .budgets-table .text-muted {
+        color: var(--color-text-muted) !important;
+    }
+
+    .budgets-table .empty-state-icon {
+        opacity: 0.8;
+    }
 
     /* 🔥 Celdas con una sola línea y fuente más pequeña */
     .budgets-table td,

@@ -32,6 +32,7 @@ namespace UI.Pages
         private List<int> _years = new();
         private HasDataModel? _hasData;
         private bool _isLoading = true;
+        private string _suggestedName = "Ej. IBI";
 
         // ================================================================
         // 3. FILTROS Y PROPIEDADES CON SETTER
@@ -225,6 +226,12 @@ namespace UI.Pages
 
         private async Task<bool> CreateFixedExpenseAsync()
         {
+            if (string.IsNullOrWhiteSpace(_fixedExpenseForm.Name))
+            {
+                CategoryModel? category = _categories.FirstOrDefault(c => c.Id == _fixedExpenseForm.CategoryId);
+                _fixedExpenseForm.Name = category?.Name ?? "Sin nombre";
+            }
+
             CreateFixedExpenseRequestDTO request = new()
             {
                 CategoryId = _fixedExpenseForm.CategoryId,
@@ -319,6 +326,14 @@ namespace UI.Pages
 
         private void FillFormFromModel(FixedExpenseModel fixedExpenseModel, FormModeEnum mode)
         {
+            // ✅ Si el nombre está vacío, sugerir el nombre de la categoría (solo en creación)
+            if (string.IsNullOrEmpty(fixedExpenseModel.Name) && mode == FormModeEnum.Create)
+            {
+                CategoryModel? category = _categories.FirstOrDefault(c => c.Id == fixedExpenseModel.CategoryId);
+
+                _suggestedName = category != null ? $"Ej. {category.Name}" : _suggestedName;
+            }
+
             _fixedExpenseForm = new FixedExpenseFormModel
             {
                 Id = fixedExpenseModel.Id,
@@ -341,6 +356,8 @@ namespace UI.Pages
             _fixedExpenseForm.IsModalOpen = false;
             _fixedExpenseForm.IsEditing = false;
             _fixedExpenseForm.IsDeleting = false;
+            
+            _suggestedName = "Ej. IBI";
 
             InvokeAsync(StateHasChanged);
         }
@@ -348,6 +365,19 @@ namespace UI.Pages
         // ================================================================
         // 9. MÉTODOS AUXILIARES
         // ================================================================
+
+        private void OnCategoryChanged()
+        {
+            CategoryModel? category = _categories.FirstOrDefault(c => c.Id == _fixedExpenseForm.CategoryId);
+
+            if (category != null)
+            {
+                // Actualizar placeholder con el nombre de la categoría
+                _suggestedName = $"Ej. {category.Name}";
+            }
+
+            StateHasChanged();
+        }
 
         private async Task OnYearChanged()
         {

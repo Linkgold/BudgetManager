@@ -1,6 +1,14 @@
 ﻿@inherits LayoutComponentBase
 @inject IThemeService ThemeService
+
 <div class="page @(ThemeService.IsDark ? "dark-theme" : "light-theme")">
+    @if (_isLoading)
+    {
+        <div class="global-loader-overlay">
+            <div class="loader-bar"></div>
+            <div class="loader-text">Cargando datos...</div>
+        </div>
+    }
     <div class="sidebar">
         <AuthorizeView>
             <Authorized>
@@ -10,9 +18,7 @@
     </div>
     <ToastContainer />
     <main>
-        <div class="top-row px-4">
-            @* Aquí puedes mostrar el nombre del usuario *@
-        </div>
+        <div class="top-row px-4"></div>
         <article class="content px-4">
             @Body
         </article>

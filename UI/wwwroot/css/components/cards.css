@@ -70,18 +70,19 @@
 
 .table-card-wrapper-budget {
     position: relative;
-    min-height: 850px;
     border-radius: 8px !important;
     overflow: hidden !important;
     transition: filter 0.3s ease;
 }
 
+    /* ✅ Cuando el modal está abierto (crear/editar) */
     .table-card-wrapper-budget.modal-open {
-        min-height: 850px;
+        min-height: 850px; /* Ajusta según el contenido del modal */
     }
 
+    /* ✅ Cuando el modal está en modo eliminar (menos campos) */
     .table-card-wrapper-budget.modal-open-delete {
-        min-height: 772px;
+        min-height: 772px; /* Ajusta según el contenido del modal en modo delete */
     }
 
     /* 🔥 Cuando el modal está abierto, desenfocar el contenido */

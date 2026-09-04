@@ -58,7 +58,7 @@
                                             <td class="text-end">@item.DisplaySpent.FormatCurrency()</td>
                                             <td class="text-end">
                                                 <span class="@item.Nature.GetPercentageStatusClass(item.Spent, item.Budget)">
-                                                    @item.Difference.FormatCurrencyWithSign()
+                                                    @item.Difference
                                                 </span>
                                             </td>
                                             <td class="text-center">
@@ -87,23 +87,23 @@
                                                             <tbody>
                                                                 @if (item.Transactions.Any())
                                                                 {
-                                                                    @foreach (var t in item.Transactions)
+                                                                    @foreach (var itemValue in item.Transactions)
                                                                     {
                                                                         <tr>
-                                                                            <td style="white-space: nowrap;">@t.Date.Day</td>
-                                                                            <td style="white-space: nowrap;">@t.Name</td>
+                                                                            <td style="white-space: nowrap;">@itemValue.Date.Day</td>
+                                                                            <td style="white-space: nowrap;">@itemValue.Name</td>
                                                                             @if (item.Transactions.Any(tx => !string.IsNullOrWhiteSpace(tx.Description)))
                                                                             {
-                                                                                <td style="white-space: nowrap;">@t.Description</td>
+                                                                                <td style="white-space: nowrap;">@itemValue.Description</td>
                                                                             }
-                                                                            <td class="text-end @(t.TransactionType.GetDisplayByTransactionTypeClass())" style="white-space: nowrap;">
-                                                                                @(t.FormatCurrencyWithSign())
+                                                                            <td class="text-end @(itemValue.TransactionType.GetDisplayByTransactionTypeClass())" style="white-space: nowrap;">
+                                                                                @itemValue.DisplayAmount
                                                                             </td>
                                                                             <td style="white-space: nowrap;">
-                                                                                <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditTransactionModal(FindTransaction(t.Id)!)">
+                                                                                <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditTransactionModal(FindTransaction(itemValue.Id)!)">
                                                                                     ✏️
                                                                                 </button>
-                                                                                <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteTransactionModal(FindTransaction(t.Id)!)">
+                                                                                <button class="btn btn-outline-danger btn-sm" @onclick="() => OpenDeleteTransactionModal(FindTransaction(itemValue.Id)!)">
                                                                                     🗑️
                                                                                 </button>
                                                                             </td>

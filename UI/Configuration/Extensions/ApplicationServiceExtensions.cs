@@ -16,6 +16,8 @@ namespace UI.Configuration.Extensions
             services.AddScoped<IThemeService, ThemeService>();
 
             services.AddScoped<ILogService, LogService>();
+            
+            services.AddScoped<LoadingService>();
 
             services.AddScoped<APIService>();
 
