@@ -27,7 +27,33 @@ namespace UI.Pages
         private MonthDetailModel? _currentMonthData;
         private bool _isLoading = true;
         private Dictionary<string, bool> _expandedCategories = new();
+        private Dictionary<int, bool> _expandedDays = new();
         private List<CategoryModel> _categories = new();
+
+        private enum ViewModeEnum
+        {
+            Category,
+            Day
+        }
+
+        private ViewModeEnum ViewMode = ViewModeEnum.Category;
+
+        // Método para agrupar transacciones por día
+        private Dictionary<int, List<MonthDetailTransactionModel>> GetTransactionsByDay()
+        {
+            if (_currentMonthData == null) return new();
+
+            return _currentMonthData.Categories
+                .SelectMany(c => c.Transactions)
+                .GroupBy(t => t.Date.Day)
+                .ToDictionary(g => g.Key, g => g.OrderBy(t => t.Date).ToList());
+        }
+
+        private void SetViewMode(ViewModeEnum mode)
+        {
+            ViewMode = mode;
+            StateHasChanged();
+        }
 
         // Modal
         private bool _isTransactionModalOpen = false;
@@ -75,11 +101,14 @@ namespace UI.Pages
                     _annualCache.Add(Year, new List<AnnualDetailModel> { data });
                     _currentMonthData = _annualData.GetMonth(Month);
                     InitializeExpandedCategories();
+                    InitializeExpandedDays();
                 }
                 else
                 {
                     _currentMonthData = new MonthDetailModel();
                 }
+
+
 
                 StateHasChanged();
             }
@@ -107,6 +136,17 @@ namespace UI.Pages
             }
         }
 
+        private void InitializeExpandedDays()
+        {
+            _expandedDays.Clear();
+
+            Dictionary<int, List<MonthDetailTransactionModel>> days = GetTransactionsByDay();
+            foreach (int day in days.Keys)
+            {
+                _expandedDays[day] = true;  // ✅ Todos desplegados
+            }
+        }
+
         private void ToggleExpand(string categoriaNombre)
         {
             if (_expandedCategories.ContainsKey(categoriaNombre))
@@ -120,10 +160,17 @@ namespace UI.Pages
             StateHasChanged();
         }
 
-        private string FormatCurrency(decimal amount)
+        private void ToggleDay(int day)
         {
-            return amount.ToString("C", new CultureInfo("es-ES"));
+            if (_expandedDays.ContainsKey(day))
+                _expandedDays[day] = !_expandedDays[day];
+            else
+                _expandedDays[day] = true;
+
+            StateHasChanged();
         }
+
+        private bool IsDayExpanded(int day) => _expandedDays.ContainsKey(day) && _expandedDays[day];
 
         // ================================================================
         // NAVEGACIÓN

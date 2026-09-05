@@ -164,3 +164,28 @@ tr:hover .expand-icon {
     .card-danger .summary-percent {
         color: var(--color-text-inverse) !important;
     }
+
+.btn-outline-secondary.active {
+    background-color: var(--color-accent) !important;
+    color: var(--color-text-inverse) !important;
+    border-color: var(--color-accent) !important;
+}
+
+/* Día en la vista por día */
+.day-number {
+    font-weight: 600;
+    font-size: 1.1rem;
+    margin-right: 8px;
+}
+
+.day-weekday {
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+}
+
+/* ✅ Deshabilita hover en filas expandidas (Bootstrap) */
+.data-table tbody tr.row-expanded {
+    background-color: transparent !important;
+    --bs-table-bg-state: transparent !important;
+    --bs-table-hover-bg: transparent !important;
+}
