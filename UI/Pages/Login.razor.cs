@@ -23,7 +23,7 @@ namespace UI.Pages
                 if (success)
                 {
 
-                    NavigationManager.NavigateTo("/", true);
+                    NavigationManager.NavigateTo("/dashboard", true);
                 }
                 else
                 {

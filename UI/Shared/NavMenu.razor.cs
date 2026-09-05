@@ -73,15 +73,9 @@ namespace UI.Shared
 
         private async Task Logout()
         {
-            // 🔥 Forzar tema claro antes de cerrar sesión (para que login/register se vean bien)
-            if (ThemeService.IsDark)
-            {
-                await ThemeService.ToggleTheme();   // Cambia a claro
-            }
-
             await AuthService.LogoutAsync();
 
-            NavigationManager.NavigateTo("/login", true);
+            NavigationManager.NavigateTo("/", true);
         }
 
         private async Task ToggleTheme()

@@ -20,6 +20,7 @@
 /* ==================== PÁGINAS ==================== */
 @import url('pages/budgets.css');
 @import url('pages/dashboard.css');
+@import url('pages/home.css');
 @import url('pages/login.css');
 @import url('pages/monthly.css');
 @import url('pages/profile.css');

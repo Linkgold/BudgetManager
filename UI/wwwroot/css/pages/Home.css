@@ -1,0 +1,47 @@
+﻿/* ==================== HOME ==================== */
+
+.home-title {
+    color: var(--color-accent) !important;
+}
+
+.home-subtitle {
+    color: var(--color-text-muted) !important;
+}
+
+.home-divider {
+    border-color: var(--color-border) !important;
+}
+
+.home-card {
+    background-color: var(--color-card) !important;
+    border-color: var(--color-border) !important;
+    color: var(--color-text) !important;
+}
+
+    .home-card .card-title {
+        color: var(--color-text) !important;
+    }
+
+    .home-card .card-text {
+        color: var(--color-text-muted) !important;
+    }
+
+.home-icon {
+    font-size: 3rem;
+}
+
+/* ✅ Botón de tema en Home */
+.home-theme-btn {
+    color: var(--color-text) !important;
+    border-color: var(--color-border) !important;
+}
+
+    .home-theme-btn:hover {
+        background-color: var(--color-surface-light) !important;
+        border-color: var(--color-accent) !important;
+        color: var(--color-text) !important;
+    }
+
+.home-footer {
+    color: var(--color-text-muted) !important;
+}

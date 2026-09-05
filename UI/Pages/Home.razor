@@ -1,7 +1,87 @@
-﻿@page "/Home"
+﻿@page "/"
+@attribute [AllowAnonymous]
 
-<PageTitle>Home</PageTitle>
+<div class="container mt-5">
+    <!-- 🔥 Botón de tema en esquina superior derecha (solo si no está logueado) -->
+    @if (!_isAuthenticated)
+    {
+        <div class="d-flex justify-content-end mb-3">
+            <button class="btn btn-outline-secondary btn-sm" @onclick="ToggleTheme">
+                @(ThemeService.IsDark ? "☀️ Modo claro" : "🌙 Modo oscuro")
+            </button>
+        </div>
+    }
 
-<h1>Bienvenido al Control de Gastos</h1>
+    <div class="row justify-content-center">
+        <div class="col-lg-8 text-center">
+            <h1 class="display-4 fw-bold home-title">
+                💰 Budget Manager
+            </h1>
+            <p class="lead home-subtitle mt-3">
+                Gestiona tus finanzas personales de forma sencilla y eficaz.
+            </p>
+            <hr class="my-4 home-divider" />
 
-<p>Gestiona tus presupuestos, gastos fijos y transacciones de forma sencilla.</p>
+            <!-- Botones según autenticación -->
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                @if (_isAuthenticated)
+                {
+                    <a href="/dashboard" class="btn btn-primary btn-lg">
+                        📈 Ir al Resumen Anual
+                    </a>
+                }
+                else
+                {
+                    <a href="/login" class="btn btn-primary btn-lg">
+                        🔐 Iniciar Sesión
+                    </a>
+                    <a href="/register" class="btn btn-outline-secondary btn-lg">
+                        📝 Registrarse
+                    </a>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Tutorial en 3 pasos -->
+    <div class="row mt-5 g-4">
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-3 home-card">
+                <div class="card-body">
+                    <div class="home-icon">🏷️</div>
+                    <h5 class="card-title mt-2">1. Crea Categorías</h5>
+                    <p class="card-text text-muted">
+                        Organiza tus ingresos y gastos por categorías (Alimentación, Ocio, Nómina, etc.).
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-3 home-card">
+                <div class="card-body">
+                    <div class="home-icon">📊</div>
+                    <h5 class="card-title mt-2">2. Define Presupuestos</h5>
+                    <p class="card-text text-muted">
+                        Asigna presupuestos mensuales a cada categoría y controla tus límites.
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card h-100 text-center p-3 home-card">
+                <div class="card-body">
+                    <div class="home-icon">📒</div>
+                    <h5 class="card-title mt-2">3. Registra Transacciones</h5>
+                    <p class="card-text text-muted">
+                        Añade tus ingresos y gastos diarios, y visualiza tu evolución financiera.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-center mt-5">
+        <p class="home-footer small">© @DateTime.Now.Year Budget Manager - Tu control financiero personal</p>
+    </div>
+</div>

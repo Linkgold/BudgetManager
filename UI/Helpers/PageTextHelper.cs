@@ -47,6 +47,7 @@ namespace UI.Helpers
 
         private static readonly Dictionary<string, Definitions> PageConfig = new()
         {
+            ["Home"] = new Definitions { Title = "Inicio", Icon = "🏠" },
             ["Categories"] = new Definitions { Title = "Categorías", Icon = "🏷️", EntityName = "Categoría", EntityNamePlural = "Categorías" },
             ["Transactions"] = new Definitions { Title = "Transacciones", Icon = "📒", EntityName = "Transacción", EntityNamePlural = "Transacciones" },
             ["Budgets"] = new Definitions { Title = "Presupuestos", Icon = "📊", EntityName = "Presupuesto", EntityNamePlural = "Presupuestos" },
