@@ -243,18 +243,18 @@
                                             @foreach (MonthModel month in MonthHelper.Months)
                                             {
                                                 decimal amount = GetBudgetAmount(category.Id, month.Value, selectedYear);
-                                                <td class="text-center">
+                                                <td class="text-center align-middle">
                                                     <span class=@category.Nature.GetStatusClass()>
                                                         @amount.FormatValidAmount()
                                                     </span>
                                                 </td>
                                             }
-                                            <td class="text-end">
+                                            <td class="text-end align-middle">
                                                 <span class=@category.Nature.GetStatusClass()>
                                                     @GetCategoryTotal(category.Id, selectedYear).FormatCurrency()
                                                 </span>
                                             </td>
-                                            <td class="text-end">
+                                            <td class="text-end align-middle">
                                                 <button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(category.Id, selectedYear)">
                                                     ✏️
                                                 </button>

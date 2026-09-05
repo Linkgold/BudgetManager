@@ -95,7 +95,8 @@ namespace UI.Pages
                              c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
                              (c.Description?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false))
                 .Where(c => !selectedNatureFilter.HasValue || c.Nature == selectedNatureFilter.Value)
-                .OrderBy(c => c.Id)
+                .OrderByNature(c => c.Nature)
+                .ThenBy(c => c.Name)
                 .ToList();
         }
 

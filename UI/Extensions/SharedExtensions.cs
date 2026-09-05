@@ -8,8 +8,6 @@ namespace UI.Extensions
 
         public static string FormatCurrency(this decimal amount) => amount.ToString("C", new CultureInfo("es-ES"));
 
-        public static string FormatCurrencyWithSign(this decimal amount) => $"{(amount >= 0 ? "+" : "-")}{FormatCurrency(amount)}";
-
         public static string FormatValidAmount(this decimal amount) => amount > 0 ? amount.FormatCurrency() : "—";
     }
 }

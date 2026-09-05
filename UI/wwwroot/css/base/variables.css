@@ -67,9 +67,9 @@
     --color-accent-rgb: 52, 152, 219; /* mismo color base */
     --color-accent: #3498DB;
     --color-accent-hover: #2980B9;
-    --color-success: #2ECC71;
-    --color-error: #E74C3C;
-    --color-warning: #F1C40F;
+    --color-success: #27AE60;
+    --color-error: #C0392B;
+    --color-warning: #D4A017;
     --color-secondary: #2C3E50;
     /* Sombras */
     --shadow-color: rgba(0, 0, 0, 0.6);

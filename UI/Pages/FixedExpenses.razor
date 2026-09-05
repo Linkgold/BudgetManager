@@ -177,7 +177,11 @@
                                             <td class="text-start">@item.CategoryName</td>
                                             <td class="text-start">@item.Name</td>
                                             <td class="text-start">@item.Description</td>
-                                            <td class="text-end">@item.Amount.FormatCurrency()</td>
+                                            <td class="text-end">
+                                                <span class="@item.DisplayAmount.GetDisplayClass()">
+                                                    @item.Amount.FormatCurrency()
+                                                </span>
+                                            </td>
                                             <td class="text-center">@MonthHelper.GetMonthName(item.Month)</td>
                                             <td class="text-center">@item.Year</td>
                                             <td class="text-end">

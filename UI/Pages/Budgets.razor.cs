@@ -208,7 +208,8 @@ namespace UI.Pages
                 .Where(c => categoryIds.Contains(c.Id))
                 .Where(c => string.IsNullOrEmpty(searchTerm) ||
                              c.Name.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
-                .OrderBy(c => c.Name)
+                .OrderByNature(c => c.Nature)
+                .ThenBy(c => c.Name)
                 .ToList();
         }
 

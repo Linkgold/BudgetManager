@@ -191,6 +191,7 @@ namespace UI.Pages
             // 🔥 Actualizar el mes actual desde los datos en caché
             _currentMonthData = _annualData?.GetMonth(Month) ?? new MonthDetailModel();
             InitializeExpandedCategories();
+            InitializeExpandedDays();
             StateHasChanged();
 
             await UpdateUrlAsync();
@@ -211,6 +212,7 @@ namespace UI.Pages
             // 🔥 Actualizar el mes actual desde los datos en caché
             _currentMonthData = _annualData?.GetMonth(Month) ?? new MonthDetailModel();
             InitializeExpandedCategories();
+            InitializeExpandedDays();
             StateHasChanged();
 
             await UpdateUrlAsync();

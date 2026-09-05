@@ -136,7 +136,11 @@
 											<td class="text-start">@item.CategoryName</td>
 											<td class="text-start">@item.Name</td>
 											<td class="text-start">@item.Description</td>
-											<td class="text-end @item.GetDisplayAmount().GetDisplayClass()">@item.DisplayAmount</td>
+											<td class="text-end">
+												<span class="@item.GetDisplayAmount().GetDisplayClass()">
+													@item.DisplayAmount.FormatCurrency()
+												</span>
+											</td>
 											<td class="text-end">
 												<button class="btn btn-outline-primary btn-sm me-1" @onclick="() => OpenEditModal(item)">
 													✏️
@@ -160,8 +164,10 @@
 							<tfoot>
 								<tr class="table-secondary fw-bold">
 									<td colspan="4" class="text-end">Total:</td>
-									<td class="text-end @_totalAmount.GetDisplayClass()">
-										@_totalAmount.FormatCurrencyWithSign()
+									<td class="text-end"> 
+										<span class="@_totalAmount.GetDisplayClass()">
+											@_totalAmount.FormatCurrency()
+										</span>
 									</td>
 									<td></td>
 								</tr>

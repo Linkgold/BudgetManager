@@ -162,7 +162,7 @@ namespace UI.Shared
                 Description = _transactionForm.Description,
                 Amount = _transactionForm.Amount,
                 TransactionType = _transactionForm.TransactionType,
-                Date = _transactionForm.Date
+                Date = DateTime.SpecifyKind(_transactionForm.Date, DateTimeKind.Unspecified)
             };
 
             TransactionModel? result = await APIService.CreateTransactionAsync(request);
@@ -185,7 +185,7 @@ namespace UI.Shared
                 Description = _transactionForm.Description,
                 Amount = _transactionForm.Amount,
                 TransactionType = _transactionForm.TransactionType,
-                Date = _transactionForm.Date
+                Date = DateTime.SpecifyKind(_transactionForm.Date, DateTimeKind.Unspecified)
             };
 
             TransactionModel? result = await APIService.UpdateTransactionAsync(_transactionForm.Id, request);

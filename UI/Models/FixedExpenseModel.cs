@@ -1,5 +1,6 @@
 ﻿using Contracts.Enums;
 using Shared.DTOs.Response;
+using UI.Extensions;
 
 namespace UI.Models
 {
@@ -18,6 +19,8 @@ namespace UI.Models
         public int Month { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime? UpdatedAt { get; set; }
+
+        public decimal DisplayAmount => -Amount;
 
         public static FixedExpenseModel FromDTO(FixedExpenseResponseDTO dto, CategoryResponseDTO? category = null)
         {

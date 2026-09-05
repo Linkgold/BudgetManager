@@ -1,7 +1,6 @@
 ﻿using Contracts.Enums;
 using Microsoft.AspNetCore.Components;
 using MudBlazor;
-using Shared.DTOs.Request;
 using UI.Extensions;
 using UI.Helpers;
 using UI.Models;
@@ -214,7 +213,7 @@ namespace UI.Pages
                 );
             }
 
-            _filteredTransactions = query.OrderByDescending(t => t.Date).ToList();
+            _filteredTransactions = query.OrderByDateDescendingAndNature(t => t.Date, t => t.CategoryNature).ToList();
 
             _totalAmount = _filteredTransactions.GetTotalDisplayAmount();
         }
