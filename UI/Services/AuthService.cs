@@ -12,17 +12,26 @@ namespace UI.Services
         private readonly IStorageService _storageService;
         private readonly CustomAuthenticationStateProvider _authStateProvider;
         private readonly ILogService _logService;
+        private readonly LoadingService _loadingService;
 
         private const string TOKEN_KEY = "auth_token";
         private const string USER_NAME_KEY = "user_name";
         private const string USER_EMAIL_KEY = "user_email";
 
-        public AuthService(ILogService logService, HttpClient httpClient, IStorageService storageService, CustomAuthenticationStateProvider authStateProvider)
+        public AuthService
+        (
+            ILogService logService, 
+            HttpClient httpClient, 
+            IStorageService storageService, 
+            CustomAuthenticationStateProvider authStateProvider,
+            LoadingService loadingService
+        )
         {
             _httpClient = httpClient;
             _storageService = storageService;
             _authStateProvider = authStateProvider;
             _logService = logService;
+            _loadingService = loadingService;
         }
 
         public bool IsAuthenticated
@@ -44,6 +53,8 @@ namespace UI.Services
 
         public async Task<bool> LoginAsync(LoginRequestDTO request)
         {
+            _loadingService.Show();
+
             try
             {
                 HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/api/user/login", request);
@@ -85,10 +96,16 @@ namespace UI.Services
             {
                 return false;
             }
+            finally
+            {
+                _loadingService.Hide();
+            }
         }
 
         public async Task<bool> RegisterAsync(CreateUserRequestDTO request)
         {
+            _loadingService.Show();
+
             try
             {
                 HttpResponseMessage response = await _httpClient.PostAsJsonAsync("/api/user/register", request);
@@ -109,6 +126,10 @@ namespace UI.Services
                 await _logService.LogErrorAsync($"Excepción durante el registro para {request.Email}.", ex);
 
                 return false;
+            }
+            finally
+            {
+                _loadingService.Hide();
             }
         }
 
