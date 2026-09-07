@@ -1,20 +1,51 @@
 ﻿using Contracts.Enums;
-using UI.Models.MonthDetail;
+using UI.Pages;
 
 namespace UI.Extensions
 {
     public static class MonthDetailExtensions
     {
-        public static string GetExpandIcon(this Dictionary<string, bool> expandedCategories, string categoryName) => expandedCategories == null ? "▶" : expandedCategories.TryGetValue(categoryName, out bool value) && value ? "▼" : "▶";
+        // ================================================================
+        // CONSTANTES LOCALES
+        // ================================================================
 
-        public static string GetDisplayByTransactionTypeClass(this TransactionTypeEnum typeEnum) => typeEnum == TransactionTypeEnum.Income ? "text-success" : "text-danger";
+        private const string CARD_SUCCESS = "card-success";
+        private const string CARD_DANGER = "card-danger";
+        private const string CARD_INCOME = "income card-success";
+        private const string CARD_EXPENSE = "expense card-danger";
+
+        private const string VIEW_TITLE_CATEGORY = "📊 Presupuestos vs movimientos ejecutados por categoría";
+        private const string VIEW_TITLE_DAY = "🗓️ Movimientos ejecutados por día";
+
+        private const string PERCENTAGE_FORMAT = "F1";
+
+        // ================================================================
+        // MÉTODOS
+        // ================================================================
+
+        public static string GetDisplayByTransactionTypeClass(this TransactionTypeEnum typeEnum) => (typeEnum == TransactionTypeEnum.Income).GetTextClass();
+
+        public static string GetCardTypeClass(this decimal amount) => amount >= 0 ? CARD_SUCCESS : CARD_DANGER;
         
-        public static string FormatCurrencyWithSign(this MonthDetailTransactionModel item) => $"{(item.TransactionType == TransactionTypeEnum.Income ? "+" : "-")}{item.DisplayAmount.FormatCurrency()}";
+        public static string GetExtendedCardTypeClass(this decimal amount) => amount >= 0 ? CARD_INCOME : CARD_EXPENSE;
 
-        public static string GetCardTypeClass(this decimal amount) => amount >= 0 ? "card-success" : "card-danger";
-        
-        public static string GetExtendedCardTypeClass(this decimal amount) => amount >= 0 ? "income card-success" : "expense card-danger";
+        public static string FormatPercentage(this decimal amount) => amount.ToString(PERCENTAGE_FORMAT) + " %";
 
-        public static string FormatPercentage(this decimal amount) => amount.ToString("F1") + " %";
+        internal static string GetViewModeTitle(this ViewModeEnum viewMode)
+        {
+            return viewMode == ViewModeEnum.Category
+                ? VIEW_TITLE_CATEGORY
+                : VIEW_TITLE_DAY;
+        }
+
+        private static string GetExpandIconInternal<TKey>(Dictionary<TKey, bool>? expandedItems, TKey key) where TKey : notnull
+        {
+            return expandedItems != null && expandedItems.TryGetValue(key, out bool value) && value
+                ? Icons.EXPAND_OPEN
+                : Icons.EXPAND_CLOSED;
+        }
+
+        public static string GetExpandIcon(this Dictionary<string, bool> expandedCategories, string categoryName) => GetExpandIconInternal(expandedCategories, categoryName);
+        public static string GetDayExpandIcon(this Dictionary<int, bool> expandedDays, int day) => GetExpandIconInternal(expandedDays, day);
     }
 }

@@ -1,5 +1,4 @@
 ﻿using Microsoft.AspNetCore.Components;
-using System.Globalization;
 using UI.Extensions;
 using UI.Models;
 using UI.Models.Cache;
@@ -10,16 +9,34 @@ using UI.Shared;
 
 namespace UI.Pages
 {
+    internal enum ViewModeEnum
+    {
+        Category,
+        Day
+    }
+
     public partial class MonthDetail : BasePage
     {
+        // ================================================================
+        // 1. INYECCIONES
+        // ================================================================
+
         [Inject]
         private HasDataService HasDataService { get; set; } = default!;
+
+        // ================================================================
+        // 2. PARÁMETROS
+        // ================================================================
 
         [Parameter]
         public int Month { get; set; }
 
         [Parameter]
         public int Year { get; set; }
+
+        // ================================================================
+        // 3. MODELOS Y ESTADO
+        // ================================================================
 
         private readonly CacheDictionary<int, AnnualDetailModel> _annualCache = new();
 
@@ -30,36 +47,16 @@ namespace UI.Pages
         private Dictionary<int, bool> _expandedDays = new();
         private List<CategoryModel> _categories = new();
 
-        private enum ViewModeEnum
-        {
-            Category,
-            Day
-        }
-
         private ViewModeEnum ViewMode = ViewModeEnum.Category;
-
-        // Método para agrupar transacciones por día
-        private Dictionary<int, List<MonthDetailTransactionModel>> GetTransactionsByDay()
-        {
-            if (_currentMonthData == null) return new();
-
-            return _currentMonthData.Categories
-                .SelectMany(c => c.Transactions)
-                .GroupBy(t => t.Date.Day)
-                .ToDictionary(g => g.Key, g => g.OrderBy(t => t.Date).ToList());
-        }
-
-        private void SetViewMode(ViewModeEnum mode)
-        {
-            ViewMode = mode;
-            StateHasChanged();
-        }
 
         // Modal
         private bool _isTransactionModalOpen = false;
         private FormModeEnum _modalMode;
         private TransactionModel? _transactionToModal = null;
 
+        // ================================================================
+        // 4. CICLO DE VIDA
+        // ================================================================
 
         protected override async Task OnParametersSetAsync()
         {
@@ -69,6 +66,10 @@ namespace UI.Pages
             await LoadCategories();
             await LoadDataAsync();
         }
+
+        // ================================================================
+        // 5. CARGA DE DATOS
+        // ================================================================
 
         private async Task LoadCategories()
         {
@@ -81,18 +82,17 @@ namespace UI.Pages
             {
                 _isLoading = true;
 
-                // 🔥 Intentar obtener del caché
                 if (_annualCache.TryGetValue(Year, out List<AnnualDetailModel>? cachedList) &&
                     cachedList != null && cachedList.Count == 1)
                 {
                     _annualData = cachedList[0];
                     _currentMonthData = _annualData.GetMonth(Month);
                     InitializeExpandedCategories();
+                    InitializeExpandedDays();
                     StateHasChanged();
                     return;
                 }
 
-                // 🔥 Si no está en caché, cargar de la API
                 AnnualDetailModel? data = await APIService.GetAnnualDetailAsync(Year);
 
                 if (data != null)
@@ -108,8 +108,6 @@ namespace UI.Pages
                     _currentMonthData = new MonthDetailModel();
                 }
 
-
-
                 StateHasChanged();
             }
             catch (Exception ex)
@@ -122,6 +120,10 @@ namespace UI.Pages
                 _isLoading = false;
             }
         }
+
+        // ================================================================
+        // 6. INICIALIZACIÓN DE EXPANSIÓN
+        // ================================================================
 
         private void InitializeExpandedCategories()
         {
@@ -143,9 +145,13 @@ namespace UI.Pages
             Dictionary<int, List<MonthDetailTransactionModel>> days = GetTransactionsByDay();
             foreach (int day in days.Keys)
             {
-                _expandedDays[day] = true;  // ✅ Todos desplegados
+                _expandedDays[day] = true;
             }
         }
+
+        // ================================================================
+        // 7. MÉTODOS DE EXPANSIÓN (CATEGORÍAS Y DÍAS)
+        // ================================================================
 
         private void ToggleExpand(string categoriaNombre)
         {
@@ -173,7 +179,27 @@ namespace UI.Pages
         private bool IsDayExpanded(int day) => _expandedDays.ContainsKey(day) && _expandedDays[day];
 
         // ================================================================
-        // NAVEGACIÓN
+        // 8. VISTA POR DÍA
+        // ================================================================
+
+        private Dictionary<int, List<MonthDetailTransactionModel>> GetTransactionsByDay()
+        {
+            if (_currentMonthData == null) return new();
+
+            return _currentMonthData.Categories
+                .SelectMany(c => c.Transactions)
+                .GroupBy(t => t.Date.Day)
+                .ToDictionary(g => g.Key, g => g.OrderBy(t => t.Date).ToList());
+        }
+
+        private void SetViewMode(ViewModeEnum mode)
+        {
+            ViewMode = mode;
+            StateHasChanged();
+        }
+
+        // ================================================================
+        // 9. NAVEGACIÓN ENTRE MESES
         // ================================================================
 
         private async Task PreviousMonth()
@@ -188,7 +214,6 @@ namespace UI.Pages
                 Month--;
             }
 
-            // 🔥 Actualizar el mes actual desde los datos en caché
             _currentMonthData = _annualData?.GetMonth(Month) ?? new MonthDetailModel();
             InitializeExpandedCategories();
             InitializeExpandedDays();
@@ -209,7 +234,6 @@ namespace UI.Pages
                 Month++;
             }
 
-            // 🔥 Actualizar el mes actual desde los datos en caché
             _currentMonthData = _annualData?.GetMonth(Month) ?? new MonthDetailModel();
             InitializeExpandedCategories();
             InitializeExpandedDays();
@@ -224,7 +248,7 @@ namespace UI.Pages
         }
 
         // ================================================================
-        // MODAL DE TRANSACCIONES
+        // 10. MODAL DE TRANSACCIONES
         // ================================================================
 
         private void OpenCreateTransactionModal()
@@ -263,10 +287,8 @@ namespace UI.Pages
             _isTransactionModalOpen = false;
             _transactionToModal = null;
 
-            // Refrescar caché de HasData
             await HasDataService.RefreshAsync();
 
-            // Recargar datos (forzar refresco de caché anual)
             _annualCache.Remove(Year);
             await LoadDataAsync();
             StateHasChanged();
@@ -276,11 +298,11 @@ namespace UI.Pages
         {
             _isTransactionModalOpen = false;
             _transactionToModal = null;
-            StateHasChanged();  // Solo actualizar la UI sin recargar datos
+            StateHasChanged();
         }
 
         // ================================================================
-        // MÉTODO PARA ENCONTRAR UNA TRANSACCIÓN
+        // 11. MÉTODOS AUXILIARES
         // ================================================================
 
         private TransactionModel? FindTransaction(int transactionId)

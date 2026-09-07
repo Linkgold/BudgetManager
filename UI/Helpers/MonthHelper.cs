@@ -1,4 +1,5 @@
-﻿using UI.Models;
+﻿using System.Globalization;
+using UI.Models;
 
 namespace UI.Helpers
 {
@@ -52,5 +53,7 @@ namespace UI.Helpers
             int lastDay = DateTime.DaysInMonth(year, month);
             return new DateTime(year, month, lastDay);
         }
+
+        public static string GetDayOfWeekFull(int day, int month, int year) => new DateTime(year, month, day).ToString("dddd", new CultureInfo("es-ES"));
     }
 }

@@ -9,23 +9,31 @@ namespace UI.Shared
         private LoadingService LoadingService { get; set; } = default!;
 
         private bool _isLoading = false;
+        private string _loadingMessage = "Cargando datos...";
 
         protected override async Task OnInitializedAsync()
         {
             await ThemeService.LoadTheme();
             ThemeService.ThemeChanged += OnThemeChanged;
             LoadingService.OnLoadingChanged += OnLoadingChanged;
+            LoadingService.OnLoadingTextChanged += OnLoadingTextChanged;
         }
 
         private void OnThemeChanged()
         {
-            // 🔥 Forzar la actualización de la interfaz
             StateHasChanged();
         }
 
         private void OnLoadingChanged()
         {
             _isLoading = LoadingService.IsLoading;
+            _loadingMessage = LoadingService.CurrentMessage;
+            InvokeAsync(StateHasChanged);
+        }
+
+        private void OnLoadingTextChanged(string message)
+        {
+            _loadingMessage = message;
             InvokeAsync(StateHasChanged);
         }
 
@@ -33,6 +41,8 @@ namespace UI.Shared
         {
             ThemeService.ThemeChanged -= OnThemeChanged;
             LoadingService.OnLoadingChanged -= OnLoadingChanged;
+            LoadingService.OnLoadingTextChanged -= OnLoadingTextChanged;
+            LoadingService.Dispose();
         }
     }
 }

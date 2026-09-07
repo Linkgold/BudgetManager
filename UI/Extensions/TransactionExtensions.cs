@@ -22,8 +22,8 @@ namespace UI.Extensions
 
             return categoryNature switch
             {
-                CategoryNatureEnum.Income => "💰 Ingreso",
-                CategoryNatureEnum.Expense => "💳 Gasto",
+                CategoryNatureEnum.Income => $"{Icons.INCOME} {Labels.INCOME}",
+                CategoryNatureEnum.Expense => $"{Icons.EXPENSE} {Labels.EXPENSE}",
                 _ => string.Empty
             };
         }

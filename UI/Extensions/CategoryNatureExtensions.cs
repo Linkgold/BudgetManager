@@ -4,6 +4,22 @@ namespace UI.Extensions
 {
     public static class CategoryNatureExtensions
     {
+        // ================================================================
+        // CONSTANTES LOCALES
+        // ================================================================
+
+        private const string CIRCLE_COLOR_GREEN = "green";
+        private const string CIRCLE_COLOR_YELLOW = "yellow";
+        private const string CIRCLE_COLOR_RED = "red";
+        public const string BADGE_INCOME = "bg-success";
+        public const string BADGE_EXPENSE = "bg-danger";
+        public const string BADGE_MIXED = "bg-warning text-dark";
+        public const string BADGE_DEFAULT = "bg-secondary";
+
+        // ================================================================
+        // MÉTODOS
+        // ================================================================
+
         private static readonly Dictionary<CategoryNatureEnum, int> _order = new()
         {
             { CategoryNatureEnum.Income, 0 },
@@ -30,7 +46,7 @@ namespace UI.Extensions
             this IEnumerable<T> source,
             Func<T, CategoryNatureEnum> natureSelector,
             Func<T, decimal> budgetSelector // ✅ Recibe el budget directamente
-        ) 
+        )
         {
             return source
                 .OrderByNature(natureSelector)
@@ -42,10 +58,10 @@ namespace UI.Extensions
         {
             return nature switch
             {
-                CategoryNatureEnum.Income => "bg-success",
-                CategoryNatureEnum.Expense => "bg-danger",
-                CategoryNatureEnum.Mixed => "bg-warning text-dark",
-                _ => "bg-secondary"
+                CategoryNatureEnum.Income => BADGE_INCOME,
+                CategoryNatureEnum.Expense => BADGE_EXPENSE,
+                CategoryNatureEnum.Mixed => BADGE_MIXED,
+                _ => BADGE_DEFAULT
             };
         }
 
@@ -53,10 +69,10 @@ namespace UI.Extensions
         {
             return nature switch
             {
-                CategoryNatureEnum.Income => "💰",
-                CategoryNatureEnum.Expense => "💳",
-                CategoryNatureEnum.Mixed => "🔄",
-                _ => "❓"
+                CategoryNatureEnum.Income => Icons.INCOME,
+                CategoryNatureEnum.Expense => Icons.EXPENSE,
+                CategoryNatureEnum.Mixed => Icons.MIXED,
+                _ => Icons.UNKNOWN
             };
         }
 
@@ -64,10 +80,10 @@ namespace UI.Extensions
         {
             return nature switch
             {
-                CategoryNatureEnum.Income => "Ingreso",
-                CategoryNatureEnum.Expense => "Gasto",
-                CategoryNatureEnum.Mixed => "Mixto",
-                _ => "Desconocido"
+                CategoryNatureEnum.Income => Labels.INCOME,
+                CategoryNatureEnum.Expense => Labels.EXPENSE,
+                CategoryNatureEnum.Mixed => Labels.MIXED,
+                _ => Labels.UNKNOWN
             };
         }
 
@@ -76,65 +92,56 @@ namespace UI.Extensions
         /// </summary>
         public static string GetPercentageStatusClass(this CategoryNatureEnum nature, decimal spent, decimal budget)
         {
+            if (budget == 0 && spent == 0) return CssClasses.MUTED;
+
+            if (budget == 0)
+            {
+                return (spent > 0).GetTextClass();
+            }
+
             spent = Math.Abs(spent);
             budget = Math.Abs(budget);
-
-            if (budget == 0) return "text-muted";
 
             decimal percentage = (spent / budget) * 100;
 
             if (nature == CategoryNatureEnum.Income)
             {
-                if (percentage >= 100)
+                return percentage switch
                 {
-                    return "text-success";
-                }
-                else if (percentage >= 80)
-                {
-                    return "text-warning";
-                }
-                else
-                {
-                    return "text-danger";
-                }
+                    >= 100 => CssClasses.SUCCESS,
+                    >= 80 => CssClasses.WARNING,
+                    _ => CssClasses.DANGER
+                };
             }
             else
             {
-                if (percentage < 80)
+                if (percentage <= 100)
                 {
-                    return "text-success";
+                    return CssClasses.SUCCESS;
                 }
-                else if (percentage <= 100)
-                {
-                    return "text-warning";
-                }
-                else
-                {
-                    return "text-danger";
-                }
+
+                // Calcular desviación sobre el presupuesto
+                decimal deviation = percentage - 100;
+
+                // 🔥 UMBRAL DINÁMICO: cuanto más alto el presupuesto, menos tolerancia
+                // Escala: presupuesto de 100€ → 40% de tolerancia, presupuesto de 1000€ → 10% de tolerancia
+                decimal tolerance = Math.Max(10, 40 - (budget / 25)); // Ajusta la fórmula según tus necesidades
+
+                // Si la desviación supera la tolerancia dinámica → rojo, sino naranja
+                return deviation > tolerance ? CssClasses.DANGER : CssClasses.WARNING;
             }
         }
 
         public static string GetStatusCircleClass(this CategoryNatureEnum nature, decimal spent, decimal budget)
         {
-            string textClass = nature.GetPercentageStatusClass(spent, budget);
-
-            return textClass switch
+            return nature.GetPercentageStatusClass(spent, budget) switch
             {
-                "text-success" => "green",
-                "text-warning" => "yellow",
-                "text-danger" => "red",
-                _ => "green"
+                CssClasses.WARNING => CIRCLE_COLOR_YELLOW,
+                CssClasses.DANGER => CIRCLE_COLOR_RED,
+                _ => CIRCLE_COLOR_GREEN
             };
         }
 
-        public static string GetStatusClass(this CategoryNatureEnum nature)
-        {
-            return nature switch
-            {
-                CategoryNatureEnum.Income => "text-success",
-                _ => "text-danger"
-            };
-        }
+        public static string GetStatusClass(this CategoryNatureEnum nature) => (nature == CategoryNatureEnum.Income).GetTextClass();
     }
 }

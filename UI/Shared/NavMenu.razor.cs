@@ -81,6 +81,7 @@ namespace UI.Shared
         private async Task ToggleTheme()
         {
             await ThemeService.ToggleTheme();
+            CloseMenu();
         }
 
         public void Dispose()

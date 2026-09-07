@@ -149,8 +149,8 @@
         .budgets-table tfoot td:first-child,
         .budgets-table tfoot td:nth-last-child(2),
         .budgets-table tfoot td:last-child {
-            background-color: var(--color-surface-light) !important;
-            color: var(--color-text) !important;
+            background-color: var(--color-secondary) !important;
+            color: var(--color-text-inverse) !important;
         }
 
         .budgets-table tfoot td:first-child {
@@ -307,3 +307,11 @@
         padding: 2px 6px;
         font-size: 0.75rem;
     }
+
+/* 🔥 Pie de tabla consistente con el resto de la aplicación */
+.budgets-table tfoot tr,
+.budgets-table tfoot td {
+    background-color: var(--color-secondary) !important;
+    color: var(--color-text-inverse) !important;
+    border-top: 2px solid var(--color-border) !important;
+}
