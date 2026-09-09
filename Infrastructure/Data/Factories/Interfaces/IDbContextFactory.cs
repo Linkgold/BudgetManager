@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace Infrastructure.Data.Factories
+namespace Infrastructure.Data.Factories.Interfaces
 {
     /// <summary>
     /// Interfaz para la fábrica de DbContext
@@ -17,5 +17,11 @@ namespace Infrastructure.Data.Factories
         /// Obtiene las opciones de configuración del DbContext
         /// </summary>
         DbContextOptions<ApplicationDbContext> GetOptions();
+
+        /// <summary>
+        /// Obtiene la cadena de conexión de la base de datos
+        /// </summary>
+        /// <returns></returns>
+        string GetConnectionString();
     }
 }

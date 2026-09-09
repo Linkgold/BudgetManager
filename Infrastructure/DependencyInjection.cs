@@ -1,7 +1,9 @@
 ﻿using Domain.Interfaces;
 using Domain.Interfaces.Managers;
 using Infrastructure.Data;
+using Infrastructure.Data.Backup;
 using Infrastructure.Data.Factories;
+using Infrastructure.Data.Factories.Interfaces;
 using Infrastructure.Repositories;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,6 +38,15 @@ namespace Infrastructure
                     return factory.CreateDbContext();
                 }
             );
+
+            // Registrar configuración de backup
+            services.Configure<BackupSettings>(configuration.GetSection("Database:BackupSettings"));
+
+            // Registrar el orquestador
+            services.AddScoped<IBackupOrchestrator, BackupOrchestrator>();
+
+            // Registrar el worker de backup
+            services.AddHostedService<BackupScheduler>();
 
             // Registrar repositorios
             services.AddScoped<ITransactionManager, TransactionManager>();

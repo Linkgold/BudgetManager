@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using Infrastructure.Data.Factories.Interfaces;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure.Data.Factories
@@ -6,7 +7,7 @@ namespace Infrastructure.Data.Factories
     /// <summary>
     /// Fábrica para crear DbContext con SQLite
     /// </summary>
-    public class SqliteDbContextFactory : IDbContextFactory
+    public class SqliteDbContextFactory : IDbContextFactory, IDatabaseBackup
     {
         private readonly string _connectionString;
         private DbContextOptions<ApplicationDbContext>? _options;
@@ -20,6 +21,10 @@ namespace Infrastructure.Data.Factories
 
             EnsureDirectoryExists(_connectionString);
         }
+
+        // ========== Implementación de IDbContextFactory ==========
+
+        public string GetConnectionString() => _connectionString;
 
         public ApplicationDbContext CreateDbContext()
         {
@@ -57,6 +62,33 @@ namespace Infrastructure.Data.Factories
             _options = optionsBuilder.Options;
             return _options;
         }
+
+        // ========== Implementación de IDatabaseBackup ==========
+
+        public Task BackupAsync(string destinationPath)
+        {
+            if (string.IsNullOrWhiteSpace(destinationPath))
+                throw new ArgumentException("Destination path cannot be empty", nameof(destinationPath));
+
+            // Obtener la ruta del archivo desde la connection string
+            SqliteConnectionStringBuilder builder = new SqliteConnectionStringBuilder(_connectionString);
+            string sourcePath = builder.DataSource;
+
+            if (!File.Exists(sourcePath))
+                throw new FileNotFoundException($"SQLite database file not found at {sourcePath}");
+
+            // Crear directorio de destino si no existe
+            string? destinationDir = Path.GetDirectoryName(destinationPath);
+            if (!string.IsNullOrEmpty(destinationDir))
+                Directory.CreateDirectory(destinationDir);
+
+            // Copiar el archivo (sobrescribe si existe)
+            File.Copy(sourcePath, destinationPath, overwrite: true);
+
+            return Task.CompletedTask;
+        }
+
+        // ========== Método privado auxiliar ==========
 
         private void EnsureDirectoryExists(string connectionString)
         {

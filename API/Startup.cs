@@ -9,7 +9,7 @@ using AutoMapper;
 using FluentValidation;
 using Infrastructure;
 using Infrastructure.Data;
-using Infrastructure.Data.Factories;
+using Infrastructure.Data.Factories.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
@@ -126,17 +126,17 @@ namespace API
         private void ConfigureInfrastructure(IServiceCollection services)
         {
             // Obtener el tipo de base de datos desde configuración
-            string? databaseTypeString = _configuration["DatabaseType"];
+            string? databaseEngineString = _configuration["Database:Engine"];
 
-            if (string.IsNullOrEmpty(databaseTypeString)) throw new InvalidOperationException("DatabaseType not configured in appsettings.json");
+            if (string.IsNullOrEmpty(databaseEngineString)) throw new InvalidOperationException("Database:Engine not configured in appsettings.json");
 
             // Convertir a enum
-            bool parseSuccess = Enum.TryParse<DatabaseTypeEnum>(databaseTypeString, true, out DatabaseTypeEnum databaseType);
+            bool parseSuccess = Enum.TryParse<DatabaseTypeEnum>(databaseEngineString, true, out DatabaseTypeEnum databaseEngine);
 
-            if (!parseSuccess) throw new InvalidOperationException($"DatabaseType '{databaseTypeString}' is not valid");
+            if (!parseSuccess) throw new InvalidOperationException($"Database Engine '{databaseEngineString}' is not valid");
 
             // Registrar servicios de Infrastructure
-            services.AddInfrastructureServices(_configuration, databaseType);
+            services.AddInfrastructureServices(_configuration, databaseEngine);
         }
 
         /// <summary>
