@@ -80,7 +80,7 @@
                                                 @onclick="() => NavigateToMonth(month.Value)"
                                                 @onmouseenter="() => SetHoverMonth(month.Value)"
                                                 @onmouseleave="() => SetHoverMonth(null)">
-                                                @if (data != null)
+                                                @if (data != null && (data.DisplayBudget != 0 || data.DisplaySpent != 0))
                                                 {
                                                     <div>
                                                         <span class="@category.Nature.GetPercentageStatusClass(data.Spent, data.Budget)">

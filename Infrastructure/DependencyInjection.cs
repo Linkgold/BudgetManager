@@ -43,7 +43,7 @@ namespace Infrastructure
             services.Configure<BackupSettings>(configuration.GetSection("Database:BackupSettings"));
 
             // Registrar el orquestador
-            services.AddScoped<IBackupOrchestrator, BackupOrchestrator>();
+            services.AddSingleton<IBackupOrchestrator, BackupOrchestrator>();
 
             // Registrar el worker de backup
             services.AddHostedService<BackupScheduler>();

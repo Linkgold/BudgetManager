@@ -104,8 +104,7 @@ namespace Infrastructure.Data.Backup
                 throw new InvalidOperationException("La fábrica no devolvió una cadena de conexión válida.");
             }
 
-            Microsoft.Data.Sqlite.SqliteConnectionStringBuilder builder =
-                new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString);
+            Microsoft.Data.Sqlite.SqliteConnectionStringBuilder builder = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString);
             string dataSource = builder.DataSource;
 
             if (string.IsNullOrEmpty(dataSource))
@@ -117,7 +116,7 @@ namespace Infrastructure.Data.Backup
 
             if (string.IsNullOrEmpty(directory))
             {
-                throw new InvalidOperationException("No se pudo determinar el directorio de la base de datos.");
+                    directory = AppDomain.CurrentDomain.BaseDirectory;
             }
 
             return Path.Combine(directory, _settings.BackupDirectory);
