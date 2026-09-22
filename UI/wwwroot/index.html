@@ -5,19 +5,20 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-    <meta http-equiv="Content-Security-Policy" content="
-        default-src 'self';
-        script-src 'self' 'wasm-unsafe-eval';
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        font-src 'self' https://fonts.gstatic.com;
-        img-src 'self' data:;
-        connect-src 'self' https://localhost:7131;
-        object-src 'none';
-        frame-src 'none';
-        frame-ancestors 'none';
-        base-uri 'self';
-        form-action 'self';
-        ">
+    <!-- ✅ Content Security Policy (CSP)
+        <meta http-equiv="Content-Security-Policy" content="
+            default-src 'self';
+            script-src 'self' 'wasm-unsafe-eval';
+            style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+            font-src 'self' https://fonts.gstatic.com;
+            img-src 'self' data:;
+            connect-src 'self' https://localhost:7131;
+            object-src 'none';
+            frame-src 'none';
+            frame-ancestors 'none';
+            base-uri 'self';
+            form-action 'self';
+            "> -->
 
     <style>
         .blazor-error-boundary::after {
@@ -44,21 +45,21 @@
 
 </head>
 
-    <body>
-        <div id="app">
-            <div class="loader-bar"></div>
-            <div class="loader-text">Cargando...</div>
-        </div>
+<body>
+    <div id="app">
+        <div class="loader-bar"></div>
+        <div class="loader-text">Cargando...</div>
+    </div>
 
-        <div id="blazor-error-ui">
-            An unhandled error has occurred.
-            <a href="." class="reload">Reload</a>
-            <span class="dismiss">🗙</span>
-        </div>
+    <div id="blazor-error-ui">
+        An unhandled error has occurred.
+        <a href="." class="reload">Reload</a>
+        <span class="dismiss">🗙</span>
+    </div>
 
-        <script src="js/site.js"></script>
-        <script src="_content/MudBlazor/MudBlazor.min.js"></script>
-        <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
+    <script src="js/site.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_framework/blazor.webassembly#[.{fingerprint}].js"></script>
 
-    </body>
+</body>
 </html>
