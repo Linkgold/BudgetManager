@@ -44,14 +44,22 @@ namespace UI.Helpers
 
         public static DateTime GetDefaultDate(int month, int year)
         {
-            if (month == DateTime.Now.Month && year == DateTime.Now.Year)
+            DateTime now = DateTime.Now;
+
+            if (year == now.Year && month == now.Month)
             {
-                return DateTime.Now;
+                // ✅ Mes actual → día actual
+                return now;
+            }
+            else if (year < now.Year || (year == now.Year && month < now.Month))
+            {
+                // ✅ Mes pasado → último día del mes
+                int lastDay = DateTime.DaysInMonth(year, month);
+                return new DateTime(year, month, lastDay);
             }
 
-            // ✅ Usar el último día del mes seleccionado
-            int lastDay = DateTime.DaysInMonth(year, month);
-            return new DateTime(year, month, lastDay);
+            // ✅ Mes futuro → primer día del mes
+            return new DateTime(year, month, 1);
         }
 
         public static string GetDayOfWeekFull(int day, int month, int year) => new DateTime(year, month, day).ToString("dddd", new CultureInfo("es-ES"));

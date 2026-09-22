@@ -233,13 +233,10 @@ namespace UI.Pages
         {
             CategoryModel? defaultCategory = _categories.OrderBy(c => c.Name).FirstOrDefault();
 
-            // ✅ Determinar la fecha por defecto según los filtros
-            DateTime defaultDate = MonthHelper.GetDefaultDate(_selectedMonth, _selectedYear);
-
             _transactionToModal = new TransactionModel
             {
                 CategoryId = defaultCategory?.Id ?? 0,
-                Date = defaultDate,
+                Date = MonthHelper.GetDefaultDate(_selectedMonth, _selectedYear), // ✅ Determinar la fecha por defecto según los filtros
                 Amount = 0m
             };
 

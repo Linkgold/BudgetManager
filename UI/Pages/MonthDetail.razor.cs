@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Components;
 using UI.Extensions;
+using UI.Helpers;
 using UI.Models;
 using UI.Models.Cache;
 using UI.Models.Forms;
@@ -39,6 +40,7 @@ namespace UI.Pages
         // ================================================================
 
         private readonly CacheDictionary<int, AnnualDetailModel> _annualCache = new();
+        private Dictionary<int, string>? _categoryNameByTransactionId;
 
         private AnnualDetailModel? _annualData;
         private MonthDetailModel? _currentMonthData;
@@ -253,11 +255,9 @@ namespace UI.Pages
 
         private void OpenCreateTransactionModal()
         {
-            DateTime defaultDate = new DateTime(Year, Month, 1);
-
             _transactionToModal = new TransactionModel
             {
-                Date = defaultDate,
+                Date = MonthHelper.GetDefaultDate(Month, Year),
                 Amount = 0m
             };
 
@@ -330,6 +330,25 @@ namespace UI.Pages
             }
 
             return null;
+        }
+
+        private string? GetCategoryName(int transactionId)
+        {
+            // Construir diccionario la primera vez (lazy)
+            if (_categoryNameByTransactionId == null && _currentMonthData != null)
+            {
+                _categoryNameByTransactionId = new Dictionary<int, string>();
+
+                foreach (MonthDetailCategoryModel category in _currentMonthData.Categories)
+                {
+                    foreach (MonthDetailTransactionModel t in category.Transactions)
+                    {
+                        _categoryNameByTransactionId[t.Id] = category.CategoryName;
+                    }
+                }
+            }
+
+            return _categoryNameByTransactionId?.GetValueOrDefault(transactionId);
         }
     }
 }

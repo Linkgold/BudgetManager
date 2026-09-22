@@ -159,13 +159,17 @@
                             <table class="data-table table table-hover mb-0">
                                 <thead>
                                     <tr>
-                                        <th style="width: 30px;"></th>
+                                        <th style="width: 30px;">
+                                            <button class="btn btn-outline-primary btn-sm ms-2" @onclick:stopPropagation @onclick="() => OpenCreateTransactionModal()" style="padding: 0 6px; font-size: 0.7rem;">
+                                                ➕
+                                            </button>
+                                        </th>
                                         <th class="text-start">Día</th>
                                         <th class="text-end">Total</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    @foreach (KeyValuePair<int, List<MonthDetailTransactionModel>> dayGroup in days.OrderBy(d => d.Key))
+                                    @foreach (KeyValuePair<int, List<MonthDetailTransactionModel>> dayGroup in days.OrderByDescending(d => d.Key))
                                     {
                                         int day = dayGroup.Key;
                                         List<MonthDetailTransactionModel> transactions = dayGroup.Value;
@@ -195,8 +199,8 @@
                                                         <table class="table table-sm table-borderless mb-0" style="width: auto; min-width: 300px;">
                                                             <thead>
                                                                 <tr>
-                                                                    <th style="white-space: nowrap;">Concepto</th>
                                                                     <th style="white-space: nowrap;">Categoría</th>
+                                                                    <th style="white-space: nowrap;">Concepto</th>
                                                                     @if (hasAnyDescription)
                                                                     {
                                                                         <th style="white-space: nowrap;">Descripción</th>
@@ -208,10 +212,9 @@
                                                             <tbody>
                                                                 @foreach (MonthDetailTransactionModel t in transactions)
                                                                 {
-                                                                    MonthDetailCategoryModel? category = _currentMonthData?.Categories.FirstOrDefault(c => c.Transactions.Contains(t));
                                                                     <tr>
+                                                                        <td style="white-space: nowrap;">@GetCategoryName(t.Id)</td>
                                                                         <td style="white-space: nowrap;">@t.Name</td>
-                                                                        <td style="white-space: nowrap;">@category?.CategoryName</td>
                                                                         @if (hasAnyDescription)
                                                                         {
                                                                             <td style="white-space: nowrap;">@t.Description</td>
